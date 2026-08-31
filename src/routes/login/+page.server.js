@@ -1,0 +1,76 @@
+import { db, hashPassword } from '$lib/server/db.js';
+import { redirect, fail } from '@sveltejs/kit';
+
+export function load({ locals }) {
+	// If already logged in, redirect to appropriate page
+	if (locals.user) {
+		if (locals.user.role === 'customer') {
+			throw redirect(303, '/customer');
+		} else {
+			throw redirect(303, '/worker');
+		}
+	}
+	return {};
+}
+
+export const actions = {
+	default: async ({ request, cookies }) => {
+		const data = await request.formData();
+		const email = data.get('email')?.toString().trim();
+		const password = data.get('password')?.toString();
+
+		console.log('--- LOGIN SUBMISSION ---');
+		console.log('Email:', email);
+
+		if (!email || !password) {
+			console.warn('⚠️ Validation failed: Missing email or password.');
+			return fail(400, { error: 'Please enter your email and password.', email });
+		}
+
+		try {
+			console.log('Calling db.users.findByEmail...');
+			const user = await db.users.findByEmail(email);
+
+			if (!user) {
+				console.warn('⚠️ User not found in database:', email);
+				return fail(400, { error: 'Incorrect email or password. Please try again.', email });
+			}
+
+			console.log('User found. Comparing password hashes...');
+			if (user.password_hash !== hashPassword(password)) {
+				console.warn('⚠️ Password hash mismatch for user:', email);
+				return fail(400, { error: 'Incorrect email or password. Please try again.', email });
+			}
+
+			console.log('✅ Authentication successful! User ID:', user.id);
+
+			// Set session cookie (expires in 7 days)
+			cookies.set('session_id', user.id, {
+				path: '/',
+				httpOnly: true,
+				sameSite: 'strict',
+				maxAge: 60 * 60 * 24 * 7
+			});
+
+			console.log('Session cookie set. Redirecting to dashboard...');
+			// Redirect based on role
+			if (user.role === 'customer') {
+				throw redirect(303, '/customer');
+			} else {
+				throw redirect(303, '/worker');
+			}
+		} catch (error) {
+			// Catch SvelteKit redirect exceptions to propagate them
+			if (error.status === 303) {
+				console.log('Redirecting user...');
+				throw error;
+			}
+			
+			console.error('❌ Login failed with error:', error);
+			return fail(400, { 
+				error: error.message || 'An error occurred during log in.', 
+				email 
+			});
+		}
+	}
+};
