@@ -111,8 +111,8 @@
 			{:else if profileData && profileData.user}
 				{@const user = profileData.user}
 				{@const stats = profileData.stats}
-				{@const completedJobs = profileData.completedJobs || []}
-				{@const allPosts = profileData.allPosts || []}
+				{@const completedJobs = [...(profileData.completedJobs || [])].sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())}
+				{@const allPosts = [...(profileData.allPosts || [])].sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())}
 				{@const isSelf = user.id === currentUserId}
 
 				<!-- Header Cover & Avatar Section -->

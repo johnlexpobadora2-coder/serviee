@@ -186,7 +186,8 @@ export const db = {
 			const supabase = getSupabase();
 			const { data, error } = await supabase
 				.from('job_posts')
-				.select('*');
+				.select('*')
+				.order('created_at', { ascending: false });
 			if (error) throw new Error(error.message);
 			return data || [];
 		},
@@ -196,7 +197,8 @@ export const db = {
 			const { data, error } = await supabase
 				.from('job_posts')
 				.select('*')
-				.eq('customer_id', customerId);
+				.eq('customer_id', customerId)
+				.order('created_at', { ascending: false });
 			if (error) throw new Error(error.message);
 			return data || [];
 		},
@@ -206,7 +208,8 @@ export const db = {
 			const { data, error } = await supabase
 				.from('job_posts')
 				.select('*')
-				.eq('worker_id', workerId);
+				.eq('worker_id', workerId)
+				.order('created_at', { ascending: false });
 			if (error) throw new Error(error.message);
 			return data || [];
 		},
@@ -255,7 +258,8 @@ export const db = {
 			const { data, error } = await supabase
 				.from('ratings_reviews')
 				.select('*')
-				.eq('worker_id', workerId);
+				.eq('worker_id', workerId)
+				.order('created_at', { ascending: false });
 			if (error) throw new Error(error.message);
 			return data || [];
 		},
@@ -265,7 +269,8 @@ export const db = {
 			const { data, error } = await supabase
 				.from('ratings_reviews')
 				.select('*')
-				.eq('customer_id', customerId);
+				.eq('customer_id', customerId)
+				.order('created_at', { ascending: false });
 			if (error) throw new Error(error.message);
 			return data || [];
 		},

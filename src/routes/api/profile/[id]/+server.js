@@ -37,7 +37,9 @@ export async function GET({ params, locals }) {
 				...workerStats
 			};
 			const allWorkerJobs = await db.jobs.listByWorker(userId);
-			completedJobs = allWorkerJobs.filter(j => j.status === 'completed');
+			completedJobs = allWorkerJobs
+				.filter(j => j.status === 'completed')
+				.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
 		} else if (targetUser.role === 'customer') {
 			const [customerJobs, customerReviews] = await Promise.all([
 				db.jobs.listByCustomer(userId),
@@ -58,7 +60,7 @@ export async function GET({ params, locals }) {
 					assignedWorker: worker ? { id: worker.id, name: worker.name, phone: worker.phone } : null,
 					review
 				};
-			});
+			}).sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
 
 			completedJobs = allPosts.filter(j => j.status === 'completed');
 			stats = {
