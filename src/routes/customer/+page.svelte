@@ -1,12 +1,13 @@
 <script>
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
-	import { MessageSquare, Pin, RefreshCw, Star, UserCheck, Plus, User } from 'lucide-svelte';
+	import { MessageSquare, Pin, RefreshCw, Star, UserCheck, Plus, User, ClipboardList, CheckCircle2, Clock } from 'lucide-svelte';
 	import ViewProfileModal from '$lib/ViewProfileModal.svelte';
 
 	let { data, form } = $props();
 
 	let activeTab = $state('feed'); // 'feed' | 'my-jobs' | 'chat' | 'profile'
+	let historySubTab = $state('posted'); // 'posted' | 'completed'
 	let activeConvId = $state('');
 	let newMessageContent = $state('');
 	let sendingMessage = $state(false);
@@ -669,47 +670,133 @@
 				</div>
 			</aside>
 
-			<!-- Right Column: History of Transactions -->
+			<!-- Right Column: History of Transactions with 2 Sub-tabs -->
 			<section style="display: flex; flex-direction: column; gap: 1.25rem;">
-				<h3 style="font-size: 1.5rem; margin: 0;">History of Transactions ({completedJobs.length})</h3>
-				
-				{#if completedJobs.length === 0}
-					<div class="card" style="text-align: center; padding: 4rem 2rem; border-style: dashed;">
-						<h4 style="font-size: 1.25rem; margin-bottom: 0.5rem;">No completed transactions yet.</h4>
-						<p style="color: var(--text-secondary); font-size: 0.9rem;">
-							Your past completed job postings will appear here in your transaction history.
-						</p>
-					</div>
-				{:else}
-					{#each completedJobs as job (job.id)}
-						<div class="card" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
-							<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
-								<div>
-									<h3 style="font-size: 1.35rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
-										{job.title}
-									</h3>
-									<div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
-										<span class="badge {getCategoryBadge(job.category)}">{job.category}</span>
-										<span class="status status-completed">Completed</span>
-										<span style="font-size: 0.8rem; color: var(--text-muted);">
-											{new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}
-										</span>
+				<div class="tabs-header" style="margin-bottom: 0.25rem;">
+					<button 
+						type="button" 
+						class="tab-btn {historySubTab === 'posted' ? 'active' : ''}" 
+						onclick={() => historySubTab = 'posted'}
+						id="subtab-posted-btn"
+						style="display: inline-flex; align-items: center; gap: 0.4rem;"
+					>
+						<ClipboardList size={16} /> Job Posted ({data.posts.length})
+					</button>
+					<button 
+						type="button" 
+						class="tab-btn {historySubTab === 'completed' ? 'active' : ''}" 
+						onclick={() => historySubTab = 'completed'}
+						id="subtab-completed-btn"
+						style="display: inline-flex; align-items: center; gap: 0.4rem;"
+					>
+						<CheckCircle2 size={16} /> Completed Jobs ({completedJobs.length})
+					</button>
+				</div>
+
+				{#if historySubTab === 'posted'}
+					<!-- TAB 1: ALL JOBS POSTED (COMPLETED & UNCOMPLETED) -->
+					{#if data.posts.length === 0}
+						<div class="card" style="text-align: center; padding: 4rem 2rem; border-style: dashed;">
+							<h4 style="font-size: 1.25rem; margin-bottom: 0.5rem;">No job postings created yet.</h4>
+							<p style="color: var(--text-secondary); font-size: 0.9rem;">
+								Your job postings (both completed and ongoing) will appear here.
+							</p>
+						</div>
+					{:else}
+						{#each data.posts as job (job.id)}
+							<div class="card" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+								<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
+									<div>
+										<h3 style="font-size: 1.35rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+											{job.title}
+										</h3>
+										<div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+											<span class="badge {getCategoryBadge(job.category)}">{job.category}</span>
+											{#if job.status === 'completed'}
+												<span class="status status-completed">Completed</span>
+											{:else if job.status === 'in_progress'}
+												<span class="status status-in-progress">In Progress</span>
+											{:else}
+												<span class="status status-open">Open</span>
+											{/if}
+											<span style="font-size: 0.8rem; color: var(--text-muted);">
+												{new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}
+											</span>
+										</div>
+									</div>
+									<div style="text-align: right;">
+										<strong style="color: var(--accent); font-size: 1.25rem;">₱{job.budget.toLocaleString()}</strong>
 									</div>
 								</div>
-								<div style="text-align: right;">
-									<strong style="color: var(--accent); font-size: 1.25rem;">₱{job.budget.toLocaleString()}</strong>
+
+								<div style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; border-left: 2px solid var(--border-color); padding-left: 1rem;">
+									<p>{job.description}</p>
 								</div>
-							</div>
 
-							<div style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; border-left: 2px solid var(--border-color); padding-left: 1rem;">
-								<p>{job.description}</p>
+								{#if job.assignedWorker}
+									<div style="border-top: 1px solid var(--border-color); padding-top: 0.75rem; margin-top: 0.25rem; font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem;">
+										<span>Assigned Worker: <strong style="color: var(--text-primary);">{job.assignedWorker.name}</strong></span>
+									</div>
+								{/if}
 							</div>
+						{/each}
+					{/if}
 
-							<div style="border-top: 1px solid var(--border-color); padding-top: 0.75rem; margin-top: 0.25rem; font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem;">
-								<span>This project was successfully completed by <strong>{job.assignedWorker?.name || 'a worker'}</strong>.</span>
-							</div>
+				{:else if historySubTab === 'completed'}
+					<!-- TAB 2: COMPLETED JOBS (ONLY COMPLETE & RATING GIVEN TO WORKER) -->
+					{#if completedJobs.length === 0}
+						<div class="card" style="text-align: center; padding: 4rem 2rem; border-style: dashed;">
+							<h4 style="font-size: 1.25rem; margin-bottom: 0.5rem;">No completed transactions yet.</h4>
+							<p style="color: var(--text-secondary); font-size: 0.9rem;">
+								Your past completed job postings and worker ratings will appear here.
+							</p>
 						</div>
-					{/each}
+					{:else}
+						{#each completedJobs as job (job.id)}
+							<div class="card" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+								<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
+									<div>
+										<h3 style="font-size: 1.35rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+											{job.title}
+										</h3>
+										<div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+											<span class="badge {getCategoryBadge(job.category)}">{job.category}</span>
+											<span class="status status-completed">Completed</span>
+											<span style="font-size: 0.8rem; color: var(--text-muted);">
+												{new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}
+											</span>
+										</div>
+									</div>
+									<div style="text-align: right;">
+										<strong style="color: var(--accent); font-size: 1.25rem;">₱{job.budget.toLocaleString()}</strong>
+									</div>
+								</div>
+
+								<div style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; border-left: 2px solid var(--border-color); padding-left: 1rem;">
+									<p>{job.description}</p>
+								</div>
+
+								<!-- Worker & Rating details given -->
+								<div style="border-top: 1px solid var(--border-color); padding-top: 0.75rem; margin-top: 0.25rem; display: flex; flex-direction: column; gap: 0.5rem;">
+									<div style="font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+										<span>Completed by: <strong style="color: var(--text-primary);">{job.assignedWorker?.name || 'Worker'}</strong></span>
+										{#if job.review}
+											<span class="rating-badge {job.review.rating > 0 ? 'rating-badge-positive' : job.review.rating < 0 ? 'rating-badge-negative' : 'rating-badge-zero'}">
+												<Star size={12} fill="currentColor" /> Rating Given: {job.review.rating > 0 ? `+${job.review.rating}` : job.review.rating} Star{Math.abs(job.review.rating) === 1 ? '' : 's'}
+											</span>
+										{/if}
+									</div>
+
+									{#if job.review && job.review.review_text}
+										<div style="background: var(--bg-input); padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-size: 0.88rem; color: var(--text-secondary); font-style: italic;">
+											"{job.review.review_text}"
+										</div>
+									{/if}
+								</div>
+
+							</div>
+						{/each}
+					{/if}
 				{/if}
 			</section>
 

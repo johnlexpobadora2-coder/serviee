@@ -260,6 +260,16 @@ export const db = {
 			return data || [];
 		},
 
+		async listForCustomer(customerId) {
+			const supabase = getSupabase();
+			const { data, error } = await supabase
+				.from('ratings_reviews')
+				.select('*')
+				.eq('customer_id', customerId);
+			if (error) throw new Error(error.message);
+			return data || [];
+		},
+
 		async getStatsForWorker(workerId) {
 			const workerReviews = await this.listForWorker(workerId);
 			
@@ -285,11 +295,14 @@ export const db = {
 			const sum = workerReviews.reduce((acc, curr) => acc + curr.rating, 0);
 			const avg = parseFloat((sum / workerReviews.length).toFixed(1));
 
+			// Sort reviews by created_at descending (latest first)
+			const sortedWorkerReviews = [...workerReviews].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
 			// Batch hydrate reviews with author names
-			const customerIds = workerReviews.map(r => r.customer_id);
+			const customerIds = sortedWorkerReviews.map(r => r.customer_id);
 			const customerMap = await db.users.findByIds(customerIds);
 
-			const reviewsWithAuthor = workerReviews.map(r => ({
+			const reviewsWithAuthor = sortedWorkerReviews.map(r => ({
 				...r,
 				customer_name: customerMap.get(r.customer_id)?.name || 'Anonymous Client'
 			}));

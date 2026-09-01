@@ -1,5 +1,5 @@
 <script>
-	import { X, Star, MessageSquare, MapPin, Phone, Mail, Award, CheckCircle2, Calendar, UserCheck } from 'lucide-svelte';
+	import { X, Star, MessageSquare, MapPin, Phone, Mail, Award, CheckCircle2, Calendar, UserCheck, ClipboardList } from 'lucide-svelte';
 
 	let {
 		userId = null,
@@ -14,6 +14,7 @@
 	/** @type {any} */
 	let profileData = $state(null);
 	let activeTab = $state('overview'); // 'overview' | 'reviews' | 'history'
+	let customerSubTab = $state('posted'); // 'posted' | 'completed'
 
 	$effect(() => {
 		if (show && userId) {
@@ -111,6 +112,7 @@
 				{@const user = profileData.user}
 				{@const stats = profileData.stats}
 				{@const completedJobs = profileData.completedJobs || []}
+				{@const allPosts = profileData.allPosts || []}
 				{@const isSelf = user.id === currentUserId}
 
 				<!-- Header Cover & Avatar Section -->
@@ -317,7 +319,8 @@
 									</p>
 								</div>
 							{:else}
-								{#each stats.reviews as rev (rev.id)}
+								{@const sortedReviews = [...stats.reviews].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())}
+								{#each sortedReviews as rev (rev.id)}
 									<div class="card" style="padding: 1rem 1.25rem; background: var(--bg-input); display: flex; flex-direction: column; gap: 0.5rem;">
 										<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
 											<div style="display: flex; align-items: center; gap: 0.5rem;">
@@ -342,34 +345,141 @@
 					<!-- TAB 3: SERVICE / JOB HISTORY -->
 					{#if activeTab === 'history'}
 						<div style="display: flex; flex-direction: column; gap: 1rem;">
-							{#if completedJobs.length === 0}
-								<div class="card" style="text-align: center; padding: 3rem 1.5rem; border-style: dashed; background: var(--bg-input);">
-									<h4 style="font-size: 1.1rem; margin-bottom: 0.35rem;">No completed jobs recorded</h4>
-									<p style="color: var(--text-secondary); font-size: 0.85rem;">
-										No past completed job records found for this profile.
-									</p>
+							{#if user.role === 'customer'}
+								<!-- Sub-tabs header for customer modal view -->
+								<div class="tabs-header" style="margin-bottom: 0.25rem;">
+									<button 
+										type="button" 
+										class="tab-btn {customerSubTab === 'posted' ? 'active' : ''}" 
+										onclick={() => customerSubTab = 'posted'}
+										style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; padding: 0.4rem 0.75rem;"
+									>
+										<ClipboardList size={14} /> Job Posted ({allPosts.length})
+									</button>
+									<button 
+										type="button" 
+										class="tab-btn {customerSubTab === 'completed' ? 'active' : ''}" 
+										onclick={() => customerSubTab = 'completed'}
+										style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; padding: 0.4rem 0.75rem;"
+									>
+										<CheckCircle2 size={14} /> Completed Jobs ({completedJobs.length})
+									</button>
 								</div>
-							{:else}
-								{#each completedJobs as job (job.id)}
-									<div class="card" style="padding: 1rem 1.25rem; background: var(--bg-input); display: flex; flex-direction: column; gap: 0.5rem;">
-										<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; flex-wrap: wrap;">
-											<div>
-												<h4 style="font-size: 1.1rem; color: var(--text-primary); margin-bottom: 0.25rem;">{job.title}</h4>
-												<span class="badge {getCategoryBadge(job.category)}" style="font-size: 0.7rem;">{job.category}</span>
+
+								{#if customerSubTab === 'posted'}
+									{#if allPosts.length === 0}
+										<div class="card" style="text-align: center; padding: 3rem 1.5rem; border-style: dashed; background: var(--bg-input);">
+											<h4 style="font-size: 1.1rem; margin-bottom: 0.35rem;">No jobs posted yet</h4>
+											<p style="color: var(--text-secondary); font-size: 0.85rem;">
+												This customer has not posted any jobs yet.
+											</p>
+										</div>
+									{:else}
+										{#each allPosts as job (job.id)}
+											<div class="card" style="padding: 1rem 1.25rem; background: var(--bg-input); display: flex; flex-direction: column; gap: 0.5rem;">
+												<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; flex-wrap: wrap;">
+													<div>
+														<h4 style="font-size: 1.1rem; color: var(--text-primary); margin-bottom: 0.25rem;">{job.title}</h4>
+														<div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
+															<span class="badge {getCategoryBadge(job.category)}" style="font-size: 0.7rem;">{job.category}</span>
+															{#if job.status === 'completed'}
+																<span class="status status-completed" style="font-size: 0.7rem; padding: 0.1rem 0.4rem;">Completed</span>
+															{:else if job.status === 'in_progress'}
+																<span class="status status-in-progress" style="font-size: 0.7rem; padding: 0.1rem 0.4rem;">In Progress</span>
+															{:else}
+																<span class="status status-open" style="font-size: 0.7rem; padding: 0.1rem 0.4rem;">Open</span>
+															{/if}
+														</div>
+													</div>
+													<strong style="color: var(--accent); font-size: 1.1rem;">₱{job.budget?.toLocaleString()}</strong>
+												</div>
+												<p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.45;">
+													{job.description}
+												</p>
+												<div style="font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; margin-top: 0.25rem; border-top: 1px solid var(--border-color); padding-top: 0.5rem;">
+													<span>Location: {job.location}</span>
+													{#if job.assignedWorker}
+														<span>Worker: <strong style="color: var(--text-primary);">{job.assignedWorker.name}</strong></span>
+													{/if}
+												</div>
 											</div>
-											<strong style="color: var(--accent); font-size: 1.1rem;">₱{job.budget?.toLocaleString()}</strong>
+										{/each}
+									{/if}
+
+								{:else if customerSubTab === 'completed'}
+									{#if completedJobs.length === 0}
+										<div class="card" style="text-align: center; padding: 3rem 1.5rem; border-style: dashed; background: var(--bg-input);">
+											<h4 style="font-size: 1.1rem; margin-bottom: 0.35rem;">No completed jobs recorded</h4>
+											<p style="color: var(--text-secondary); font-size: 0.85rem;">
+												No completed job transactions recorded for this customer profile.
+											</p>
 										</div>
-										<p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.45;">
-											{job.description}
+									{:else}
+										{#each completedJobs as job (job.id)}
+											<div class="card" style="padding: 1rem 1.25rem; background: var(--bg-input); display: flex; flex-direction: column; gap: 0.5rem;">
+												<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; flex-wrap: wrap;">
+													<div>
+														<h4 style="font-size: 1.1rem; color: var(--text-primary); margin-bottom: 0.25rem;">{job.title}</h4>
+														<span class="badge {getCategoryBadge(job.category)}" style="font-size: 0.7rem;">{job.category}</span>
+													</div>
+													<strong style="color: var(--accent); font-size: 1.1rem;">₱{job.budget?.toLocaleString()}</strong>
+												</div>
+												<p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.45;">
+													{job.description}
+												</p>
+
+												<div style="border-top: 1px solid var(--border-color); padding-top: 0.5rem; margin-top: 0.25rem; display: flex; flex-direction: column; gap: 0.35rem;">
+													<div style="font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+														<span>Completed by: <strong style="color: var(--text-primary);">{job.assignedWorker?.name || 'Worker'}</strong></span>
+														{#if job.review}
+															<span class="rating-badge {job.review.rating > 0 ? 'rating-badge-positive' : job.review.rating < 0 ? 'rating-badge-negative' : 'rating-badge-zero'}" style="font-size: 0.75rem; padding: 0.1rem 0.4rem;">
+																<Star size={11} fill="currentColor" /> Rating Given: {job.review.rating > 0 ? `+${job.review.rating}` : job.review.rating} Star{Math.abs(job.review.rating) === 1 ? '' : 's'}
+															</span>
+														{/if}
+													</div>
+
+													{#if job.review && job.review.review_text}
+														<div style="background: hsla(222, 20%, 14%, 0.6); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); font-size: 0.82rem; color: var(--text-secondary); font-style: italic;">
+															"{job.review.review_text}"
+														</div>
+													{/if}
+												</div>
+											</div>
+										{/each}
+									{/if}
+								{/if}
+
+							{:else}
+								<!-- Worker Service History -->
+								{#if completedJobs.length === 0}
+									<div class="card" style="text-align: center; padding: 3rem 1.5rem; border-style: dashed; background: var(--bg-input);">
+										<h4 style="font-size: 1.1rem; margin-bottom: 0.35rem;">No completed jobs recorded</h4>
+										<p style="color: var(--text-secondary); font-size: 0.85rem;">
+											No past completed job records found for this profile.
 										</p>
-										<div style="font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; margin-top: 0.25rem; border-top: 1px solid var(--border-color); padding-top: 0.5rem;">
-											<span>Location: {job.location}</span>
-											<span style="color: var(--success); display: inline-flex; align-items: center; gap: 0.25rem;">
-												<CheckCircle2 size={12} /> Completed
-											</span>
-										</div>
 									</div>
-								{/each}
+								{:else}
+									{#each completedJobs as job (job.id)}
+										<div class="card" style="padding: 1rem 1.25rem; background: var(--bg-input); display: flex; flex-direction: column; gap: 0.5rem;">
+											<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; flex-wrap: wrap;">
+												<div>
+													<h4 style="font-size: 1.1rem; color: var(--text-primary); margin-bottom: 0.25rem;">{job.title}</h4>
+													<span class="badge {getCategoryBadge(job.category)}" style="font-size: 0.7rem;">{job.category}</span>
+												</div>
+												<strong style="color: var(--accent); font-size: 1.1rem;">₱{job.budget?.toLocaleString()}</strong>
+											</div>
+											<p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.45;">
+												{job.description}
+											</p>
+											<div style="font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; margin-top: 0.25rem; border-top: 1px solid var(--border-color); padding-top: 0.5rem;">
+												<span>Location: {job.location}</span>
+												<span style="color: var(--success); display: inline-flex; align-items: center; gap: 0.25rem;">
+													<CheckCircle2 size={12} /> Completed
+												</span>
+											</div>
+										</div>
+									{/each}
+								{/if}
 							{/if}
 						</div>
 					{/if}

@@ -89,6 +89,31 @@
 				return "badge-general";
 		}
 	}
+	let visibleMyJobsLimit = $state(20);
+
+	let sortedMyJobs = $derived(
+		[...(data.myJobs || [])].sort(
+			(a, b) => new Date(b.created_at || b.target_date).getTime() - new Date(a.created_at || a.target_date).getTime()
+		)
+	);
+
+	let visibleMyJobs = $derived(
+		sortedMyJobs.slice(0, visibleMyJobsLimit)
+	);
+
+	function loadMoreMyJobs() {
+		visibleMyJobsLimit += 20;
+	}
+
+	function handleMyJobsScroll(e) {
+		const target = e.target;
+		if (!target) return;
+		if (target.scrollTop + target.clientHeight >= target.scrollHeight - 100) {
+			if (visibleMyJobsLimit < sortedMyJobs.length) {
+				visibleMyJobsLimit += 20;
+			}
+		}
+	}
 </script>
 
 <svelte:head>
@@ -365,13 +390,14 @@
 <!-- TAB 2: MY CURRENT JOBS -->
 {#if activeTab === "my-jobs"}
 	<section
-		style="display: flex; flex-direction: column; gap: 1.5rem; max-width: 900px; margin: 0 auto;"
+		style="display: flex; flex-direction: column; gap: 1.5rem; max-width: 900px; margin: 0 auto; max-height: calc(100vh - 180px); overflow-y: auto; padding-right: 0.5rem;"
+		onscroll={handleMyJobsScroll}
 	>
 		<h2 style="font-size: 1.5rem;">
-			My Active Jobs ({data.myJobs.length})
+			My Active Jobs ({sortedMyJobs.length})
 		</h2>
 
-		{#if data.myJobs.length === 0}
+		{#if sortedMyJobs.length === 0}
 			<div
 				class="card"
 				style="text-align: center; padding: 4rem 2rem; border-style: dashed;"
@@ -385,7 +411,7 @@
 				</p>
 			</div>
 		{:else}
-			{#each data.myJobs as job (job.id)}
+			{#each visibleMyJobs as job (job.id)}
 				<div
 					class="card"
 					style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;"
@@ -488,6 +514,19 @@
 					</div>
 				</div>
 			{/each}
+
+			{#if visibleMyJobsLimit < sortedMyJobs.length}
+				<div style="text-align: center; padding: 1rem 0;">
+					<button
+						type="button"
+						class="btn btn-secondary"
+						onclick={loadMoreMyJobs}
+						style="padding: 0.6rem 1.5rem;"
+					>
+						Load 20 More Jobs ({sortedMyJobs.length - visibleMyJobsLimit} remaining)
+					</button>
+				</div>
+			{/if}
 		{/if}
 	</section>
 {/if}

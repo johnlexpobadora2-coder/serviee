@@ -28,6 +28,7 @@ export async function GET({ params, locals }) {
 			reviews: []
 		};
 		let completedJobs = [];
+		let allPosts = [];
 
 		if (targetUser.role === 'worker') {
 			const workerStats = await db.reviews.getStatsForWorker(userId);
@@ -38,8 +39,28 @@ export async function GET({ params, locals }) {
 			const allWorkerJobs = await db.jobs.listByWorker(userId);
 			completedJobs = allWorkerJobs.filter(j => j.status === 'completed');
 		} else if (targetUser.role === 'customer') {
-			const customerJobs = await db.jobs.listByCustomer(userId);
-			completedJobs = customerJobs.filter(j => j.status === 'completed');
+			const [customerJobs, customerReviews] = await Promise.all([
+				db.jobs.listByCustomer(userId),
+				db.reviews.listForCustomer(userId)
+			]);
+			
+			const reviewMap = new Map(customerReviews.map(r => [r.job_id, r]));
+
+			// Gather worker IDs
+			const workerIds = Array.from(new Set(customerJobs.map(j => j.worker_id).filter(Boolean)));
+			const userMap = await db.users.findByIds(workerIds);
+
+			allPosts = customerJobs.map(j => {
+				const worker = j.worker_id ? userMap.get(j.worker_id) : null;
+				const review = reviewMap.get(j.id) || null;
+				return {
+					...j,
+					assignedWorker: worker ? { id: worker.id, name: worker.name, phone: worker.phone } : null,
+					review
+				};
+			});
+
+			completedJobs = allPosts.filter(j => j.status === 'completed');
 			stats = {
 				average_rating: 0,
 				total_reviews: 0,
@@ -52,7 +73,8 @@ export async function GET({ params, locals }) {
 		return json({
 			user: safeUser,
 			stats,
-			completedJobs
+			completedJobs,
+			allPosts
 		});
 	} catch (error) {
 		console.error('Error fetching user profile:', error);

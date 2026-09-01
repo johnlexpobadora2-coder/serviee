@@ -9,11 +9,14 @@ export async function load({ locals }) {
 		throw redirect(303, '/worker');
 	}
 
-	const [posts, allJobs, conversations] = await Promise.all([
+	const [posts, allJobs, conversations, customerReviews] = await Promise.all([
 		db.jobs.listByCustomer(locals.user.id),
 		db.jobs.listAll(),
-		db.messages.listConversationsForUser(locals.user.id)
+		db.messages.listConversationsForUser(locals.user.id),
+		db.reviews.listForCustomer(locals.user.id)
 	]);
+
+	const reviewMap = new Map(customerReviews.map(r => [r.job_id, r]));
 
 	// Collect worker and applicant IDs for bulk user lookups
 	const workerAndApplicantIds = new Set();
@@ -66,10 +69,13 @@ export async function load({ locals }) {
 			})
 			.filter(Boolean);
 
+		const review = reviewMap.get(post.id) || null;
+
 		return {
 			...post,
 			assignedWorker,
-			applicants
+			applicants,
+			review
 		};
 	});
 

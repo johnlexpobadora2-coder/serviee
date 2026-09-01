@@ -13,19 +13,19 @@
 	<title>Register | Serviee</title>
 </svelte:head>
 
-<div style="max-width: 500px; margin: 2rem auto; width: 100%;">
-	<div class="card" style="position: relative; overflow: hidden;">
+<div style="max-width: 580px; margin: 2.5rem auto; width: 100%; padding: 0 1rem;">
+	<div class="card" style="position: relative; overflow: hidden; padding: 2.5rem 2rem;">
 		<!-- Subtle background gradient accent -->
 		<div style="position: absolute; top: 0; left: 0; right: 0; height: 5px; background: linear-gradient(90deg, var(--accent), var(--accent-hover));"></div>
 
-		<h2 style="font-size: 2rem; margin-bottom: 0.5rem; text-align: center;">Create an Account</h2>
-		<p style="color: var(--text-secondary); text-align: center; margin-bottom: 2rem; font-size: 0.95rem;">
+		<h2 style="font-size: 2.25rem; margin-bottom: 0.6rem; text-align: center;">Create an Account</h2>
+		<p style="color: var(--text-secondary); text-align: center; margin-bottom: 2.25rem; font-size: 1.05rem;">
 			Sign up to request services or find sideline work.
 		</p>
 
 		{#if form?.error}
-			<div style="background-color: var(--error-light); border: 1px solid var(--error); color: var(--text-primary); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem;">
-				<AlertTriangle size={18} style="color: var(--error); flex-shrink: 0;" />
+			<div style="background-color: var(--error-light); border: 1px solid var(--error); color: var(--text-primary); padding: 1rem 1.25rem; border-radius: var(--radius-md); margin-bottom: 1.75rem; font-size: 0.98rem; display: flex; align-items: center; gap: 0.65rem;">
+				<AlertTriangle size={20} style="color: var(--error); flex-shrink: 0;" />
 				<span>{form.error}</span>
 			</div>
 		{/if}
@@ -37,8 +37,8 @@
 				await update();
 			};
 		}}>
-			<div class="form-group">
-				<label for="name">Full Name</label>
+			<div class="form-group" style="margin-bottom: 1.25rem;">
+				<label for="name" style="font-size: 0.95rem; margin-bottom: 0.4rem;">Full Name</label>
 				<input 
 					type="text" 
 					id="name" 
@@ -46,11 +46,12 @@
 					placeholder="Juan Dela Cruz" 
 					value={form?.name ?? ''} 
 					required 
+					style="padding: 0.75rem 1rem; font-size: 1rem;"
 				/>
 			</div>
 
-			<div class="form-group">
-				<label for="email">Email Address</label>
+			<div class="form-group" style="margin-bottom: 1.25rem;">
+				<label for="email" style="font-size: 0.95rem; margin-bottom: 0.4rem;">Email Address</label>
 				<input 
 					type="email" 
 					id="email" 
@@ -58,11 +59,12 @@
 					placeholder="juan@example.com" 
 					value={form?.email ?? ''} 
 					required 
+					style="padding: 0.75rem 1rem; font-size: 1rem;"
 				/>
 			</div>
 
-			<div class="form-group">
-				<label for="phone">Contact Number</label>
+			<div class="form-group" style="margin-bottom: 1.25rem;">
+				<label for="phone" style="font-size: 0.95rem; margin-bottom: 0.4rem;">Contact Number</label>
 				<input 
 					type="tel" 
 					id="phone" 
@@ -70,11 +72,12 @@
 					placeholder="09123456789" 
 					value={form?.phone ?? ''} 
 					required 
+					style="padding: 0.75rem 1rem; font-size: 1rem;"
 				/>
 			</div>
 
-			<div class="form-group">
-				<label for="address">Location / Barangay Address</label>
+			<div class="form-group" style="margin-bottom: 1.25rem;">
+				<label for="address" style="font-size: 0.95rem; margin-bottom: 0.4rem;">Location / Barangay Address</label>
 				<input 
 					type="text" 
 					id="address" 
@@ -82,30 +85,32 @@
 					placeholder="Brgy. San Jose, Pasig City" 
 					value={form?.address ?? ''} 
 					required 
+					style="padding: 0.75rem 1rem; font-size: 1rem;"
 				/>
 			</div>
 
-			<div class="form-group">
-				<label for="role">What is your role?</label>
-				<select id="role" name="role" required value={selectedRole}>
+			<div class="form-group" style="margin-bottom: 1.25rem;">
+				<label for="role" style="font-size: 0.95rem; margin-bottom: 0.4rem;">What is your role?</label>
+				<select id="role" name="role" required value={selectedRole} style="padding: 0.75rem 1rem; font-size: 1rem;">
 					<option value="" disabled selected={!selectedRole}>Select your role...</option>
 					<option value="customer">Looking for Services (Client / Customer)</option>
 					<option value="worker">Looking for Work (Worker / Provider)</option>
 				</select>
 			</div>
 
-			<div class="form-group" style="margin-bottom: 2rem;">
-				<label for="password">Password</label>
+			<div class="form-group" style="margin-bottom: 2.25rem;">
+				<label for="password" style="font-size: 0.95rem; margin-bottom: 0.4rem;">Password</label>
 				<input 
 					type="password" 
 					id="password" 
 					name="password" 
 					placeholder="At least 6 characters" 
 					required 
+					style="padding: 0.75rem 1rem; font-size: 1rem;"
 				/>
 			</div>
 
-			<button type="submit" class="btn btn-primary" style="width: 100%;" disabled={loading} id="register-submit-btn">
+			<button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.85rem 1.25rem; font-size: 1.05rem; font-weight: 600;" disabled={loading} id="register-submit-btn">
 				{#if loading}
 					Registering...
 				{:else}
@@ -114,7 +119,7 @@
 			</button>
 		</form>
 
-		<div style="margin-top: 1.5rem; text-align: center; font-size: 0.9rem; color: var(--text-secondary);">
+		<div style="margin-top: 1.75rem; text-align: center; font-size: 1rem; color: var(--text-secondary);">
 			Already have an account? <a href="/login" style="font-weight: 600;" id="register-login-link">Log In here</a>
 		</div>
 	</div>
