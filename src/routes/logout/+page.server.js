@@ -1,9 +1,18 @@
 import { redirect } from '@sveltejs/kit';
 
-export function load({ cookies }) {
-	// Clear the session cookie
+/** @param {{ cookies: import('@sveltejs/kit').Cookies }} event */
+function logout({ cookies }) {
 	cookies.delete('session_id', { path: '/' });
-	
-	// Redirect back to landing page
-	throw redirect(303, '/');
+	throw redirect(303, '/login');
 }
+
+export const actions = {
+	default: async ({ cookies }) => {
+		logout({ cookies });
+	}
+};
+
+export function load({ cookies }) {
+	logout({ cookies });
+}
+

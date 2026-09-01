@@ -9,17 +9,38 @@ export async function load({ locals }) {
 		throw redirect(303, '/worker');
 	}
 
-	const posts = await db.jobs.listByCustomer(locals.user.id);
-	
-	// Hydrate posts with worker details and applicant profiles
-	const hydratedPosts = [];
-	
+	const [posts, allJobs, conversations] = await Promise.all([
+		db.jobs.listByCustomer(locals.user.id),
+		db.jobs.listAll(),
+		db.messages.listConversationsForUser(locals.user.id)
+	]);
+
+	// Collect worker and applicant IDs for bulk user lookups
+	const workerAndApplicantIds = new Set();
 	for (const post of posts) {
+		if (post.worker_id) workerAndApplicantIds.add(post.worker_id);
+		(post.applicants || []).forEach(id => workerAndApplicantIds.add(id));
+	}
+
+	// Bulk fetch user profiles & stats for workers/applicants
+	const userMap = await db.users.findByIds(Array.from(workerAndApplicantIds));
+	
+	// Cache worker stats to avoid repeating calls for the same worker ID
+	const workerStatsMap = new Map();
+	await Promise.all(
+		Array.from(workerAndApplicantIds).map(async (id) => {
+			const stats = await db.reviews.getStatsForWorker(id);
+			workerStatsMap.set(id, stats);
+		})
+	);
+
+	// Hydrate customer's posts
+	const hydratedPosts = posts.map(post => {
 		let assignedWorker = null;
 		if (post.worker_id) {
-			const worker = await db.users.findById(post.worker_id);
+			const worker = userMap.get(post.worker_id);
 			if (worker) {
-				const stats = await db.reviews.getStatsForWorker(worker.id);
+				const stats = workerStatsMap.get(worker.id) || { average_rating: 0 };
 				assignedWorker = {
 					id: worker.id,
 					name: worker.name,
@@ -29,34 +50,50 @@ export async function load({ locals }) {
 			}
 		}
 
-		const applicants = [];
-		for (const applicantId of (post.applicants || [])) {
-			const worker = await db.users.findById(applicantId);
-			if (worker) {
-				const stats = await db.reviews.getStatsForWorker(worker.id);
-				applicants.push({
+		const applicants = (post.applicants || [])
+			.map(applicantId => {
+				const worker = userMap.get(applicantId);
+				if (!worker) return null;
+				const stats = workerStatsMap.get(worker.id) || { average_rating: 0, completed_jobs_count: 0 };
+				return {
 					id: worker.id,
 					name: worker.name,
 					phone: worker.phone,
 					address: worker.address,
 					average_rating: stats.average_rating,
 					completed_jobs_count: stats.completed_jobs_count
-				});
-			}
-		}
+				};
+			})
+			.filter(Boolean);
 
-		hydratedPosts.push({
+		return {
 			...post,
 			assignedWorker,
 			applicants
-		});
-	}
+		};
+	});
 
-	// Sort posts: newest first
 	hydratedPosts.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
+	// Bulk fetch customer profiles for allJobs feed
+	const allCustomerIds = Array.from(new Set(allJobs.map(j => j.customer_id)));
+	const customerMap = await db.users.findByIds(allCustomerIds);
+
+	const hydratedAllJobs = allJobs.map(job => {
+		const customer = customerMap.get(job.customer_id);
+		return {
+			...job,
+			customerName: customer ? customer.name : 'Client'
+		};
+	});
+
+	hydratedAllJobs.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
 	return {
-		posts: hydratedPosts
+		allJobs: hydratedAllJobs,
+		posts: hydratedPosts,
+		conversations,
+		user: locals.user
 	};
 }
 
@@ -134,5 +171,33 @@ export const actions = {
 		} catch (error) {
 			return fail(400, { error: error.message || 'Could not complete the job.' });
 		}
+	},
+
+	sendMessage: async ({ request, locals }) => {
+		if (!locals.user) {
+			return fail(401, { error: 'Unauthorized' });
+		}
+
+		const data = await request.formData();
+		const jobId = data.get('jobId')?.toString();
+		const receiverId = data.get('receiverId')?.toString();
+		const content = data.get('content')?.toString()?.trim();
+
+		if (!jobId || !receiverId || !content) {
+			return fail(400, { error: 'Missing message parameters.' });
+		}
+
+		try {
+			await db.messages.send({
+				job_id: jobId,
+				sender_id: locals.user.id,
+				receiver_id: receiverId,
+				content
+			});
+			return { success: 'Message sent!' };
+		} catch (error) {
+			return fail(400, { error: error.message || 'Failed to send message.' });
+		}
 	}
 };
+

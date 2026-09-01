@@ -1,5 +1,6 @@
 <script>
 	import { enhance } from '$app/forms';
+	import { AlertTriangle } from 'lucide-svelte';
 
 	let { data, form } = $props();
 
@@ -24,7 +25,7 @@
 
 		{#if form?.error}
 			<div style="background-color: var(--error-light); border: 1px solid var(--error); color: var(--text-primary); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem;">
-				<span style="font-size: 1.2rem;">⚠️</span>
+				<AlertTriangle size={18} style="color: var(--error); flex-shrink: 0;" />
 				<span>{form.error}</span>
 			</div>
 		{/if}

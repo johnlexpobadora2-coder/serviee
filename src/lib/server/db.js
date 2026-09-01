@@ -92,6 +92,23 @@ export const db = {
 			return data || null;
 		},
 
+		async findByIds(ids) {
+			if (!ids || ids.length === 0) return new Map();
+			const uniqueIds = Array.from(new Set(ids.filter(Boolean)));
+			if (uniqueIds.length === 0) return new Map();
+
+			const supabase = getSupabase();
+			const { data, error } = await supabase
+				.from('users')
+				.select('*')
+				.in('id', uniqueIds);
+			if (error) throw new Error(error.message);
+
+			const userMap = new Map();
+			(data || []).forEach(user => userMap.set(user.id, user));
+			return userMap;
+		},
+
 		async listWorkers() {
 			const supabase = getSupabase();
 			const { data, error } = await supabase
@@ -192,17 +209,37 @@ export const db = {
 				.eq('worker_id', workerId);
 			if (error) throw new Error(error.message);
 			return data || [];
+		},
+
+		async findByIds(ids) {
+			if (!ids || ids.length === 0) return new Map();
+			const uniqueIds = Array.from(new Set(ids.filter(Boolean)));
+			if (uniqueIds.length === 0) return new Map();
+
+			const supabase = getSupabase();
+			const { data, error } = await supabase
+				.from('job_posts')
+				.select('*')
+				.in('id', uniqueIds);
+			if (error) throw new Error(error.message);
+
+			const jobMap = new Map();
+			(data || []).forEach(job => jobMap.set(job.id, job));
+			return jobMap;
 		}
 	},
 
 	reviews: {
 		async create({ job_id, customer_id, worker_id, rating, review_text }) {
+			const parsed = parseInt(rating, 10);
+			const ratingVal = isNaN(parsed) ? 5 : Math.max(-5, Math.min(5, parsed));
+
 			const newReview = {
 				id: crypto.randomUUID(),
 				job_id,
 				customer_id,
 				worker_id,
-				rating: parseInt(rating) || 5,
+				rating: ratingVal,
 				review_text,
 				created_at: new Date().toISOString()
 			};
@@ -248,15 +285,14 @@ export const db = {
 			const sum = workerReviews.reduce((acc, curr) => acc + curr.rating, 0);
 			const avg = parseFloat((sum / workerReviews.length).toFixed(1));
 
-			// Hydrate reviews with author names
-			const reviewsWithAuthor = [];
-			for (const r of workerReviews) {
-				const customer = await db.users.findById(r.customer_id);
-				reviewsWithAuthor.push({
-					...r,
-					customer_name: customer ? customer.name : 'Anonymous Client'
-				});
-			}
+			// Batch hydrate reviews with author names
+			const customerIds = workerReviews.map(r => r.customer_id);
+			const customerMap = await db.users.findByIds(customerIds);
+
+			const reviewsWithAuthor = workerReviews.map(r => ({
+				...r,
+				customer_name: customerMap.get(r.customer_id)?.name || 'Anonymous Client'
+			}));
 
 			return {
 				average_rating: avg,
@@ -265,5 +301,185 @@ export const db = {
 				reviews: reviewsWithAuthor
 			};
 		}
+	},
+
+	messages: {
+		fallbackStore: [],
+
+		async send({ job_id, sender_id, receiver_id, content }) {
+			const msg = {
+				id: crypto.randomUUID(),
+				job_id,
+				sender_id,
+				receiver_id,
+				content: content.trim(),
+				created_at: new Date().toISOString()
+			};
+
+			const supabase = getSupabase();
+			const { error } = await supabase.from('messages').insert(msg);
+			if (error) {
+				console.error('Supabase message insert error:', error.message);
+				// Still put in fallbackStore for instant local reflection if DB fails
+				this.fallbackStore.push(msg);
+				throw new Error(error.message);
+			}
+
+			return msg;
+		},
+
+		async listForUser(userId) {
+			const supabase = getSupabase();
+			let dbMsgs = [];
+			try {
+				const { data, error } = await supabase
+					.from('messages')
+					.select('*')
+					.or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
+					.order('created_at', { ascending: false })
+					.limit(30);
+
+				if (error) {
+					console.error('Error fetching recent 30 messages from Supabase:', error.message);
+				} else if (data) {
+					dbMsgs = data;
+				}
+			} catch (err) {
+				console.warn('Supabase fetch messages exception:', err.message);
+			}
+
+			// Combine db and fallback messages
+			const fallbackFiltered = this.fallbackStore.filter(
+				m => m.sender_id === userId || m.receiver_id === userId
+			);
+
+			const map = new Map();
+			for (const m of [...dbMsgs, ...fallbackFiltered]) {
+				map.set(m.id, m);
+			}
+
+			// Return sorted chronologically (oldest to newest) for smooth reading
+			return Array.from(map.values()).sort(
+				(a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+			);
+		},
+
+		async listConversationsForUser(userId) {
+			const allMsgs = await this.listForUser(userId);
+			const conversationsMap = new Map();
+
+			for (const msg of allMsgs) {
+				const otherUserId = msg.sender_id === userId ? msg.receiver_id : msg.sender_id;
+				const convKey = `${msg.job_id}_${otherUserId}`;
+
+				if (!conversationsMap.has(convKey)) {
+					conversationsMap.set(convKey, {
+						id: convKey,
+						job_id: msg.job_id,
+						other_user_id: otherUserId,
+						messages: []
+					});
+				}
+				conversationsMap.get(convKey).messages.push(msg);
+			}
+
+			// Include all job post applicants and assigned workers into conversations
+			const currentUser = await db.users.findById(userId);
+
+			if (currentUser) {
+				if (currentUser.role === 'customer') {
+					// Customer: get jobs owned by this customer only (no need for listAll)
+					const customerJobs = await db.jobs.listByCustomer(userId);
+					for (const job of customerJobs) {
+						for (const applicantId of (job.applicants || [])) {
+							const convKey = `${job.id}_${applicantId}`;
+							if (!conversationsMap.has(convKey)) {
+								conversationsMap.set(convKey, {
+									id: convKey,
+									job_id: job.id,
+									other_user_id: applicantId,
+									messages: []
+								});
+							}
+						}
+						if (job.worker_id) {
+							const convKey = `${job.id}_${job.worker_id}`;
+							if (!conversationsMap.has(convKey)) {
+								conversationsMap.set(convKey, {
+									id: convKey,
+									job_id: job.id,
+									other_user_id: job.worker_id,
+									messages: []
+								});
+							}
+						}
+					}
+				} else if (currentUser.role === 'worker') {
+					// Worker: get jobs where worker applied or is assigned
+					const workerJobs = await db.jobs.listByWorker(userId);
+					const supabase = getSupabase();
+					const { data: appliedJobs } = await supabase
+						.from('job_posts')
+						.select('*')
+						.contains('applicants', [userId]);
+
+					const allWorkerJobsMap = new Map();
+					(workerJobs || []).forEach(j => allWorkerJobsMap.set(j.id, j));
+					(appliedJobs || []).forEach(j => allWorkerJobsMap.set(j.id, j));
+
+					for (const job of allWorkerJobsMap.values()) {
+						const convKey = `${job.id}_${job.customer_id}`;
+						if (!conversationsMap.has(convKey)) {
+							conversationsMap.set(convKey, {
+								id: convKey,
+								job_id: job.id,
+								other_user_id: job.customer_id,
+								messages: []
+							});
+						}
+					}
+				}
+			}
+
+			// Batch hydrate all conversations (other user names and job titles) in 2 queries
+			const neededUserIds = [];
+			const neededJobIds = [];
+			for (const conv of conversationsMap.values()) {
+				neededUserIds.push(conv.other_user_id);
+				neededJobIds.push(conv.job_id);
+			}
+
+			const [userMap, jobMap] = await Promise.all([
+				db.users.findByIds(neededUserIds),
+				db.jobs.findByIds(neededJobIds)
+			]);
+
+			const conversations = [];
+			for (const conv of conversationsMap.values()) {
+				const otherUser = userMap.get(conv.other_user_id);
+				const job = jobMap.get(conv.job_id);
+
+				const sortedMsgs = conv.messages.sort(
+					(a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+				);
+				const lastMsg = sortedMsgs[sortedMsgs.length - 1];
+				const defaultTime = job?.created_at || new Date().toISOString();
+
+				conversations.push({
+					...conv,
+					job_title: job ? job.title : 'Job Inquiry',
+					other_user_name: otherUser ? otherUser.name : 'User',
+					other_user_role: otherUser ? otherUser.role : '',
+					last_message: lastMsg ? lastMsg.content : 'Inquired on post. Send a message...',
+					last_message_at: lastMsg ? lastMsg.created_at : defaultTime,
+					messages: sortedMsgs
+				});
+			}
+
+			return conversations.sort(
+				(a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
+			);
+		}
 	}
 };
+
