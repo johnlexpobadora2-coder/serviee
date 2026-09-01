@@ -174,12 +174,13 @@
 				</div>
 
 				<!-- Navigation Tabs within Modal -->
-				<div style="padding: 0 1.5rem; border-bottom: 1px solid var(--border-color); background: hsla(222, 20%, 10%, 0.4);">
-					<div class="tabs-header" style="margin-bottom: 0; border-bottom: none;">
+				<div style="padding: 0.5rem 1rem 0 1rem; border-bottom: 1px solid var(--border-color); background: hsla(222, 20%, 10%, 0.4); overflow-x: auto;">
+					<div class="tabs-header" style="margin-bottom: 0; border-bottom: none; gap: 0.35rem; padding: 0.25rem 0.25rem 0 0.25rem;">
 						<button 
 							type="button" 
 							class="tab-btn {activeTab === 'overview' ? 'active' : ''}" 
 							onclick={() => activeTab = 'overview'}
+							style="padding: 0.6rem 0.9rem; font-size: 0.85rem;"
 						>
 							About Profile
 						</button>
@@ -188,6 +189,7 @@
 								type="button" 
 								class="tab-btn {activeTab === 'reviews' ? 'active' : ''}" 
 								onclick={() => activeTab = 'reviews'}
+								style="padding: 0.6rem 0.9rem; font-size: 0.85rem;"
 							>
 								Reviews & Feedback ({stats.reviews?.length || 0})
 							</button>
@@ -196,6 +198,7 @@
 							type="button" 
 							class="tab-btn {activeTab === 'history' ? 'active' : ''}" 
 							onclick={() => activeTab = 'history'}
+							style="padding: 0.6rem 0.9rem; font-size: 0.85rem;"
 						>
 							{user.role === 'worker' ? 'Service History' : 'Job History'} ({completedJobs.length})
 						</button>

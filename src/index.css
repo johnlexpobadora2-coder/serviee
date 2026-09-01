@@ -435,6 +435,71 @@ footer {
 	align-items: start;
 }
 
+/* Text Overflow & Long Text Safe Guards */
+p, span, h1, h2, h3, h4, h5, h6, div, label, strong {
+	overflow-wrap: break-word;
+	word-break: break-word;
+}
+
+/* Card Header & Feed Layout Consistency */
+.feed-job-card, .job-card-consistent {
+	display: flex;
+	flex-direction: column;
+	gap: 0.85rem;
+	padding: 1.25rem;
+}
+
+.feed-job-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	gap: 1rem;
+	width: 100%;
+}
+
+.feed-job-header > div:first-child {
+	min-width: 0;
+	flex: 1;
+}
+
+.feed-job-header > div:last-child {
+	flex-shrink: 0;
+	text-align: right;
+}
+
+.feed-job-title {
+	font-size: 1.25rem;
+	color: var(--text-primary);
+	line-height: 1.3;
+	margin-bottom: 0.25rem;
+	overflow-wrap: break-word;
+	word-break: break-word;
+}
+
+.feed-job-desc {
+	font-size: 0.9rem;
+	color: var(--text-secondary);
+	line-height: 1.5;
+	white-space: pre-line;
+	overflow-wrap: break-word;
+	word-break: break-word;
+}
+
+/* Line clamping utility for long text previews if needed */
+.line-clamp-2 {
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+.line-clamp-3 {
+	display: -webkit-box;
+	-webkit-line-clamp: 3;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
 /* Metadata Info Bar */
 .metadata-bar {
 	display: grid;
@@ -451,12 +516,266 @@ footer {
 	.dashboard-layout,
 	.profile-layout {
 		grid-template-columns: 1fr;
-		gap: 1.5rem;
+		gap: 1rem;
 	}
 	.dashboard-layout aside,
 	.dashboard-layout section:first-of-type {
 		position: static !important;
 	}
+}
+
+/* Mobile Sideline Feed Compact Enhancements */
+@media (max-width: 768px) {
+	.feed-filters-card {
+		padding: 1rem !important;
+		margin-bottom: 0.5rem;
+	}
+	.feed-filters-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0.5rem;
+	}
+	.feed-filters-grid .form-group {
+		margin-bottom: 0 !important;
+	}
+	.feed-filters-grid .form-group-full {
+		grid-column: span 2;
+	}
+	.feed-job-card {
+		padding: 0.9rem 1rem !important;
+		gap: 0.65rem !important;
+		border-radius: var(--radius-md) !important;
+	}
+	.feed-job-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		gap: 0.5rem;
+	}
+	.feed-job-title {
+		font-size: 1.1rem !important;
+		line-height: 1.3 !important;
+		margin: 0.2rem 0 !important;
+	}
+	.feed-job-budget {
+		font-size: 1.15rem !important;
+		white-space: nowrap;
+	}
+	.feed-job-desc {
+		font-size: 0.85rem !important;
+		line-height: 1.4 !important;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+	.feed-job-meta {
+		display: flex !important;
+		flex-direction: row !important;
+		justify-content: space-between !important;
+		align-items: center !important;
+		padding: 0.4rem 0.65rem !important;
+		font-size: 0.78rem !important;
+		gap: 0.5rem !important;
+	}
+	.feed-job-actions {
+		margin-top: 0.25rem !important;
+		padding-top: 0.5rem !important;
+	}
+	.feed-job-actions .btn {
+		width: 100%;
+		padding: 0.45rem 1rem !important;
+		font-size: 0.85rem !important;
+	}
+
+	/* Compact Mobile Navigation Tabs */
+	.tabs-header {
+		gap: 0.25rem !important;
+		margin-bottom: 1.25rem !important;
+	}
+	.tab-btn {
+		font-size: 0.82rem !important;
+		padding: 0.5rem 0.75rem !important;
+		border-top-left-radius: 6px !important;
+		border-top-right-radius: 6px !important;
+	}
+
+	/* Compact Mobile Active Jobs */
+	.active-job-card {
+		padding: 0.9rem 1rem !important;
+		gap: 0.65rem !important;
+	}
+	.active-job-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		gap: 0.5rem;
+	}
+	.active-job-title {
+		font-size: 1.1rem !important;
+		line-height: 1.3 !important;
+		margin: 0.15rem 0 !important;
+	}
+	.active-job-budget {
+		font-size: 1.15rem !important;
+		white-space: nowrap;
+	}
+	.active-job-desc {
+		font-size: 0.85rem !important;
+		line-height: 1.4 !important;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+	.active-contact-box {
+		padding: 0.6rem 0.75rem !important;
+		font-size: 0.8rem !important;
+		gap: 0.5rem !important;
+	}
+	.active-contact-actions {
+		width: 100%;
+		justify-content: flex-end;
+	}
+	.active-contact-actions .btn {
+		padding: 0.35rem 0.65rem !important;
+		font-size: 0.78rem !important;
+	}
+
+	/* Compact Mobile Applicants List Layout */
+	.applicant-card {
+		flex-direction: column !important;
+		align-items: stretch !important;
+		gap: 0.65rem !important;
+		padding: 0.65rem 0.75rem !important;
+	}
+	.applicant-meta-row {
+		flex-wrap: wrap;
+		gap: 0.35rem !important;
+		font-size: 0.78rem !important;
+	}
+	.applicant-actions {
+		width: 100%;
+		justify-content: flex-start;
+		gap: 0.35rem !important;
+	}
+	.applicant-actions form {
+		flex: 1;
+	}
+	.applicant-actions form .btn {
+		width: 100%;
+		justify-content: center;
+	}
+
+	/* Responsive Mobile Master-Detail Chat View */
+	.chat-container {
+		grid-template-columns: 1fr !important;
+		min-height: 480px !important;
+		height: calc(100vh - 200px) !important;
+		position: relative;
+	}
+	.chat-threads-sidebar {
+		display: flex !important;
+		width: 100% !important;
+		height: 100% !important;
+	}
+	.chat-window {
+		display: none !important;
+		width: 100% !important;
+		height: 100% !important;
+	}
+	.chat-container.has-active-conv .chat-threads-sidebar {
+		display: none !important;
+	}
+	.chat-container.has-active-conv .chat-window {
+		display: flex !important;
+	}
+	.mobile-back-btn {
+		display: inline-flex !important;
+	}
+	.chat-header {
+		padding: 0.75rem 1rem !important;
+	}
+	.chat-messages-body {
+		padding: 1rem !important;
+		max-height: none !important;
+	}
+	.chat-bubble {
+		max-width: 88% !important;
+		font-size: 0.85rem !important;
+		padding: 0.6rem 0.85rem !important;
+	}
+	.chat-footer {
+		padding: 0.75rem 1rem !important;
+	}
+
+	/* Compact Mobile Post Job Form Page */
+	.form-grid-2 {
+		grid-template-columns: 1fr !important;
+		gap: 0.65rem !important;
+	}
+	.post-job-container {
+		margin: 0 auto !important;
+	}
+	.post-job-card {
+		padding: 1rem !important;
+	}
+	.post-job-heading {
+		font-size: 1.2rem !important;
+	}
+	.post-job-subtext {
+		font-size: 0.8rem !important;
+		margin-bottom: 0.9rem !important;
+	}
+	.post-job-card .form-group {
+		margin-bottom: 0.65rem !important;
+	}
+	.post-job-actions {
+		display: flex !important;
+		gap: 0.5rem !important;
+		margin-top: 0.5rem;
+	}
+	.post-job-actions .btn {
+		flex: 1;
+		padding: 0.5rem !important;
+		font-size: 0.85rem !important;
+		justify-content: center;
+	}
+}
+
+/* Base Applicants Card Layout */
+.applicant-card {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0.75rem 0.9rem;
+	background: var(--bg-input);
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius-md);
+	gap: 0.75rem;
+	flex-wrap: wrap;
+}
+
+.applicant-info {
+	display: flex;
+	flex-direction: column;
+	gap: 0.2rem;
+	flex: 1;
+}
+
+.applicant-meta-row {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+	font-size: 0.8rem;
+	color: var(--text-secondary);
+}
+
+.applicant-actions {
+	display: flex;
+	gap: 0.4rem;
+	align-items: center;
+	flex-wrap: wrap;
 }
 
 /* Menu Toggle Button (hidden on desktop) */
@@ -628,13 +947,15 @@ footer {
 	display: flex;
 	flex-direction: column;
 	background: hsla(222, 20%, 10%, 0.4);
+	min-width: 0;
+	overflow: hidden;
 }
 
 .chat-threads-header {
-	padding: 1rem 1.25rem;
+	padding: 0.75rem 1rem;
 	border-bottom: 1px solid var(--border-color);
 	font-weight: 700;
-	font-size: 1.1rem;
+	font-size: 0.95rem;
 	color: var(--text-primary);
 }
 
@@ -642,18 +963,28 @@ footer {
 	display: flex;
 	flex-direction: column;
 	overflow-y: auto;
+	overflow-x: hidden;
 	flex: 1;
+	min-width: 0;
+	width: 100%;
 }
 
 .chat-thread-item {
-	padding: 1rem 1.25rem;
-	border-bottom: 1px solid hsla(222, 20%, 20%, 0.5);
+	padding: 0.65rem 0.85rem;
+	border-bottom: 1px solid hsla(222, 20%, 20%, 0.4);
 	cursor: pointer;
-	transition: background var(--transition-fast);
+	transition: all var(--transition-fast);
 	text-align: left;
 	background: transparent;
 	border-left: 3px solid transparent;
 	width: 100%;
+	max-width: 100%;
+	display: flex;
+	align-items: center;
+	gap: 0.65rem;
+	box-sizing: border-box;
+	overflow: hidden;
+	min-width: 0;
 }
 
 .chat-thread-item:hover {
@@ -665,28 +996,92 @@ footer {
 	border-left-color: var(--accent);
 }
 
+.chat-avatar {
+	width: 34px;
+	height: 34px;
+	border-radius: var(--radius-full);
+	background: linear-gradient(135deg, var(--accent) 0%, hsl(220, 60%, 45%) 100%);
+	color: #fff;
+	font-weight: 700;
+	font-size: 0.85rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.chat-thread-info {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-width: 0;
+	width: 0;
+	overflow: hidden;
+}
+
+.chat-thread-top {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+	margin-bottom: 0.1rem;
+	min-width: 0;
+	width: 100%;
+}
+
 .chat-thread-name {
 	font-weight: 600;
 	color: var(--text-primary);
-	font-size: 0.95rem;
-	margin-bottom: 0.25rem;
-}
-
-.chat-thread-title {
-	font-size: 0.8rem;
-	color: var(--accent-hover);
+	font-size: 0.85rem;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	margin-bottom: 0.25rem;
+	flex: 1;
+	min-width: 0;
+}
+
+.chat-role-badge {
+	font-size: 0.65rem;
+	font-weight: 600;
+	padding: 0.05rem 0.35rem;
+	border-radius: var(--radius-sm);
+	background: hsla(252, 78%, 62%, 0.2);
+	color: var(--accent-hover);
+	border: 1px solid hsla(252, 78%, 62%, 0.3);
+	text-transform: capitalize;
+	flex-shrink: 0;
+	line-height: 1.2;
+}
+
+.chat-thread-title {
+	font-size: 0.76rem;
+	color: var(--accent-hover);
+	display: flex;
+	align-items: center;
+	gap: 0.25rem;
+	margin-bottom: 0.1rem;
+	min-width: 0;
+	width: 100%;
+}
+
+.chat-thread-title-text {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	display: block;
+	min-width: 0;
+	flex: 1;
 }
 
 .chat-thread-preview {
-	font-size: 0.8rem;
+	font-size: 0.75rem;
 	color: var(--text-muted);
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	display: block;
+	min-width: 0;
+	width: 100%;
 }
 
 .chat-window {

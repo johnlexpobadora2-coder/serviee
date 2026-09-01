@@ -1,7 +1,7 @@
 <script>
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
-	import { MessageSquare, Pin, RefreshCw, Star, UserCheck, Plus, User, ClipboardList, CheckCircle2, Clock } from 'lucide-svelte';
+	import { MessageSquare, Pin, RefreshCw, Star, UserCheck, Plus, User, ClipboardList, CheckCircle2, Clock, ArrowLeft } from 'lucide-svelte';
 	import ViewProfileModal from '$lib/ViewProfileModal.svelte';
 
 	let { data, form } = $props();
@@ -216,11 +216,10 @@
 				</div>
 			{:else}
 				{#each filteredJobs as job (job.id)}
-					<div class="card" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
-						
-						<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
+					<div class="card feed-job-card">
+						<div class="feed-job-header">
 							<div>
-								<div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+								<div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.35rem;">
 									<span class="badge {getCategoryBadge(job.category)}">{job.category}</span>
 									<span class="status status-{job.status}">
 										{#if job.status === 'open'} Open
@@ -229,12 +228,12 @@
 										{:else} Completed
 										{/if}
 									</span>
-									<span style="font-size: 0.8rem; color: var(--text-muted);">
+									<span style="font-size: 0.75rem; color: var(--text-muted);">
 										Posted: {new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })}
 									</span>
 								</div>
-								<h3 style="font-size: 1.35rem; color: var(--text-primary);">{job.title}</h3>
-								<span style="font-size: 0.85rem; color: var(--text-secondary);">
+								<h3 class="feed-job-title">{job.title}</h3>
+								<span style="font-size: 0.8rem; color: var(--text-secondary);">
 									Posted by: 
 									{#if job.customer_id !== data.user.id}
 										<button 
@@ -250,15 +249,15 @@
 								</span>
 							</div>
 							<div style="text-align: right;">
-								<strong style="color: var(--accent); font-size: 1.25rem; display: block;">₱{job.budget.toLocaleString()}</strong>
+								<strong class="feed-job-budget" style="color: var(--accent); font-size: 1.25rem; display: block;">₱{job.budget.toLocaleString()}</strong>
 							</div>
 						</div>
 
-						<p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6;">
+						<p class="feed-job-desc">
 							{job.description}
 						</p>
 
-						<div class="metadata-bar">
+						<div class="metadata-bar feed-job-meta">
 							<div><strong>Location:</strong> {job.location}</div>
 							<div><strong>Schedule:</strong> {new Date(job.target_date).toLocaleDateString('en-PH', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
 						</div>
@@ -294,31 +293,29 @@
 				</div>
 			{:else}
 				{#each activeJobs as job (job.id)}
-					<div class="card" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem;">
+					<div class="card feed-job-card">
 						
 						<!-- Job Header -->
-						<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
+						<div class="feed-job-header">
 							<div>
-								<h3 style="font-size: 1.35rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
-									{job.title}
-								</h3>
-								<div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+								<div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.35rem;">
 									<span class="badge {getCategoryBadge(job.category)}">{job.category}</span>
-									<span style="color: var(--text-muted); font-size: 0.85rem;">
-										Posted on: {new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}
+									<span class="status status-{job.status}">
+										{#if job.status === 'open'} Naghahanap
+										{:else if job.status === 'assigned'} Assigned
+										{:else if job.status === 'in_progress'} In Progress
+										{:else} Completed
+										{/if}
+									</span>
+									<span style="font-size: 0.75rem; color: var(--text-muted);">
+										Posted: {new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}
 									</span>
 								</div>
+								<h3 class="feed-job-title">{job.title}</h3>
 							</div>
 
-							<div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem;">
-								<span class="status status-{job.status}">
-									{#if job.status === 'open'} Naghahanap
-									{:else if job.status === 'assigned'} Assigned
-									{:else if job.status === 'in_progress'} In Progress
-									{:else} Completed
-									{/if}
-								</span>
-								<strong style="color: var(--accent); font-size: 1.2rem;">₱{job.budget.toLocaleString()}</strong>
+							<div style="text-align: right;">
+								<strong class="feed-job-budget" style="color: var(--accent); font-size: 1.25rem; display: block;">₱{job.budget.toLocaleString()}</strong>
 							</div>
 						</div>
 
@@ -346,36 +343,38 @@
 								{:else}
 									<div style="display: flex; flex-direction: column; gap: 0.75rem;">
 										{#each job.applicants as applicant (applicant.id)}
-											<div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-md); flex-wrap: wrap; gap: 0.5rem;">
-												<div>
-													<strong style="color: var(--text-primary);">{applicant.name}</strong>
-													<div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem; font-size: 0.8rem; color: var(--text-secondary);">
+											<div class="applicant-card">
+												<div class="applicant-info">
+													<strong style="color: var(--text-primary); font-size: 0.95rem;">{applicant.name}</strong>
+													<div class="applicant-meta-row">
 														<span class="rating-badge {applicant.average_rating > 0 ? 'rating-badge-positive' : applicant.average_rating < 0 ? 'rating-badge-negative' : 'rating-badge-zero'}" style="display: inline-flex; align-items: center; gap: 0.2rem;">
-															<Star size={12} fill="currentColor" /> {applicant.average_rating > 0 ? `+${applicant.average_rating}` : applicant.average_rating} rating
+															<Star size={11} fill="currentColor" /> {applicant.average_rating > 0 ? `+${applicant.average_rating}` : applicant.average_rating} rating
 														</span>
 														<span>•</span>
-														<span>Completed: {applicant.completed_jobs_count} sidelines</span>
+														<span>Completed: {applicant.completed_jobs_count}</span>
 														<span>•</span>
 														<span>Phone: {applicant.phone}</span>
 													</div>
-													<span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">Address: {applicant.address}</span>
+													{#if applicant.address}
+														<span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.2rem;">Address: {applicant.address}</span>
+													{/if}
 												</div>
-												<div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+												<div class="applicant-actions">
 													<button 
 														type="button" 
 														class="btn btn-outline" 
-														style="padding: 0.4rem 0.85rem; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.35rem;"
+														style="padding: 0.35rem 0.65rem; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.3rem;"
 														onclick={() => openViewProfile(applicant.id)}
 													>
-														<User size={14} /> Profile
+														<User size={13} /> Profile
 													</button>
 													<button 
 														type="button" 
 														class="btn btn-outline" 
-														style="padding: 0.4rem 0.85rem; font-size: 0.85rem; border-color: var(--accent); color: var(--accent-hover); display: inline-flex; align-items: center; gap: 0.35rem;"
+														style="padding: 0.35rem 0.65rem; font-size: 0.8rem; border-color: var(--accent); color: var(--accent-hover); display: inline-flex; align-items: center; gap: 0.3rem;"
 														onclick={() => openChat(job.id, applicant.id)}
 													>
-														<MessageSquare size={14} /> Open Chat
+														<MessageSquare size={13} /> Open Chat
 													</button>
 
 													<form method="POST" action="?/assignWorker" use:enhance={() => {
@@ -387,8 +386,8 @@
 													}}>
 														<input type="hidden" name="jobId" value={job.id} />
 														<input type="hidden" name="workerId" value={applicant.id} />
-														<button type="submit" class="btn btn-primary" style="padding: 0.4rem 1rem; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.35rem;" disabled={changingStatus}>
-															<UserCheck size={15} /> Hire Worker
+														<button type="submit" class="btn btn-primary" style="padding: 0.35rem 0.85rem; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.3rem;" disabled={changingStatus}>
+															<UserCheck size={14} /> Hire Worker
 														</button>
 													</form>
 												</div>
@@ -494,7 +493,7 @@
 
 <!-- TAB: MESSAGES & CHAT -->
 {#if activeTab === 'chat'}
-	<div class="chat-container">
+	<div class="chat-container {activeConvId ? 'has-active-conv' : ''}">
 		<!-- Left Sidebar: Conversations List -->
 		<div class="chat-threads-sidebar">
 			<div class="chat-threads-header" style="display: flex; align-items: center; gap: 0.5rem;">
@@ -512,11 +511,19 @@
 							class="chat-thread-item {activeConversation?.id === conv.id ? 'active' : ''}"
 							onclick={() => activeConvId = conv.id}
 						>
-							<div class="chat-thread-name">{conv.other_user_name} ({conv.other_user_role || 'Worker'})</div>
-							<div class="chat-thread-title" style="display: flex; align-items: center; gap: 0.25rem;">
-								<Pin size={12} /> {conv.job_title}
+							<div class="chat-avatar">
+								{conv.other_user_name ? conv.other_user_name.charAt(0).toUpperCase() : 'U'}
 							</div>
-							<div class="chat-thread-preview">{conv.last_message || 'No messages yet.'}</div>
+							<div class="chat-thread-info">
+								<div class="chat-thread-top">
+									<span class="chat-thread-name">{conv.other_user_name}</span>
+									<span class="chat-role-badge">{conv.other_user_role || 'Worker'}</span>
+								</div>
+								<div class="chat-thread-title">
+									<Pin size={11} style="flex-shrink: 0;" /> <span class="chat-thread-title-text">{conv.job_title}</span>
+								</div>
+								<div class="chat-thread-preview">{conv.last_message || 'No messages yet.'}</div>
+							</div>
 						</button>
 					{/each}
 				{/if}
@@ -527,31 +534,41 @@
 		<div class="chat-window">
 			{#if activeConversation}
 				<div class="chat-header">
-					<div>
-						<h4 style="margin: 0; font-size: 1.1rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
-							{activeConversation.other_user_name}
-							<button 
-								type="button" 
-								class="btn btn-outline" 
-								style="padding: 0.2rem 0.6rem; font-size: 0.75rem; border-color: var(--accent); color: var(--accent-hover);"
-								onclick={() => openViewProfile(activeConversation.other_user_id)}
-							>
-								<User size={12} /> View Profile
-							</button>
-						</h4>
-						<span style="font-size: 0.8rem; color: var(--accent-hover);">
-							Job Post: {activeConversation.job_title}
-						</span>
+					<div style="display: flex; align-items: center; gap: 0.5rem;">
+						<button
+							type="button"
+							class="btn btn-outline mobile-back-btn"
+							style="padding: 0.3rem 0.5rem; display: none; align-items: center;"
+							onclick={() => activeConvId = ''}
+						>
+							<ArrowLeft size={16} />
+						</button>
+						<div>
+							<h4 style="margin: 0; font-size: 1.05rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+								{activeConversation.other_user_name}
+								<button 
+									type="button" 
+									class="btn btn-outline" 
+									style="padding: 0.15rem 0.5rem; font-size: 0.72rem; border-color: var(--accent); color: var(--accent-hover);"
+									onclick={() => openViewProfile(activeConversation.other_user_id)}
+								>
+									<User size={11} /> Profile
+								</button>
+							</h4>
+							<span style="font-size: 0.78rem; color: var(--accent-hover); display: block;">
+								Job: {activeConversation.job_title}
+							</span>
+						</div>
 					</div>
 					<button 
 						type="button" 
 						class="btn btn-outline" 
-						style="padding: 0.35rem 0.85rem; font-size: 0.85rem; display: flex; align-items: center; gap: 0.35rem;" 
+						style="padding: 0.35rem 0.65rem; font-size: 0.8rem; display: flex; align-items: center; gap: 0.3rem;" 
 						onclick={refreshChatData}
 						disabled={isRefreshingChat}
 						id="refresh-chat-customer-btn"
 					>
-						<RefreshCw size={14} /> {isRefreshingChat ? 'Refreshing...' : 'Refresh Chat'}
+						<RefreshCw size={13} /> {isRefreshingChat ? 'Refreshing...' : 'Refresh'}
 					</button>
 				</div>
 
@@ -704,13 +721,10 @@
 						</div>
 					{:else}
 						{#each data.posts as job (job.id)}
-							<div class="card" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
-								<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
+							<div class="card feed-job-card">
+								<div class="feed-job-header">
 									<div>
-										<h3 style="font-size: 1.35rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
-											{job.title}
-										</h3>
-										<div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+										<div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.35rem;">
 											<span class="badge {getCategoryBadge(job.category)}">{job.category}</span>
 											{#if job.status === 'completed'}
 												<span class="status status-completed">Completed</span>
@@ -719,13 +733,14 @@
 											{:else}
 												<span class="status status-open">Open</span>
 											{/if}
-											<span style="font-size: 0.8rem; color: var(--text-muted);">
-												{new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}
+											<span style="font-size: 0.75rem; color: var(--text-muted);">
+												Posted: {new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}
 											</span>
 										</div>
+										<h3 class="feed-job-title">{job.title}</h3>
 									</div>
 									<div style="text-align: right;">
-										<strong style="color: var(--accent); font-size: 1.25rem;">₱{job.budget.toLocaleString()}</strong>
+										<strong class="feed-job-budget" style="color: var(--accent); font-size: 1.25rem; display: block;">₱{job.budget.toLocaleString()}</strong>
 									</div>
 								</div>
 
@@ -753,22 +768,20 @@
 						</div>
 					{:else}
 						{#each completedJobs as job (job.id)}
-							<div class="card" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
-								<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
+							<div class="card feed-job-card">
+								<div class="feed-job-header">
 									<div>
-										<h3 style="font-size: 1.35rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
-											{job.title}
-										</h3>
-										<div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+										<div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.35rem;">
 											<span class="badge {getCategoryBadge(job.category)}">{job.category}</span>
 											<span class="status status-completed">Completed</span>
-											<span style="font-size: 0.8rem; color: var(--text-muted);">
-												{new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}
+											<span style="font-size: 0.75rem; color: var(--text-muted);">
+												Posted: {new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}
 											</span>
 										</div>
+										<h3 class="feed-job-title">{job.title}</h3>
 									</div>
 									<div style="text-align: right;">
-										<strong style="color: var(--accent); font-size: 1.25rem;">₱{job.budget.toLocaleString()}</strong>
+										<strong class="feed-job-budget" style="color: var(--accent); font-size: 1.25rem; display: block;">₱{job.budget.toLocaleString()}</strong>
 									</div>
 								</div>
 

@@ -1,7 +1,7 @@
 <script>
 	import { enhance } from "$app/forms";
 	import { invalidateAll } from "$app/navigation";
-	import { MessageSquare, Pin, RefreshCw, Star, ClipboardList, Check, User } from 'lucide-svelte';
+	import { MessageSquare, Pin, RefreshCw, Star, ClipboardList, Check, User, ArrowLeft } from 'lucide-svelte';
 	import ViewProfileModal from '$lib/ViewProfileModal.svelte';
 
 	let { data, form } = $props();
@@ -57,7 +57,8 @@
 
 	let applyingJobId = $state(null);
 
-	// Client-side category filtering helper
+	let visibleFeedJobsLimit = $state(40);
+
 	let filteredJobs = $derived(
 		data.availableJobs.filter((job) => {
 			const matchesCategory =
@@ -71,6 +72,34 @@
 			return matchesCategory && matchesLocation && matchesBudget;
 		}),
 	);
+
+	let visibleFeedJobs = $derived(
+		filteredJobs.slice(0, visibleFeedJobsLimit)
+	);
+
+	function loadMoreFeedJobs() {
+		visibleFeedJobsLimit += 20;
+	}
+
+	function handleFeedScroll() {
+		if (typeof window === 'undefined') return;
+		const scrollPosition = window.innerHeight + window.scrollY;
+		const threshold = document.documentElement.scrollHeight - 200;
+		if (scrollPosition >= threshold) {
+			if (visibleFeedJobsLimit < filteredJobs.length) {
+				visibleFeedJobsLimit += 20;
+			}
+		}
+	}
+
+	$effect(() => {
+		if (typeof window !== 'undefined') {
+			window.addEventListener('scroll', handleFeedScroll);
+			return () => {
+				window.removeEventListener('scroll', handleFeedScroll);
+			};
+		}
+	});
 
 	// Category mapping for badge styling helper
 	function getCategoryBadge(category) {
@@ -178,59 +207,61 @@
 	<div class="dashboard-layout">
 		<!-- Filters sidebar -->
 		<aside
-			class="card"
-			style="position: sticky; top: 90px; padding: 1.5rem;"
+			class="card feed-filters-card"
+			style="position: sticky; top: 90px; padding: 1.25rem;"
 		>
-			<h4 style="font-size: 1.25rem; margin-bottom: 1rem;">
+			<h4 style="font-size: 1.1rem; margin-bottom: 0.75rem;">
 				Filter Jobs
 			</h4>
 
-			<div class="form-group">
-				<label for="filter-category">Category</label>
-				<select id="filter-category" bind:value={searchCategory}>
-					<option value="">All Categories</option>
-					<option value="Plumbing / Tubero">Plumbing / Tubero</option>
-					<option value="Roofing / Ayos Yero"
-						>Roofing / Ayos Yero</option
-					>
-					<option value="Excavation / Hukay Lupa"
-						>Excavation / Hukay Lupa</option
-					>
-					<option value="Gardening">Gardening / Landscape</option>
-					<option value="Carpentry">Carpentry / Karpintero</option>
-					<option value="General Manual Labor"
-						>General Manual Labor</option
-					>
-				</select>
-			</div>
+			<div class="feed-filters-grid">
+				<div class="form-group form-group-full">
+					<label for="filter-category">Category</label>
+					<select id="filter-category" bind:value={searchCategory}>
+						<option value="">All Categories</option>
+						<option value="Plumbing / Tubero">Plumbing / Tubero</option>
+						<option value="Roofing / Ayos Yero"
+							>Roofing / Ayos Yero</option
+						>
+						<option value="Excavation / Hukay Lupa"
+							>Excavation / Hukay Lupa</option
+						>
+						<option value="Gardening">Gardening / Landscape</option>
+						<option value="Carpentry">Carpentry / Karpintero</option>
+						<option value="General Manual Labor"
+							>General Manual Labor</option
+						>
+					</select>
+				</div>
 
-			<div class="form-group">
-				<label for="filter-location">Location (Barangay/City)</label>
-				<input
-					type="text"
-					id="filter-location"
-					placeholder="E.g. Pasig"
-					bind:value={searchLocation}
-				/>
-			</div>
+				<div class="form-group">
+					<label for="filter-location">Location</label>
+					<input
+						type="text"
+						id="filter-location"
+						placeholder="E.g. Pasig"
+						bind:value={searchLocation}
+					/>
+				</div>
 
-			<div class="form-group" style="margin-bottom: 0;">
-				<label for="filter-budget">Minimum Budget (₱)</label>
-				<input
-					type="number"
-					id="filter-budget"
-					placeholder="E.g. 500"
-					bind:value={minBudget}
-				/>
+				<div class="form-group">
+					<label for="filter-budget">Min Budget (₱)</label>
+					<input
+						type="number"
+						id="filter-budget"
+						placeholder="E.g. 500"
+						bind:value={minBudget}
+					/>
+				</div>
 			</div>
 		</aside>
 
 		<!-- Feed stream list -->
-		<section style="display: flex; flex-direction: column; gap: 1.5rem;">
+		<section style="display: flex; flex-direction: column; gap: 1rem;">
 			<div
 				style="display: flex; justify-content: space-between; align-items: center;"
 			>
-				<h2 style="font-size: 1.5rem;">
+				<h2 style="font-size: 1.3rem;">
 					Available Jobs ({filteredJobs.length})
 				</h2>
 			</div>
@@ -238,28 +269,26 @@
 			{#if filteredJobs.length === 0}
 				<div
 					class="card"
-					style="text-align: center; padding: 4rem 2rem; border-style: dashed;"
+					style="text-align: center; padding: 3rem 1.5rem; border-style: dashed;"
 				>
-					<h4 style="font-size: 1.25rem; margin-bottom: 0.5rem;">
+					<h4 style="font-size: 1.15rem; margin-bottom: 0.5rem;">
 						No sideline jobs found.
 					</h4>
-					<p style="color: var(--text-secondary); font-size: 0.9rem;">
+					<p style="color: var(--text-secondary); font-size: 0.85rem;">
 						Try modifying your filters or check back later for new
 						job postings from clients.
 					</p>
 				</div>
 			{:else}
-				{#each filteredJobs as job (job.id)}
+				{#each visibleFeedJobs as job (job.id)}
 					<div
-						class="card"
-						style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;"
+						class="card feed-job-card"
+						style="padding: 1.25rem; display: flex; flex-direction: column; gap: 0.85rem;"
 					>
-						<div
-							style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;"
-						>
+						<div class="feed-job-header">
 							<div>
 								<div
-									style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;"
+									style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.35rem;"
 								>
 									<span
 										class="badge {getCategoryBadge(
@@ -267,9 +296,9 @@
 										)}">{job.category}</span
 									>
 									<span
-										style="font-size: 0.8rem; color: var(--text-muted);"
+										style="font-size: 0.75rem; color: var(--text-muted);"
 									>
-										Posted on: {new Date(
+										Posted: {new Date(
 											job.created_at,
 										).toLocaleDateString("en-PH", {
 											month: "short",
@@ -278,11 +307,12 @@
 									</span>
 								</div>
 								<h3
-									style="font-size: 1.35rem; color: var(--text-primary);"
+									class="feed-job-title"
+									style="font-size: 1.25rem; color: var(--text-primary);"
 								>
 									{job.title}
 								</h3>
-								<span style="font-size: 0.85rem; color: var(--text-secondary);">
+								<span style="font-size: 0.8rem; color: var(--text-secondary);">
 									Client: 
 									<button 
 										type="button" 
@@ -295,6 +325,7 @@
 							</div>
 							<div style="text-align: right;">
 								<strong
+									class="feed-job-budget"
 									style="color: var(--accent); font-size: 1.25rem; display: block;"
 									>₱{job.budget.toLocaleString()}</strong
 								>
@@ -302,19 +333,19 @@
 						</div>
 
 						<p
-							style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6;"
+							class="feed-job-desc"
+							style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;"
 						>
 							{job.description}
 						</p>
 
-						<div class="metadata-bar">
-							<div><strong>Location:</strong> {job.location}</div>
+						<div class="metadata-bar feed-job-meta">
+							<div><strong>Loc:</strong> {job.location}</div>
 							<div>
-								<strong>Schedule:</strong>
+								<strong>Sched:</strong>
 								{new Date(job.target_date).toLocaleDateString(
 									"en-PH",
 									{
-										weekday: "short",
 										month: "short",
 										day: "numeric",
 										hour: "2-digit",
@@ -325,13 +356,14 @@
 						</div>
 
 						<div
-							style="display: flex; justify-content: flex-end; margin-top: 0.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem;"
+							class="feed-job-actions"
+							style="display: flex; justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top: 0.75rem;"
 						>
-									{#if job.hasApplied}
+							{#if job.hasApplied}
 								<button
 									type="button"
 									class="btn btn-outline"
-									style="padding: 0.5rem 1.25rem; border-color: var(--accent); color: var(--accent-hover); display: inline-flex; align-items: center; gap: 0.35rem;"
+									style="padding: 0.45rem 1.1rem; border-color: var(--accent); color: var(--accent-hover); display: inline-flex; align-items: center; gap: 0.35rem;"
 									onclick={() =>
 										openChat(job.id, job.customer_id)}
 								>
@@ -349,6 +381,7 @@
 											openChat(job.id, job.customer_id);
 										};
 									}}
+									style="width: 100%; display: flex; justify-content: flex-end;"
 								>
 									<input
 										type="hidden"
@@ -368,7 +401,7 @@
 									<button
 										type="submit"
 										class="btn btn-primary"
-										style="padding: 0.5rem 1.25rem; display: inline-flex; align-items: center; gap: 0.35rem;"
+										style="padding: 0.45rem 1.1rem; display: inline-flex; align-items: center; gap: 0.35rem;"
 										disabled={applyingJobId === job.id}
 										id="inquire-btn-{job.id}"
 									>
@@ -382,6 +415,19 @@
 						</div>
 					</div>
 				{/each}
+
+				{#if visibleFeedJobsLimit < filteredJobs.length}
+					<div style="text-align: center; padding: 1rem 0;">
+						<button
+							type="button"
+							class="btn btn-secondary"
+							onclick={loadMoreFeedJobs}
+							style="padding: 0.6rem 1.5rem;"
+						>
+							Load 20 More Jobs ({filteredJobs.length - visibleFeedJobsLimit} remaining)
+						</button>
+					</div>
+				{/if}
 			{/if}
 		</section>
 	</div>
@@ -413,15 +459,13 @@
 		{:else}
 			{#each visibleMyJobs as job (job.id)}
 				<div
-					class="card"
-					style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;"
+					class="card active-job-card"
+					style="padding: 1.25rem; display: flex; flex-direction: column; gap: 0.85rem;"
 				>
-					<div
-						style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;"
-					>
+					<div class="active-job-header">
 						<div>
 							<div
-								style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;"
+								style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.35rem;"
 							>
 								<span
 									class="badge {getCategoryBadge(
@@ -435,75 +479,72 @@
 								</span>
 							</div>
 							<h3
-								style="font-size: 1.35rem; color: var(--text-primary);"
+								class="active-job-title"
+								style="font-size: 1.25rem; color: var(--text-primary);"
 							>
 								{job.title}
 							</h3>
 						</div>
 						<strong
-							style="color: var(--success); font-size: 1.3rem;"
+							class="active-job-budget"
+							style="color: var(--success); font-size: 1.25rem;"
 							>₱{job.budget.toLocaleString()}</strong
 						>
 					</div>
 
 					<p
-						style="font-size: 0.95rem; color: var(--text-secondary);"
+						class="active-job-desc"
+						style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;"
 					>
 						{job.description}
 					</p>
 
 					<!-- Client Contact Box -->
 					<div
-						style="padding: 1rem; background-color: var(--accent-light); border: 1px dashed var(--accent); border-radius: var(--radius-md); font-size: 0.9rem; margin: 0.5rem 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;"
+						class="active-contact-box"
+						style="padding: 0.85rem 1rem; background-color: var(--accent-light); border: 1px dashed var(--accent); border-radius: var(--radius-md); font-size: 0.85rem; margin: 0.25rem 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;"
 					>
 						<div>
-							<h4
-								style="color: var(--text-primary); margin-bottom: 0.5rem; font-size: 0.95rem;"
-							>
-								Contact Information:
-							</h4>
-							<p style="margin-bottom: 0.25rem;">
-								<strong>Client:</strong>
-								{job.customerName}
+							<p style="margin-bottom: 0.2rem; font-size: 0.85rem;">
+								<strong>Client:</strong> {job.customerName}
 							</p>
-							<p style="margin-bottom: 0.25rem;">
-								<strong>Phone Number:</strong>
+							<p style="margin-bottom: 0;">
+								<strong>Phone:</strong>
 								<span
-									style="font-family: monospace; font-size: 1.05rem; color: var(--accent-hover); font-weight: 600;"
+									style="font-family: monospace; font-size: 0.95rem; color: var(--accent-hover); font-weight: 600;"
 									>{job.customerPhone}</span
 								>
 							</p>
 						</div>
 
-						<div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+						<div class="active-contact-actions" style="display: flex; gap: 0.4rem; align-items: center;">
 							<button
 								type="button"
 								class="btn btn-outline"
-								style="padding: 0.5rem 1rem; display: inline-flex; align-items: center; gap: 0.35rem;"
+								style="padding: 0.4rem 0.75rem; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.3rem;"
 								onclick={() => openViewProfile(job.customer_id)}
 							>
-								<User size={14} /> View Profile
+								<User size={13} /> Profile
 							</button>
 
 							<button
 								type="button"
 								class="btn btn-outline"
-								style="padding: 0.5rem 1rem; display: inline-flex; align-items: center; gap: 0.35rem;"
+								style="padding: 0.4rem 0.75rem; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.3rem;"
 								onclick={() => openChat(job.id, job.customer_id)}
 							>
-								<MessageSquare size={14} /> Chat Client
+								<MessageSquare size={13} /> Chat
 							</button>
 						</div>
 					</div>
 
-					<div class="metadata-bar">
-						<div><strong>Location:</strong> {job.location}</div>
+					<div class="metadata-bar feed-job-meta">
+						<div><strong>Loc:</strong> {job.location}</div>
 						<div>
-							<strong>Target Date:</strong>
+							<strong>Target:</strong>
 							{new Date(job.target_date).toLocaleDateString(
 								"en-PH",
 								{
-									weekday: "short",
 									month: "short",
 									day: "numeric",
 									hour: "2-digit",
@@ -533,7 +574,7 @@
 
 <!-- TAB: MESSAGES & CHAT -->
 {#if activeTab === "chat"}
-	<div class="chat-container">
+	<div class="chat-container {activeConvId ? 'has-active-conv' : ''}">
 		<!-- Left Sidebar: Conversations List -->
 		<div class="chat-threads-sidebar">
 			<div class="chat-threads-header" style="display: flex; align-items: center; gap: 0.5rem;">
@@ -557,14 +598,20 @@
 								: ''}"
 							onclick={() => (activeConvId = conv.id)}
 						>
-							<div class="chat-thread-name">
-								{conv.other_user_name} (Client)
+							<div class="chat-avatar">
+								{conv.other_user_name ? conv.other_user_name.charAt(0).toUpperCase() : 'U'}
 							</div>
-							<div class="chat-thread-title" style="display: flex; align-items: center; gap: 0.25rem;">
-								<Pin size={12} /> {conv.job_title}
-							</div>
-							<div class="chat-thread-preview">
-								{conv.last_message || "No messages yet."}
+							<div class="chat-thread-info">
+								<div class="chat-thread-top">
+									<span class="chat-thread-name">{conv.other_user_name}</span>
+									<span class="chat-role-badge">Client</span>
+								</div>
+								<div class="chat-thread-title">
+									<Pin size={11} style="flex-shrink: 0;" /> <span class="chat-thread-title-text">{conv.job_title}</span>
+								</div>
+								<div class="chat-thread-preview">
+									{conv.last_message || "No messages yet."}
+								</div>
 							</div>
 						</button>
 					{/each}
@@ -576,35 +623,45 @@
 		<div class="chat-window">
 			{#if activeConversation}
 				<div class="chat-header">
-					<div>
-						<h4
-							style="margin: 0; font-size: 1.1rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;"
+					<div style="display: flex; align-items: center; gap: 0.5rem;">
+						<button
+							type="button"
+							class="btn btn-outline mobile-back-btn"
+							style="padding: 0.3rem 0.5rem; display: none; align-items: center;"
+							onclick={() => (activeConvId = "")}
 						>
-							{activeConversation.other_user_name}
-							<button
-								type="button"
-								class="btn btn-outline"
-								style="padding: 0.2rem 0.6rem; font-size: 0.75rem; border-color: var(--accent); color: var(--accent-hover);"
-								onclick={() => openViewProfile(activeConversation.other_user_id)}
+							<ArrowLeft size={16} />
+						</button>
+						<div>
+							<h4
+								style="margin: 0; font-size: 1.05rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;"
 							>
-								<User size={12} /> View Profile
-							</button>
-						</h4>
-						<span
-							style="font-size: 0.8rem; color: var(--accent-hover);"
-						>
-							Job Post: {activeConversation.job_title}
-						</span>
+								{activeConversation.other_user_name}
+								<button
+									type="button"
+									class="btn btn-outline"
+									style="padding: 0.15rem 0.5rem; font-size: 0.72rem; border-color: var(--accent); color: var(--accent-hover);"
+									onclick={() => openViewProfile(activeConversation.other_user_id)}
+								>
+									<User size={11} /> Profile
+								</button>
+							</h4>
+							<span
+								style="font-size: 0.78rem; color: var(--accent-hover); display: block;"
+							>
+								Job: {activeConversation.job_title}
+							</span>
+						</div>
 					</div>
 					<button
 						type="button"
 						class="btn btn-outline"
-						style="padding: 0.35rem 0.85rem; font-size: 0.85rem; display: flex; align-items: center; gap: 0.35rem;"
+						style="padding: 0.35rem 0.65rem; font-size: 0.8rem; display: flex; align-items: center; gap: 0.3rem;"
 						onclick={refreshChatData}
 						disabled={isRefreshingChat}
 						id="refresh-chat-worker-btn"
 					>
-						<RefreshCw size={14} /> {isRefreshingChat ? "Refreshing..." : "Refresh Chat"}
+						<RefreshCw size={13} /> {isRefreshingChat ? "Refreshing..." : "Refresh"}
 					</button>
 				</div>
 
