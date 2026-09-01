@@ -293,7 +293,6 @@ export const db = {
 			}
 
 			const sum = workerReviews.reduce((acc, curr) => acc + curr.rating, 0);
-			const avg = parseFloat((sum / workerReviews.length).toFixed(1));
 
 			// Sort reviews by created_at descending (latest first)
 			const sortedWorkerReviews = [...workerReviews].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
@@ -308,7 +307,7 @@ export const db = {
 			}));
 
 			return {
-				average_rating: avg,
+				average_rating: sum,
 				total_reviews: workerReviews.length,
 				completed_jobs_count: count || 0,
 				reviews: reviewsWithAuthor
