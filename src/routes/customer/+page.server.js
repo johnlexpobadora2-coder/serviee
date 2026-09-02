@@ -12,7 +12,7 @@ export async function load({ locals }) {
 	const [posts, allJobs, conversations, customerReviews] = await Promise.all([
 		db.jobs.listByCustomer(locals.user.id),
 		db.jobs.listAll(),
-		db.messages.listConversationsForUser(locals.user.id),
+		db.messages.listConversationsForUser(locals.user.id, locals.user),
 		db.reviews.listForCustomer(locals.user.id)
 	]);
 

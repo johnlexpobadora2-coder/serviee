@@ -44,6 +44,23 @@ export function hashPassword(password) {
 	return crypto.createHash('sha256').update(password).digest('hex');
 }
 
+// In-Memory Caches for Latency Optimization
+const userCache = new Map(); // id -> { data, timestamp }
+const USER_CACHE_TTL = 60 * 1000; // 60s TTL
+
+const workerStatsCache = new Map(); // workerId -> { data, timestamp }
+const STATS_CACHE_TTL = 30 * 1000; // 30s TTL
+
+export function invalidateUserCache(userId) {
+	if (userId) userCache.delete(userId);
+	else userCache.clear();
+}
+
+export function invalidateWorkerStatsCache(workerId) {
+	if (workerId) workerStatsCache.delete(workerId);
+	else workerStatsCache.clear();
+}
+
 export const db = {
 	users: {
 		async create({ name, email, phone, role, address, password }) {
@@ -82,6 +99,11 @@ export const db = {
 
 		async findById(id) {
 			if (!id) return null;
+			const cached = userCache.get(id);
+			if (cached && Date.now() - cached.timestamp < USER_CACHE_TTL) {
+				return cached.data;
+			}
+
 			const supabase = getSupabase();
 			const { data, error } = await supabase
 				.from('users')
@@ -89,6 +111,9 @@ export const db = {
 				.eq('id', id)
 				.maybeSingle();
 			if (error) throw new Error(error.message);
+			if (data) {
+				userCache.set(id, { data, timestamp: Date.now() });
+			}
 			return data || null;
 		},
 
@@ -97,15 +122,31 @@ export const db = {
 			const uniqueIds = Array.from(new Set(ids.filter(Boolean)));
 			if (uniqueIds.length === 0) return new Map();
 
-			const supabase = getSupabase();
-			const { data, error } = await supabase
-				.from('users')
-				.select('*')
-				.in('id', uniqueIds);
-			if (error) throw new Error(error.message);
-
 			const userMap = new Map();
-			(data || []).forEach(user => userMap.set(user.id, user));
+			const missingIds = [];
+
+			for (const id of uniqueIds) {
+				const cached = userCache.get(id);
+				if (cached && Date.now() - cached.timestamp < USER_CACHE_TTL) {
+					userMap.set(id, cached.data);
+				} else {
+					missingIds.push(id);
+				}
+			}
+
+			if (missingIds.length > 0) {
+				const supabase = getSupabase();
+				const { data, error } = await supabase
+					.from('users')
+					.select('*')
+					.in('id', missingIds);
+				if (error) throw new Error(error.message);
+				(data || []).forEach(user => {
+					userCache.set(user.id, { data: user, timestamp: Date.now() });
+					userMap.set(user.id, user);
+				});
+			}
+
 			return userMap;
 		},
 
@@ -134,6 +175,7 @@ export const db = {
 				.select()
 				.maybeSingle();
 			if (error) throw new Error(error.message);
+			invalidateUserCache(id);
 			return data || null;
 		},
 
@@ -151,6 +193,7 @@ export const db = {
 				.update({ password_hash: hashPassword(newPassword) })
 				.eq('id', id);
 			if (error) throw new Error(error.message);
+			invalidateUserCache(id);
 			return true;
 		},
 
@@ -171,6 +214,7 @@ export const db = {
 				.delete()
 				.eq('id', id);
 			if (error) throw new Error(error.message);
+			invalidateUserCache(id);
 			return true;
 		}
 	},
@@ -315,6 +359,7 @@ export const db = {
 			const supabase = getSupabase();
 			const { error } = await supabase.from('ratings_reviews').insert(newReview);
 			if (error) throw new Error(error.message);
+			invalidateWorkerStatsCache(worker_id);
 			return newReview;
 		},
 
@@ -341,47 +386,58 @@ export const db = {
 		},
 
 		async getStatsForWorker(workerId) {
-			const workerReviews = await this.listForWorker(workerId);
-			
-			// Fetch completed jobs count
+			const cached = workerStatsCache.get(workerId);
+			if (cached && Date.now() - cached.timestamp < STATS_CACHE_TTL) {
+				return cached.data;
+			}
+
 			const supabase = getSupabase();
-			const { count, error: countError } = await supabase
-				.from('job_posts')
-				.select('*', { count: 'exact', head: true })
-				.eq('worker_id', workerId)
-				.eq('status', 'completed');
 
-			if (countError) throw new Error(countError.message);
+			// Fetch reviews and completed jobs count in PARALLEL
+			const [workerReviews, countResult] = await Promise.all([
+				this.listForWorker(workerId),
+				supabase
+					.from('job_posts')
+					.select('*', { count: 'exact', head: true })
+					.eq('worker_id', workerId)
+					.eq('status', 'completed')
+			]);
 
+			if (countResult.error) throw new Error(countResult.error.message);
+			const count = countResult.count || 0;
+
+			let result;
 			if (workerReviews.length === 0) {
-				return {
+				result = {
 					average_rating: 0,
 					total_reviews: 0,
-					completed_jobs_count: count || 0,
+					completed_jobs_count: count,
 					reviews: []
+				};
+			} else {
+				const sum = workerReviews.reduce((acc, curr) => acc + curr.rating, 0);
+				const sortedWorkerReviews = [...workerReviews].sort(
+					(a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+				);
+
+				const customerIds = sortedWorkerReviews.map(r => r.customer_id);
+				const customerMap = await db.users.findByIds(customerIds);
+
+				const reviewsWithAuthor = sortedWorkerReviews.map(r => ({
+					...r,
+					customer_name: customerMap.get(r.customer_id)?.name || 'Anonymous Client'
+				}));
+
+				result = {
+					average_rating: sum,
+					total_reviews: workerReviews.length,
+					completed_jobs_count: count,
+					reviews: reviewsWithAuthor
 				};
 			}
 
-			const sum = workerReviews.reduce((acc, curr) => acc + curr.rating, 0);
-
-			// Sort reviews by created_at descending (latest first)
-			const sortedWorkerReviews = [...workerReviews].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-
-			// Batch hydrate reviews with author names
-			const customerIds = sortedWorkerReviews.map(r => r.customer_id);
-			const customerMap = await db.users.findByIds(customerIds);
-
-			const reviewsWithAuthor = sortedWorkerReviews.map(r => ({
-				...r,
-				customer_name: customerMap.get(r.customer_id)?.name || 'Anonymous Client'
-			}));
-
-			return {
-				average_rating: sum,
-				total_reviews: workerReviews.length,
-				completed_jobs_count: count || 0,
-				reviews: reviewsWithAuthor
-			};
+			workerStatsCache.set(workerId, { data: result, timestamp: Date.now() });
+			return result;
 		},
 
 		async listAll() {
@@ -466,7 +522,7 @@ export const db = {
 			);
 		},
 
-		async listConversationsForUser(userId) {
+		async listConversationsForUser(userId, currentUserObj = null) {
 			const allMsgs = await this.listForUser(userId);
 			const conversationsMap = new Map();
 
@@ -486,7 +542,7 @@ export const db = {
 			}
 
 			// Include all job post applicants and assigned workers into conversations
-			const currentUser = await db.users.findById(userId);
+			const currentUser = currentUserObj || (await db.users.findById(userId));
 
 			if (currentUser) {
 				if (currentUser.role === 'customer') {
@@ -517,14 +573,17 @@ export const db = {
 						}
 					}
 				} else if (currentUser.role === 'worker') {
-					// Worker: get jobs where worker applied or is assigned
-					const workerJobs = await db.jobs.listByWorker(userId);
+					// Worker: get jobs where worker applied or is assigned IN PARALLEL
 					const supabase = getSupabase();
-					const { data: appliedJobs } = await supabase
-						.from('job_posts')
-						.select('*')
-						.contains('applicants', [userId]);
+					const [workerJobs, appliedJobsRes] = await Promise.all([
+						db.jobs.listByWorker(userId),
+						supabase
+							.from('job_posts')
+							.select('*')
+							.contains('applicants', [userId])
+					]);
 
+					const appliedJobs = appliedJobsRes.data || [];
 					const allWorkerJobsMap = new Map();
 					(workerJobs || []).forEach(j => allWorkerJobsMap.set(j.id, j));
 					(appliedJobs || []).forEach(j => allWorkerJobsMap.set(j.id, j));

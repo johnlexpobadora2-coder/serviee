@@ -14,7 +14,7 @@ export async function load({ locals }) {
 	const [allJobs, stats, conversations] = await Promise.all([
 		db.jobs.listAll(),
 		db.reviews.getStatsForWorker(workerId),
-		db.messages.listConversationsForUser(workerId)
+		db.messages.listConversationsForUser(workerId, locals.user)
 	]);
 
 	// Filter available jobs, assigned jobs, and completed jobs
