@@ -1,6 +1,5 @@
 <script>
 	import '../index.css';
-	import favicon from '$lib/assets/favicon.svg';
 	import { Menu, X, Settings, Loader2 } from 'lucide-svelte';
 	import { navigating } from '$app/stores';
 
@@ -28,7 +27,7 @@
 {/if}
 
 <svelte:head>
-	<link rel="icon" href={favicon} />
+	<link rel="icon" type="image/png" href="/ServieeLogo.png" />
 	<title>Serviee | Local Sideline Jobs & Quick Repairs</title>
 	<meta name="description" content="Connect local clients needing quick repairs or manual labor with available sideline workers and handymen in the Philippines." />
 </svelte:head>
