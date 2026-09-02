@@ -61,9 +61,10 @@
 				/>
 			</div>
 
-			<button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.85rem 1.25rem; font-size: 1.05rem; font-weight: 600;" disabled={loading} id="login-submit-btn">
+			<button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.85rem 1.25rem; font-size: 1.05rem; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;" disabled={loading} id="login-submit-btn">
 				{#if loading}
-					Logging in...
+					<span class="spinner spinner-sm"></span>
+					<span>Logging in...</span>
 				{:else}
 					Log In
 				{/if}

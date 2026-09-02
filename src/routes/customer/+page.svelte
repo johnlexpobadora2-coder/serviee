@@ -3,6 +3,7 @@
 	import { invalidateAll } from '$app/navigation';
 	import { MessageSquare, Pin, RefreshCw, Star, UserCheck, Plus, User, ClipboardList, CheckCircle2, Clock, ArrowLeft } from 'lucide-svelte';
 	import ViewProfileModal from '$lib/ViewProfileModal.svelte';
+	import { CITIES_MUNICIPALITIES } from '$lib/locations.js';
 
 	let { data, form } = $props();
 
@@ -178,13 +179,16 @@
 			</div>
 
 			<div class="form-group">
-				<label for="filter-location">Location (Barangay/City)</label>
-				<input 
-					type="text" 
+				<label for="filter-location">City/Municipality</label>
+				<select 
 					id="filter-location" 
-					placeholder="E.g. Pasig" 
 					bind:value={searchLocation} 
-				/>
+				>
+					<option value="">All Locations</option>
+					{#each CITIES_MUNICIPALITIES as city}
+						<option value={city}>{city}</option>
+					{/each}
+				</select>
 			</div>
 
 			<div class="form-group" style="margin-bottom: 0;">
@@ -387,7 +391,12 @@
 														<input type="hidden" name="jobId" value={job.id} />
 														<input type="hidden" name="workerId" value={applicant.id} />
 														<button type="submit" class="btn btn-primary" style="padding: 0.35rem 0.85rem; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.3rem;" disabled={changingStatus}>
-															<UserCheck size={14} /> Hire Worker
+															{#if changingStatus}
+																<span class="spinner spinner-sm"></span>
+															{:else}
+																<UserCheck size={14} />
+															{/if}
+															Hire Worker
 														</button>
 													</form>
 												</div>
@@ -440,7 +449,10 @@
 											};
 										}}>
 											<input type="hidden" name="jobId" value={job.id} />
-											<button type="submit" class="btn btn-primary" style="padding: 0.4rem 1rem; font-size: 0.85rem;" disabled={changingStatus}>
+											<button type="submit" class="btn btn-primary" style="padding: 0.4rem 1rem; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.35rem;" disabled={changingStatus}>
+												{#if changingStatus}
+													<span class="spinner spinner-sm"></span>
+												{/if}
 												Start Job Execution
 											</button>
 										</form>
@@ -568,7 +580,12 @@
 						disabled={isRefreshingChat}
 						id="refresh-chat-customer-btn"
 					>
-						<RefreshCw size={13} /> {isRefreshingChat ? 'Refreshing...' : 'Refresh'}
+						{#if isRefreshingChat}
+							<span class="spinner spinner-sm"></span>
+							<span>Refreshing...</span>
+						{:else}
+							<RefreshCw size={13} /> Refresh
+						{/if}
 					</button>
 				</div>
 
@@ -613,7 +630,10 @@
 							required 
 							style="flex: 1; padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary);"
 						/>
-						<button type="submit" class="btn btn-primary" style="padding: 0.75rem 1.5rem;" disabled={sendingMessage || !newMessageContent.trim()}>
+						<button type="submit" class="btn btn-primary" style="padding: 0.75rem 1.5rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;" disabled={sendingMessage || !newMessageContent.trim()}>
+							{#if sendingMessage}
+								<span class="spinner spinner-sm"></span>
+							{/if}
 							Send
 						</button>
 					</form>
@@ -883,8 +903,13 @@
 					<button type="button" class="btn btn-secondary" onclick={() => showRatingModal = false}>
 						Cancel
 					</button>
-					<button type="submit" class="btn btn-primary" style="background-color: var(--success);" disabled={changingStatus}>
-						{changingStatus ? 'Submitting...' : 'Submit & Complete'}
+					<button type="submit" class="btn btn-primary" style="background-color: var(--success); display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;" disabled={changingStatus}>
+						{#if changingStatus}
+							<span class="spinner spinner-sm"></span>
+							<span>Submitting...</span>
+						{:else}
+							Submit & Complete
+						{/if}
 					</button>
 				</div>
 			</form>

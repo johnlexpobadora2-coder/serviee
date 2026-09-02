@@ -1,5 +1,6 @@
 <script>
 	import { enhance } from '$app/forms';
+	import { CITIES_MUNICIPALITIES } from '$lib/locations.js';
 	let { form } = $props();
 	let loading = $state(false);
 </script>
@@ -64,15 +65,18 @@
 				</div>
 
 				<div class="form-group">
-					<label for="location">Location / Barangay</label>
-					<input 
-						type="text" 
+					<label for="location">City/Municipality</label>
+					<select 
 						id="location" 
 						name="location" 
-						placeholder="E.g. Brgy. San Jose, Pasig" 
-						value={form?.location ?? ''}
 						required 
-					/>
+						value={form?.location ?? ''}
+					>
+						<option value="" disabled selected={!form?.location}>Select City / Municipality...</option>
+						{#each CITIES_MUNICIPALITIES as city}
+							<option value={city}>{city}</option>
+						{/each}
+					</select>
 				</div>
 			</div>
 

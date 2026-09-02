@@ -237,7 +237,7 @@
 									<div style="display: flex; align-items: center; gap: 0.6rem;">
 										<MapPin size={16} style="color: var(--text-muted);" />
 										<div>
-											<span style="font-size: 0.75rem; color: var(--text-muted); display: block;">Address / Barangay</span>
+											<span style="font-size: 0.75rem; color: var(--text-muted); display: block;">City/Municipality</span>
 											<strong style="color: var(--text-primary);">{user.address}</strong>
 										</div>
 									</div>

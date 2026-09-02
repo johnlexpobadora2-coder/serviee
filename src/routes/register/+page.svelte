@@ -2,6 +2,8 @@
 	import { enhance } from '$app/forms';
 	import { AlertTriangle } from 'lucide-svelte';
 
+	import { CITIES_MUNICIPALITIES } from '$lib/locations.js';
+
 	let { data, form } = $props();
 
 	let loading = $state(false);
@@ -77,16 +79,19 @@
 			</div>
 
 			<div class="form-group" style="margin-bottom: 1.25rem;">
-				<label for="address" style="font-size: 0.95rem; margin-bottom: 0.4rem;">Location / Barangay Address</label>
-				<input 
-					type="text" 
+				<label for="address" style="font-size: 0.95rem; margin-bottom: 0.4rem;">City/Municipality</label>
+				<select 
 					id="address" 
 					name="address" 
-					placeholder="Brgy. San Jose, Pasig City" 
-					value={form?.address ?? ''} 
 					required 
 					style="padding: 0.75rem 1rem; font-size: 1rem;"
-				/>
+					value={form?.address ?? ''}
+				>
+					<option value="" disabled selected={!form?.address}>Select City / Municipality...</option>
+					{#each CITIES_MUNICIPALITIES as city}
+						<option value={city}>{city}</option>
+					{/each}
+				</select>
 			</div>
 
 			<div class="form-group" style="margin-bottom: 1.25rem;">
@@ -110,9 +115,10 @@
 				/>
 			</div>
 
-			<button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.85rem 1.25rem; font-size: 1.05rem; font-weight: 600;" disabled={loading} id="register-submit-btn">
+			<button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.85rem 1.25rem; font-size: 1.05rem; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;" disabled={loading} id="register-submit-btn">
 				{#if loading}
-					Registering...
+					<span class="spinner spinner-sm"></span>
+					<span>Registering...</span>
 				{:else}
 					Register
 				{/if}

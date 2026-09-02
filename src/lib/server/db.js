@@ -117,6 +117,40 @@ export const db = {
 				.eq('role', 'worker');
 			if (error) throw new Error(error.message);
 			return data || [];
+		},
+
+		async updateProfile(id, { name, phone, address }) {
+			const supabase = getSupabase();
+			const updates = {};
+			if (name !== undefined) updates.name = name;
+			if (phone !== undefined) updates.phone = phone;
+			if (address !== undefined) updates.address = address;
+
+			const { data, error } = await supabase
+				.from('users')
+				.update(updates)
+				.eq('id', id)
+				.select()
+				.maybeSingle();
+			if (error) throw new Error(error.message);
+			return data || null;
+		},
+
+		async updatePassword(id, { currentPassword, newPassword }) {
+			const user = await this.findById(id);
+			if (!user) throw new Error('User not found.');
+
+			if (user.password_hash !== hashPassword(currentPassword)) {
+				throw new Error('Incorrect current password.');
+			}
+
+			const supabase = getSupabase();
+			const { error } = await supabase
+				.from('users')
+				.update({ password_hash: hashPassword(newPassword) })
+				.eq('id', id);
+			if (error) throw new Error(error.message);
+			return true;
 		}
 	},
 

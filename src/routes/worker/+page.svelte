@@ -3,6 +3,7 @@
 	import { invalidateAll } from "$app/navigation";
 	import { MessageSquare, Pin, RefreshCw, Star, ClipboardList, Check, User, ArrowLeft } from 'lucide-svelte';
 	import ViewProfileModal from '$lib/ViewProfileModal.svelte';
+	import { CITIES_MUNICIPALITIES } from '$lib/locations.js';
 
 	let { data, form } = $props();
 
@@ -235,13 +236,16 @@
 				</div>
 
 				<div class="form-group">
-					<label for="filter-location">Location</label>
-					<input
-						type="text"
+					<label for="filter-location">City/Municipality</label>
+					<select
 						id="filter-location"
-						placeholder="E.g. Pasig"
 						bind:value={searchLocation}
-					/>
+					>
+						<option value="">All Locations</option>
+						{#each CITIES_MUNICIPALITIES as city}
+							<option value={city}>{city}</option>
+						{/each}
+					</select>
 				</div>
 
 				<div class="form-group">
@@ -405,10 +409,13 @@
 										disabled={applyingJobId === job.id}
 										id="inquire-btn-{job.id}"
 									>
-										<MessageSquare size={14} />
-										{applyingJobId === job.id
-											? "Connecting..."
-											: "Inquire"}
+										{#if applyingJobId === job.id}
+											<span class="spinner spinner-sm"></span>
+											<span>Connecting...</span>
+										{:else}
+											<MessageSquare size={14} />
+											<span>Apply / Chat Client</span>
+										{/if}
 									</button>
 								</form>
 							{/if}
@@ -661,7 +668,12 @@
 						disabled={isRefreshingChat}
 						id="refresh-chat-worker-btn"
 					>
-						<RefreshCw size={13} /> {isRefreshingChat ? "Refreshing..." : "Refresh"}
+						{#if isRefreshingChat}
+							<span class="spinner spinner-sm"></span>
+							<span>Refreshing...</span>
+						{:else}
+							<RefreshCw size={13} /> Refresh
+						{/if}
 					</button>
 				</div>
 
@@ -737,10 +749,13 @@
 						<button
 							type="submit"
 							class="btn btn-primary"
-							style="padding: 0.75rem 1.5rem;"
+							style="padding: 0.75rem 1.5rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;"
 							disabled={sendingMessage ||
 								!newMessageContent.trim()}
 						>
+							{#if sendingMessage}
+								<span class="spinner spinner-sm"></span>
+							{/if}
 							Send
 						</button>
 					</form>

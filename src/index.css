@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
 	--bg-base: hsl(222, 24%, 7%);
@@ -1386,3 +1386,93 @@ p, span, h1, h2, h3, h4, h5, h6, div, label, strong {
 	color: var(--text-secondary);
 	border: 1px solid var(--border-color);
 }
+
+/* Global Loading Spinner & Navigation Progress Bar */
+@keyframes spin {
+	from { transform: rotate(0deg); }
+	to { transform: rotate(360deg); }
+}
+
+@keyframes loadingBarProgress {
+	0% { width: 0%; left: 0; }
+	50% { width: 70%; left: 15%; }
+	100% { width: 100%; left: 0; }
+}
+
+@keyframes fadeInPulse {
+	0%, 100% { opacity: 0.85; transform: scale(1); }
+	50% { opacity: 1; transform: scale(1.03); }
+}
+
+.spinner {
+	display: inline-block;
+	width: 18px;
+	height: 18px;
+	border: 2.5px solid rgba(255, 255, 255, 0.25);
+	border-top-color: currentColor;
+	border-radius: 50%;
+	animation: spin 0.7s linear infinite;
+	flex-shrink: 0;
+	vertical-align: middle;
+}
+
+.spinner-sm {
+	width: 14px;
+	height: 14px;
+	border-width: 2px;
+}
+
+.spinner-lg {
+	width: 32px;
+	height: 32px;
+	border-width: 3px;
+	border-top-color: var(--accent);
+}
+
+.spinner-accent {
+	border: 3px solid var(--border-color);
+	border-top-color: var(--accent);
+}
+
+/* Top Progress Bar for Page Navigation & Data Fetching */
+.top-loading-bar-container {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 3.5px;
+	z-index: 99999;
+	background: rgba(255, 255, 255, 0.05);
+	pointer-events: none;
+	overflow: hidden;
+}
+
+.top-loading-bar {
+	height: 100%;
+	background: linear-gradient(90deg, var(--accent), var(--accent-hover), #60a5fa);
+	box-shadow: 0 0 12px var(--accent);
+	animation: loadingBarProgress 1.5s ease-in-out infinite;
+}
+
+/* Floating Navigation / Fetching Loading Badge */
+.global-loading-indicator {
+	position: fixed;
+	bottom: 1.5rem;
+	right: 1.5rem;
+	z-index: 99999;
+	background: var(--bg-card);
+	border: 1px solid var(--border-color);
+	box-shadow: var(--shadow-lg);
+	padding: 0.65rem 1.1rem;
+	border-radius: var(--radius-full);
+	display: flex;
+	align-items: center;
+	gap: 0.65rem;
+	color: var(--text-primary);
+	font-size: 0.88rem;
+	font-weight: 500;
+	animation: fadeInPulse 2s infinite ease-in-out;
+	pointer-events: none;
+	backdrop-filter: blur(8px);
+}
+

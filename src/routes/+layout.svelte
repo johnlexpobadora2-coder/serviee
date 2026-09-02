@@ -1,7 +1,8 @@
 <script>
 	import '../index.css';
 	import favicon from '$lib/assets/favicon.svg';
-	import { Menu, X } from 'lucide-svelte';
+	import { Menu, X, Settings, Loader2 } from 'lucide-svelte';
+	import { navigating } from '$app/stores';
 
 	let { data, children } = $props();
 
@@ -15,6 +16,16 @@
 		menuOpen = false;
 	}
 </script>
+
+{#if $navigating}
+	<div class="top-loading-bar-container">
+		<div class="top-loading-bar"></div>
+	</div>
+	<div class="global-loading-indicator">
+		<div class="spinner spinner-accent spinner-sm"></div>
+		<span>Fetching data...</span>
+	</div>
+{/if}
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
@@ -46,6 +57,16 @@
 			
 			<div class="nav-links" class:mobile-open={menuOpen}>
 				{#if data.user}
+					<a 
+						href="/settings" 
+						class="nav-link" 
+						onclick={closeMenu} 
+						id="nav-settings-link"
+						style="display: inline-flex; align-items: center; gap: 0.35rem;"
+					>
+						<Settings size={16} />
+						Account Settings
+					</a>
 					<span class="user-greeting">
 						Hello, <strong style="color: var(--text-primary);">{data.user.name}</strong> ({data.user.role === 'customer' ? 'Client' : 'Worker'})
 					</span>
