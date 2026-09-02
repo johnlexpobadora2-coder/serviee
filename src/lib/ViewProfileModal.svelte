@@ -392,6 +392,11 @@
 															{:else}
 																<span class="status status-open" style="font-size: 0.7rem; padding: 0.1rem 0.4rem;">Open</span>
 															{/if}
+															{#if job.created_at}
+																<span style="font-size: 0.7rem; color: var(--text-muted);">
+																	Posted: {new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+																</span>
+															{/if}
 														</div>
 													</div>
 													<strong style="color: var(--accent); font-size: 1.1rem;">₱{job.budget?.toLocaleString()}</strong>

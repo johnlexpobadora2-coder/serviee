@@ -68,7 +68,7 @@
 						Account Settings
 					</a>
 					<span class="user-greeting">
-						Hello, <strong style="color: var(--text-primary);">{data.user.name}</strong> ({data.user.role === 'customer' ? 'Client' : 'Worker'})
+						Hello, <strong style="color: var(--text-primary);">{data.user.name}</strong> ({data.user.role === 'customer' ? 'Client' : data.user.role === 'admin' ? 'Admin' : 'Worker'})
 					</span>
 					
 					<form method="POST" action="/logout" style="display: inline;">

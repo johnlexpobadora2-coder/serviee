@@ -38,9 +38,19 @@
 	<div
 		style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;"
 	>
-		<a href="/login" class="btn btn-primary" id="hero-join-community-btn"
-			>Join Community</a
-		>
+		{#if data.user}
+			<a
+				href={data.user.role === 'customer' ? '/customer' : '/worker'}
+				class="btn btn-primary"
+				id="hero-view-jobs-btn"
+			>
+				View Job Listings
+			</a>
+		{:else}
+			<a href="/login" class="btn btn-primary" id="hero-join-community-btn"
+				>Join Community</a
+			>
+		{/if}
 	</div>
 </section>
 
@@ -105,7 +115,7 @@
 				From concept to completion, we handle leaky pipes, sink
 				installations, clogged drains, and pipe repairs.
 			</p>
-			<a href="/login" class="category-link"
+			<a href={data.user ? (data.user.role === 'customer' ? '/customer' : '/worker') : '/login'} class="category-link"
 				>LEARN MORE <ArrowRight size={14} /></a
 			>
 		</div>
@@ -127,7 +137,7 @@
 				Durable solutions for roof leaks, gutter cleaning, sheet
 				replacements, and roof maintenance.
 			</p>
-			<a href="/login" class="category-link"
+			<a href={data.user ? (data.user.role === 'customer' ? '/customer' : '/worker') : '/login'} class="category-link"
 				>LEARN MORE <ArrowRight size={14} /></a
 			>
 		</div>
@@ -149,7 +159,7 @@
 				Excavation services for septic tanks, fence post installations,
 				foundations, or drainage projects.
 			</p>
-			<a href="/login" class="category-link"
+			<a href={data.user ? (data.user.role === 'customer' ? '/customer' : '/worker') : '/login'} class="category-link"
 				>LEARN MORE <ArrowRight size={14} /></a
 			>
 		</div>
@@ -171,7 +181,7 @@
 				Curated lawn care, grass cutting, tree trimming, garden
 				clearing, and landscape maintenance.
 			</p>
-			<a href="/login" class="category-link"
+			<a href={data.user ? (data.user.role === 'customer' ? '/customer' : '/worker') : '/login'} class="category-link"
 				>LEARN MORE <ArrowRight size={14} /></a
 			>
 		</div>
@@ -193,7 +203,7 @@
 				Custom cabinets, door installations, wooden fences, tables,
 				chairs, and custom wood carpentry.
 			</p>
-			<a href="/login" class="category-link"
+			<a href={data.user ? (data.user.role === 'customer' ? '/customer' : '/worker') : '/login'} class="category-link"
 				>LEARN MORE <ArrowRight size={14} /></a
 			>
 		</div>
@@ -215,7 +225,7 @@
 				Moving assistance (hakot), heavy lifting, house cleaning, and
 				general household chores.
 			</p>
-			<a href="/login" class="category-link"
+			<a href={data.user ? (data.user.role === 'customer' ? '/customer' : '/worker') : '/login'} class="category-link"
 				>LEARN MORE <ArrowRight size={14} /></a
 			>
 		</div>
@@ -238,12 +248,25 @@
 	<div
 		style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;"
 	>
-		<a
-			href="/register"
-			class="btn btn-secondary"
-			style="background: #fff; color: var(--accent); border: none;"
-			id="cta-register-btn">Get Started Now</a
-		>
+		{#if data.user}
+			<a
+				href={data.user.role === 'customer' ? '/customer' : '/worker'}
+				class="btn btn-secondary"
+				style="background: #fff; color: var(--accent); border: none;"
+				id="cta-dashboard-btn"
+			>
+				View Job Listings
+			</a>
+		{:else}
+			<a
+				href="/register"
+				class="btn btn-secondary"
+				style="background: #fff; color: var(--accent); border: none;"
+				id="cta-register-btn"
+			>
+				Get Started Now
+			</a>
+		{/if}
 	</div>
 </section>
 

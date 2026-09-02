@@ -51,7 +51,8 @@
 	}
 
 	let searchCategory = $state('');
-	let searchLocation = $state('');
+	// svelte-ignore state_referenced_locally
+	let searchLocation = $state(data.user?.address || '');
 	/** @type {number | null} */
 	let minBudget = $state(null);
 
@@ -233,7 +234,7 @@
 										{/if}
 									</span>
 									<span style="font-size: 0.75rem; color: var(--text-muted);">
-										Posted: {new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })}
+										Posted: {new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
 									</span>
 								</div>
 								<h3 class="feed-job-title">{job.title}</h3>
@@ -312,7 +313,7 @@
 										{/if}
 									</span>
 									<span style="font-size: 0.75rem; color: var(--text-muted);">
-										Posted: {new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}
+										Posted: {new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
 									</span>
 								</div>
 								<h3 class="feed-job-title">{job.title}</h3>
@@ -754,7 +755,7 @@
 												<span class="status status-open">Open</span>
 											{/if}
 											<span style="font-size: 0.75rem; color: var(--text-muted);">
-												Posted: {new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}
+												Posted: {new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
 											</span>
 										</div>
 										<h3 class="feed-job-title">{job.title}</h3>
@@ -795,7 +796,7 @@
 											<span class="badge {getCategoryBadge(job.category)}">{job.category}</span>
 											<span class="status status-completed">Completed</span>
 											<span style="font-size: 0.75rem; color: var(--text-muted);">
-												Posted: {new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}
+												Posted: {new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
 											</span>
 										</div>
 										<h3 class="feed-job-title">{job.title}</h3>

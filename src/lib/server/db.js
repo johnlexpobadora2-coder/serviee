@@ -119,7 +119,8 @@ export const db = {
 			return data || [];
 		},
 
-		async updateProfile(id, { name, phone, address }) {
+		async updateProfile(id, profile = {}) {
+			const { name, phone, address } = profile;
 			const supabase = getSupabase();
 			const updates = {};
 			if (name !== undefined) updates.name = name;
@@ -148,6 +149,26 @@ export const db = {
 			const { error } = await supabase
 				.from('users')
 				.update({ password_hash: hashPassword(newPassword) })
+				.eq('id', id);
+			if (error) throw new Error(error.message);
+			return true;
+		},
+
+		async listAll() {
+			const supabase = getSupabase();
+			const { data, error } = await supabase
+				.from('users')
+				.select('*')
+				.order('created_at', { ascending: false });
+			if (error) throw new Error(error.message);
+			return data || [];
+		},
+
+		async delete(id) {
+			const supabase = getSupabase();
+			const { error } = await supabase
+				.from('users')
+				.delete()
 				.eq('id', id);
 			if (error) throw new Error(error.message);
 			return true;
@@ -263,6 +284,16 @@ export const db = {
 			const jobMap = new Map();
 			(data || []).forEach(job => jobMap.set(job.id, job));
 			return jobMap;
+		},
+
+		async delete(id) {
+			const supabase = getSupabase();
+			const { error } = await supabase
+				.from('job_posts')
+				.delete()
+				.eq('id', id);
+			if (error) throw new Error(error.message);
+			return true;
 		}
 	},
 
@@ -351,6 +382,26 @@ export const db = {
 				completed_jobs_count: count || 0,
 				reviews: reviewsWithAuthor
 			};
+		},
+
+		async listAll() {
+			const supabase = getSupabase();
+			const { data, error } = await supabase
+				.from('ratings_reviews')
+				.select('*')
+				.order('created_at', { ascending: false });
+			if (error) throw new Error(error.message);
+			return data || [];
+		},
+
+		async delete(id) {
+			const supabase = getSupabase();
+			const { error } = await supabase
+				.from('ratings_reviews')
+				.delete()
+				.eq('id', id);
+			if (error) throw new Error(error.message);
+			return true;
 		}
 	},
 

@@ -53,7 +53,8 @@
 	}
 
 	let searchCategory = $state("");
-	let searchLocation = $state("");
+	// svelte-ignore state_referenced_locally
+	let searchLocation = $state(data.user?.address || "");
 	let minBudget = $state(null);
 
 	let applyingJobId = $state(null);
@@ -261,7 +262,7 @@
 		</aside>
 
 		<!-- Feed stream list -->
-		<section style="display: flex; flex-direction: column; gap: 1rem;">
+		<section style="display: flex; flex-direction: column; gap: 1rem; min-width: 0; width: 100%;">
 			<div
 				style="display: flex; justify-content: space-between; align-items: center;"
 			>
@@ -307,6 +308,9 @@
 										).toLocaleDateString("en-PH", {
 											month: "short",
 											day: "numeric",
+											year: "numeric",
+											hour: "numeric",
+											minute: "2-digit",
 										})}
 									</span>
 								</div>
@@ -484,6 +488,21 @@
 										? "Assigned"
 										: "In Progress"}
 								</span>
+								{#if job.created_at}
+									<span
+										style="font-size: 0.75rem; color: var(--text-muted);"
+									>
+										Posted: {new Date(
+											job.created_at,
+										).toLocaleDateString("en-PH", {
+											month: "short",
+											day: "numeric",
+											year: "numeric",
+											hour: "numeric",
+											minute: "2-digit",
+										})}
+									</span>
+								{/if}
 							</div>
 							<h3
 								class="active-job-title"
@@ -883,7 +902,7 @@
 
 			<!-- Right Column: Service History & Feedback Sub-tabs -->
 			<section
-				style="display: flex; flex-direction: column; gap: 1.25rem;"
+				style="display: flex; flex-direction: column; gap: 1.25rem; min-width: 0; width: 100%;"
 			>
 				<!-- Sub-tabs header nav matching main tabs design -->
 				<div class="tabs-header" style="margin-bottom: 0.5rem;">
@@ -903,7 +922,7 @@
 						id="subtab-reviews-btn"
 						style="display: inline-flex; align-items: center; gap: 0.4rem;"
 					>
-						<Star size={16} fill="currentColor" /> Customer Comments, Feedback & Review Ratings ({data
+						<Star size={16} fill="currentColor" /> Reviews & Feedback ({data
 							.stats?.reviews?.length || 0})
 					</button>
 				</div>
@@ -929,19 +948,19 @@
 						</div>
 					{:else}
 						<div
-							style="display: flex; flex-direction: column; gap: 1rem;"
+							style="display: flex; flex-direction: column; gap: 1rem; min-width: 0; width: 100%;"
 						>
 							{#each data.completedJobs as job (job.id)}
 								<div
 									class="card"
-									style="padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem;"
+									style="padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; min-width: 0; max-width: 100%; box-sizing: border-box; overflow: hidden;"
 								>
 									<div
-										style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;"
+										style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem; flex-wrap: wrap; min-width: 0; width: 100%;"
 									>
-										<div>
+										<div style="min-width: 0; flex: 1 1 auto;">
 											<div
-												style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;"
+												style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem; flex-wrap: wrap;"
 											>
 												<span
 													class="badge {getCategoryBadge(
@@ -956,35 +975,35 @@
 												</span>
 											</div>
 											<h4
-												style="font-size: 1.15rem; color: var(--text-primary); margin: 0;"
+												style="font-size: 1.15rem; color: var(--text-primary); margin: 0; overflow-wrap: break-word; word-break: break-word;"
 											>
 												{job.title}
 											</h4>
 											<span
-												style="font-size: 0.85rem; color: var(--text-secondary);"
+												style="font-size: 0.85rem; color: var(--text-secondary); overflow-wrap: break-word;"
 												>Client: <strong
 													>{job.customerName}</strong
 												></span
 											>
 										</div>
 										<strong
-											style="color: var(--success); font-size: 1.15rem;"
+											style="color: var(--success); font-size: 1.15rem; flex-shrink: 0; white-space: nowrap;"
 											>₱{job.budget.toLocaleString()}</strong
 										>
 									</div>
 									<p
-										style="font-size: 0.9rem; color: var(--text-secondary); margin: 0;"
+										style="font-size: 0.9rem; color: var(--text-secondary); margin: 0; overflow-wrap: break-word; word-break: break-word;"
 									>
 										{job.description}
 									</p>
 									<div
-										style="font-size: 0.8rem; color: var(--text-muted); display: flex; justify-content: space-between; border-top: 1px dashed var(--border-color); padding-top: 0.5rem; flex-wrap: wrap; gap: 0.5rem;"
+										style="font-size: 0.8rem; color: var(--text-muted); display: flex; justify-content: space-between; border-top: 1px dashed var(--border-color); padding-top: 0.5rem; flex-wrap: wrap; gap: 0.5rem; min-width: 0; width: 100%;"
 									>
-										<span
+										<span style="min-width: 0; overflow-wrap: break-word; word-break: break-word;"
 											><strong>Location:</strong>
 											{job.location}</span
 										>
-										<span
+										<span style="min-width: 0; overflow-wrap: break-word; word-break: break-word;"
 											><strong>Date Completed:</strong>
 											{new Date(
 												job.target_date ||
@@ -1022,19 +1041,19 @@
 						</div>
 					{:else}
 						<div
-							style="display: flex; flex-direction: column; gap: 1rem;"
+							style="display: flex; flex-direction: column; gap: 1rem; min-width: 0; width: 100%;"
 						>
 							{#each data.stats.reviews as review (review.id)}
 								<div
 									class="card"
-									style="padding: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem;"
+									style="padding: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; max-width: 100%; box-sizing: border-box; overflow: hidden;"
 								>
 									<div
-										style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;"
+										style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; min-width: 0; width: 100%;"
 									>
-										<div>
+										<div style="min-width: 0;">
 											<strong
-												style="color: var(--text-primary);"
+												style="color: var(--text-primary); overflow-wrap: break-word;"
 												>{review.customer_name}</strong
 											>
 											<span
@@ -1049,7 +1068,7 @@
 												})}
 											</span>
 										</div>
-										<div>
+										<div style="flex-shrink: 0;">
 											<span
 												class="rating-badge {review.rating >
 												0
@@ -1070,7 +1089,7 @@
 										</div>
 									</div>
 									<p
-										style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; font-style: italic; margin: 0;"
+										style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; font-style: italic; margin: 0; overflow-wrap: break-word; word-break: break-word;"
 									>
 										"{review.review_text}"
 									</p>

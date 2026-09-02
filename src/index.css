@@ -425,6 +425,8 @@ footer {
 	grid-template-columns: 320px 1fr;
 	gap: 2rem;
 	align-items: start;
+	width: 100%;
+	min-width: 0;
 }
 
 /* Profile Grid Layout */
@@ -433,12 +435,21 @@ footer {
 	grid-template-columns: 300px 1fr;
 	gap: 2rem;
 	align-items: start;
+	width: 100%;
+	min-width: 0;
 }
 
 /* Text Overflow & Long Text Safe Guards */
 p, span, h1, h2, h3, h4, h5, h6, div, label, strong {
 	overflow-wrap: break-word;
 	word-break: break-word;
+}
+
+select {
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+	max-width: 100%;
 }
 
 /* Card Header & Feed Layout Consistency */
@@ -526,17 +537,41 @@ p, span, h1, h2, h3, h4, h5, h6, div, label, strong {
 
 /* Mobile Sideline Feed Compact Enhancements */
 @media (max-width: 768px) {
+	.dashboard-layout aside,
+	.dashboard-layout section,
+	.profile-layout aside,
+	.profile-layout section {
+		min-width: 0 !important;
+		width: 100% !important;
+		box-sizing: border-box !important;
+	}
 	.feed-filters-card {
-		padding: 1rem !important;
+		padding: 0.85rem 1rem !important;
 		margin-bottom: 0.5rem;
+		width: 100% !important;
+		box-sizing: border-box !important;
+		overflow: hidden !important;
 	}
 	.feed-filters-grid {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
 		gap: 0.5rem;
+		width: 100%;
 	}
 	.feed-filters-grid .form-group {
 		margin-bottom: 0 !important;
+		min-width: 0 !important;
+		width: 100% !important;
+		box-sizing: border-box !important;
+	}
+	.feed-filters-grid select,
+	.feed-filters-grid input {
+		font-size: 0.82rem !important;
+		padding: 0.45rem 0.5rem !important;
+		min-width: 0 !important;
+		width: 100% !important;
+		max-width: 100% !important;
+		box-sizing: border-box !important;
 	}
 	.feed-filters-grid .form-group-full {
 		grid-column: span 2;
@@ -545,17 +580,33 @@ p, span, h1, h2, h3, h4, h5, h6, div, label, strong {
 		padding: 0.9rem 1rem !important;
 		gap: 0.65rem !important;
 		border-radius: var(--radius-md) !important;
+		width: 100% !important;
+		box-sizing: border-box !important;
+		overflow: hidden !important;
 	}
 	.feed-job-header {
 		display: flex;
 		justify-content: space-between;
 		align-items: flex-start;
 		gap: 0.5rem;
+		width: 100%;
+		min-width: 0;
+	}
+	.feed-job-header > div:first-child {
+		min-width: 0;
+		flex: 1 1 auto;
+	}
+	.feed-job-header > div:last-child {
+		flex-shrink: 0;
+		text-align: right;
+		min-width: 0;
 	}
 	.feed-job-title {
 		font-size: 1.1rem !important;
 		line-height: 1.3 !important;
 		margin: 0.2rem 0 !important;
+		overflow-wrap: break-word;
+		word-break: break-word;
 	}
 	.feed-job-budget {
 		font-size: 1.15rem !important;
@@ -568,19 +619,29 @@ p, span, h1, h2, h3, h4, h5, h6, div, label, strong {
 		-webkit-line-clamp: 2;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
+		overflow-wrap: break-word;
+		word-break: break-word;
 	}
 	.feed-job-meta {
 		display: flex !important;
-		flex-direction: row !important;
+		flex-wrap: wrap !important;
 		justify-content: space-between !important;
 		align-items: center !important;
-		padding: 0.4rem 0.65rem !important;
+		padding: 0.45rem 0.65rem !important;
 		font-size: 0.78rem !important;
-		gap: 0.5rem !important;
+		gap: 0.35rem 0.5rem !important;
+		width: 100% !important;
+		box-sizing: border-box !important;
+	}
+	.feed-job-meta > div {
+		min-width: 0;
+		overflow-wrap: break-word;
+		word-break: break-word;
 	}
 	.feed-job-actions {
 		margin-top: 0.25rem !important;
 		padding-top: 0.5rem !important;
+		width: 100% !important;
 	}
 	.feed-job-actions .btn {
 		width: 100%;
@@ -592,12 +653,17 @@ p, span, h1, h2, h3, h4, h5, h6, div, label, strong {
 	.tabs-header {
 		gap: 0.25rem !important;
 		margin-bottom: 1.25rem !important;
+		max-width: 100% !important;
+		overflow-x: auto !important;
+		white-space: nowrap !important;
+		-webkit-overflow-scrolling: touch;
 	}
 	.tab-btn {
 		font-size: 0.82rem !important;
 		padding: 0.5rem 0.75rem !important;
 		border-top-left-radius: 6px !important;
 		border-top-right-radius: 6px !important;
+		flex-shrink: 0 !important;
 	}
 
 	/* Compact Mobile Active Jobs */
@@ -740,6 +806,23 @@ p, span, h1, h2, h3, h4, h5, h6, div, label, strong {
 		padding: 0.5rem !important;
 		font-size: 0.85rem !important;
 		justify-content: center;
+	}
+}
+
+@media (max-width: 576px) {
+	.feed-filters-grid {
+		grid-template-columns: 1fr !important;
+	}
+	.feed-filters-grid .form-group-full {
+		grid-column: span 1 !important;
+	}
+	.tabs-header {
+		gap: 0.2rem !important;
+		margin-bottom: 1rem !important;
+	}
+	.tab-btn {
+		font-size: 0.8rem !important;
+		padding: 0.45rem 0.65rem !important;
 	}
 }
 
