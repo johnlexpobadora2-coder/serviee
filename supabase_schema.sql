@@ -19,12 +19,18 @@ CREATE TABLE IF NOT EXISTS public.job_posts (
     category TEXT NOT NULL,
     description TEXT NOT NULL,
     location TEXT NOT NULL,
+    latitude DOUBLE PRECISION,
+    longitude DOUBLE PRECISION,
     budget NUMERIC NOT NULL,
     status TEXT DEFAULT 'open' NOT NULL, -- 'open', 'assigned', 'in_progress', 'completed'
     target_date TIMESTAMP WITH TIME ZONE NOT NULL,
     applicants UUID[] DEFAULT '{}'::UUID[] NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
+-- Migration helper if table already exists in existing database
+ALTER TABLE public.job_posts ADD COLUMN IF NOT EXISTS latitude DOUBLE PRECISION;
+ALTER TABLE public.job_posts ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION;
 
 -- Create ratings_reviews table
 CREATE TABLE IF NOT EXISTS public.ratings_reviews (

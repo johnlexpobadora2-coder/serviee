@@ -22,13 +22,15 @@ export const actions = {
 		const category = data.get('category')?.toString().trim();
 		const description = data.get('description')?.toString().trim();
 		const location = data.get('location')?.toString().trim();
+		const latitude = data.get('latitude')?.toString().trim() || null;
+		const longitude = data.get('longitude')?.toString().trim() || null;
 		const budget = data.get('budget')?.toString().trim();
 		const target_date = data.get('target_date')?.toString().trim();
 
 		if (!title || !category || !description || !location || !budget || !target_date) {
 			return fail(400, { 
 				error: 'Please fill out all fields to post a job.', 
-				title, category, description, location, budget, target_date 
+				title, category, description, location, latitude, longitude, budget, target_date 
 			});
 		}
 
@@ -39,13 +41,15 @@ export const actions = {
 				category,
 				description,
 				location,
+				latitude,
+				longitude,
 				budget,
 				target_date
 			});
 		} catch (error) {
 			return fail(400, { 
 				error: error.message || 'Could not post the job.', 
-				title, category, description, location, budget, target_date 
+				title, category, description, location, latitude, longitude, budget, target_date 
 			});
 		}
 

@@ -220,7 +220,7 @@ export const db = {
 	},
 
 	jobs: {
-		async create({ customer_id, title, category, description, location, budget, target_date }) {
+		async create({ customer_id, title, category, description, location, latitude, longitude, budget, target_date }) {
 			const newJob = {
 				id: crypto.randomUUID(),
 				customer_id,
@@ -229,6 +229,8 @@ export const db = {
 				category,
 				description,
 				location,
+				latitude: latitude !== undefined && latitude !== null && latitude !== '' ? parseFloat(latitude) : null,
+				longitude: longitude !== undefined && longitude !== null && longitude !== '' ? parseFloat(longitude) : null,
 				budget: parseFloat(budget) || 0,
 				status: 'open', // 'open' | 'assigned' | 'in_progress' | 'completed'
 				target_date: target_date || new Date().toISOString(),

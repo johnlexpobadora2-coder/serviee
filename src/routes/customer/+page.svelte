@@ -1,10 +1,12 @@
 <script>
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
-	import { MessageSquare, Pin, RefreshCw, Star, UserCheck, Plus, User, ClipboardList, CheckCircle2, Clock, ArrowLeft, Radio, Send } from 'lucide-svelte';
+	import { MessageSquare, Pin, RefreshCw, Star, UserCheck, Plus, User, ClipboardList, CheckCircle2, Clock, ArrowLeft, Radio, Send, MapPin, Navigation, ExternalLink, Compass } from 'lucide-svelte';
 	import ViewProfileModal from '$lib/ViewProfileModal.svelte';
+	import LocationPickerModal from '$lib/LocationPickerModal.svelte';
 	import { CITIES_MUNICIPALITIES } from '$lib/locations.js';
 	import { setupRealtimeChat, playNotificationSound } from '$lib/realtimeChat.js';
+	import { getCurrentCoordinates, formatGpsChatMessage, parseGpsMessage, getGoogleMapsUrl, getEmbedMapUrl, isGpsMessage } from '$lib/gpsUtils.js';
 
 	let { data, form } = $props();
 
@@ -35,6 +37,33 @@
 	// View Profile Modal State
 	let showViewProfileModal = $state(false);
 	let viewProfileUserId = $state(null);
+	let sharingLocation = $state(false);
+	let showCustomLocationModal = $state(false);
+	let showGpsDropup = $state(false);
+
+	async function handleShareLocation() {
+		if (!activeConversation || sendingMessage || sharingLocation) return;
+		sharingLocation = true;
+		try {
+			const coords = await getCurrentCoordinates();
+			const lat = coords.latitude.toFixed(6);
+			const lng = coords.longitude.toFixed(6);
+			const gpsMsgContent = formatGpsChatMessage(lat, lng, `Location shared by ${data.user.name || 'Client'}`);
+
+			// Send location message
+			await sendChatMessagePayload(gpsMsgContent);
+		} catch (err) {
+			alert(err.message || 'Could not acquire GPS location. Please check browser permissions.');
+		} finally {
+			sharingLocation = false;
+		}
+	}
+
+	async function handleCustomChatLocationSaved(loc) {
+		const label = loc.address ? `Custom Pin: ${loc.address}` : `Pinned Location (${loc.latitude}, ${loc.longitude})`;
+		const gpsMsgContent = formatGpsChatMessage(loc.latitude, loc.longitude, label);
+		await sendChatMessagePayload(gpsMsgContent);
+	}
 
 	function openViewProfile(userId) {
 		if (!userId) return;
@@ -75,6 +104,7 @@
 
 	function selectConversation(convId) {
 		activeConvId = convId;
+		showGpsDropup = false;
 		unreadConvIds.delete(convId);
 		unreadConvIds = new Set(unreadConvIds);
 		isOtherUserTyping = false;
@@ -83,6 +113,7 @@
 
 	function openChat(jobId, workerId) {
 		activeConvId = `${jobId}_${workerId}`;
+		showGpsDropup = false;
 		activeTab = 'chat';
 		unreadConvIds.delete(activeConvId);
 		unreadConvIds = new Set(unreadConvIds);
@@ -190,15 +221,13 @@
 		}, 2000);
 	}
 
-	async function handleSendMessage(e) {
-		if (e) e.preventDefault();
-		const trimmed = newMessageContent.trim();
+	async function sendChatMessagePayload(contentPayload) {
+		const trimmed = contentPayload.trim();
 		if (!trimmed || !activeConversation || sendingMessage) return;
 
 		const targetConv = activeConversation;
 		const currentJobId = targetConv.job_id;
 		const currentReceiverId = targetConv.other_user_id;
-		newMessageContent = '';
 
 		if (sendTypingDebounce) clearTimeout(sendTypingDebounce);
 		if (realtimeControls) {
@@ -219,9 +248,10 @@
 
 		conversations = conversations.map(c => {
 			if (c.id === targetConv.id) {
+				const previewText = isGpsMessage(trimmed) ? '📍 Shared GPS Location' : trimmed;
 				return {
 					...c,
-					last_message: trimmed,
+					last_message: previewText,
 					last_message_at: nowIso,
 					messages: [...(c.messages || []), optimisticMsg]
 				};
@@ -264,6 +294,14 @@
 		} finally {
 			sendingMessage = false;
 		}
+	}
+
+	async function handleSendMessage(e) {
+		if (e) e.preventDefault();
+		const trimmed = newMessageContent.trim();
+		if (!trimmed) return;
+		newMessageContent = '';
+		await sendChatMessagePayload(trimmed);
 	}
 
 	let searchCategory = $state('');
@@ -491,8 +529,45 @@
 						<div class="metadata-bar feed-job-meta">
 							<div><strong>Location:</strong> {job.location}</div>
 							<div><strong>Schedule:</strong> {new Date(job.target_date).toLocaleDateString('en-PH', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+							{#if job.latitude && job.longitude}
+								<div>
+									<a 
+										href={getGoogleMapsUrl(job.latitude, job.longitude, job.title)} 
+										target="_blank" 
+										rel="noopener noreferrer" 
+										class="gps-badge"
+									>
+										<MapPin size={12} /> Google Maps
+									</a>
+								</div>
+							{/if}
 						</div>
 
+						{#if job.latitude && job.longitude}
+							<div class="feed-job-map-preview">
+								<div class="feed-job-map-header">
+									<div style="display: flex; align-items: center; gap: 0.35rem; color: var(--accent-hover); font-weight: 600;">
+										<MapPin size={13} /> Pinned GPS Location ({job.latitude}, {job.longitude})
+									</div>
+									<a 
+										href={getGoogleMapsUrl(job.latitude, job.longitude, job.title)} 
+										target="_blank" 
+										rel="noopener noreferrer" 
+										class="btn btn-outline"
+										style="padding: 0.15rem 0.5rem; font-size: 0.72rem; border-color: var(--accent); color: var(--accent-hover);"
+									>
+										<ExternalLink size={11} /> Open Directions
+									</a>
+								</div>
+								<div class="feed-job-map-iframe-container">
+									<iframe 
+										title="Pinned Job Location Map"
+										src={getEmbedMapUrl(job.latitude, job.longitude)}
+										loading="lazy"
+									></iframe>
+								</div>
+							</div>
+						{/if}
 					</div>
 				{/each}
 			{/if}
@@ -559,7 +634,45 @@
 						<div class="metadata-bar">
 							<div><strong>Location:</strong> {job.location}</div>
 							<div><strong>Target Date:</strong> {new Date(job.target_date).toLocaleDateString('en-PH', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+							{#if job.latitude && job.longitude}
+								<div>
+									<a 
+										href={getGoogleMapsUrl(job.latitude, job.longitude, job.title)} 
+										target="_blank" 
+										rel="noopener noreferrer" 
+										class="gps-badge"
+									>
+										<MapPin size={12} /> Google Maps
+									</a>
+								</div>
+							{/if}
 						</div>
+
+						{#if job.latitude && job.longitude}
+							<div class="feed-job-map-preview">
+								<div class="feed-job-map-header">
+									<div style="display: flex; align-items: center; gap: 0.35rem; color: var(--accent-hover); font-weight: 600;">
+										<MapPin size={13} /> Pinned GPS Location ({job.latitude}, {job.longitude})
+									</div>
+									<a 
+										href={getGoogleMapsUrl(job.latitude, job.longitude, job.title)} 
+										target="_blank" 
+										rel="noopener noreferrer" 
+										class="btn btn-outline"
+										style="padding: 0.15rem 0.5rem; font-size: 0.72rem; border-color: var(--accent); color: var(--accent-hover);"
+									>
+										<ExternalLink size={11} /> Open Directions
+									</a>
+								</div>
+								<div class="feed-job-map-iframe-container">
+									<iframe 
+										title="Pinned Job Location Map"
+										src={getEmbedMapUrl(job.latitude, job.longitude)}
+										loading="lazy"
+									></iframe>
+								</div>
+							</div>
+						{/if}
 
 						<!-- WORKER ASSIGNMENT & STATUS ACTIONS -->
 						<div style="border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 0.5rem;">
@@ -739,11 +852,6 @@
 				<div style="display: flex; align-items: center; gap: 0.5rem;">
 					<MessageSquare size={18} /> Inquiries & Messages
 				</div>
-				{#if realtimeConnected}
-					<span class="chat-realtime-badge" title="Connected to Supabase WebSocket">
-						<span class="chat-realtime-dot"></span> Live
-					</span>
-				{/if}
 			</div>
 			<div class="chat-thread-list">
 				{#if !conversations || conversations.length === 0}
@@ -795,7 +903,10 @@
 							type="button"
 							class="btn btn-outline mobile-back-btn"
 							style="padding: 0.3rem 0.5rem; display: none; align-items: center;"
-							onclick={() => activeConvId = ''}
+							onclick={() => {
+								activeConvId = '';
+								showGpsDropup = false;
+							}}
 						>
 							<ArrowLeft size={16} />
 						</button>
@@ -810,11 +921,6 @@
 								>
 									<User size={11} /> Profile
 								</button>
-								{#if realtimeConnected}
-									<span class="chat-realtime-badge">
-										<span class="chat-realtime-dot"></span> Live
-									</span>
-								{/if}
 							</h4>
 							<span style="font-size: 0.78rem; color: var(--accent-hover); display: block;">
 								Job: {activeConversation.job_title}
@@ -830,8 +936,38 @@
 						</div>
 					{:else}
 						{#each activeConversation.messages as msg (msg.id || msg.created_at)}
+							{@const gpsData = parseGpsMessage(msg.content)}
 							<div class="chat-bubble {msg.sender_id === data.user.id ? 'sent' : 'received'}">
-								<div>{msg.content}</div>
+								{#if gpsData}
+									<div class="chat-location-card">
+										<div class="chat-location-header">
+											<MapPin size={15} color="var(--accent-hover)" />
+											<span>{gpsData.label}</span>
+										</div>
+										<div class="chat-location-preview-box">
+											<iframe 
+												title="Shared GPS Location"
+												src={gpsData.embedUrl}
+												loading="lazy"
+											></iframe>
+										</div>
+										<div style="font-size: 0.72rem; opacity: 0.85;">
+											Coordinates: {gpsData.lat}, {gpsData.lng}
+										</div>
+										<div class="chat-location-actions">
+											<a 
+												href={gpsData.mapUrl} 
+												target="_blank" 
+												rel="noopener noreferrer" 
+												class="chat-location-btn"
+											>
+												<ExternalLink size={13} /> Open in Google Maps
+											</a>
+										</div>
+									</div>
+								{:else}
+									<div>{msg.content}</div>
+								{/if}
 								<div class="chat-time">
 									{new Date(msg.created_at).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' })}
 								</div>
@@ -852,9 +988,99 @@
 				</div>
 
 				<div class="chat-footer">
-					<form onsubmit={handleSendMessage} style="display: flex; gap: 0.75rem;">
+					<form onsubmit={handleSendMessage} style="display: flex; gap: 0.5rem; align-items: center; width: 100%;">
 						<input type="hidden" name="jobId" value={activeConversation.job_id} />
 						<input type="hidden" name="receiverId" value={activeConversation.other_user_id} />
+						
+						<!-- Mobile GPS Icon with Dropup Menu -->
+						<div class="chat-gps-mobile-container">
+							<button 
+								type="button" 
+								class="chat-gps-mobile-trigger {showGpsDropup ? 'active' : ''}" 
+								onclick={() => showGpsDropup = !showGpsDropup}
+								aria-label="Location options"
+								title="Share Location"
+							>
+								{#if sharingLocation}
+									<span class="spinner spinner-sm"></span>
+								{:else}
+									<MapPin size={18} />
+								{/if}
+							</button>
+
+							{#if showGpsDropup}
+								<button 
+									type="button" 
+									class="chat-dropup-backdrop" 
+									onclick={() => showGpsDropup = false}
+									aria-label="Close location menu"
+									tabindex="-1"
+								></button>
+
+								<div class="chat-gps-dropup-menu" role="menu">
+									<button 
+										type="button" 
+										class="chat-dropup-item" 
+										onclick={() => {
+											showGpsDropup = false;
+											handleShareLocation();
+										}}
+										disabled={sharingLocation || sendingMessage}
+									>
+										<Navigation size={16} color="var(--accent-hover)" />
+										<div class="chat-dropup-item-info">
+											<span class="dropup-title">Auto GPS</span>
+											<span class="dropup-subtitle">Share current GPS location</span>
+										</div>
+									</button>
+
+									<button 
+										type="button" 
+										class="chat-dropup-item" 
+										onclick={() => {
+											showGpsDropup = false;
+											showCustomLocationModal = true;
+										}}
+										disabled={sendingMessage}
+									>
+										<Compass size={16} color="var(--accent-hover)" />
+										<div class="chat-dropup-item-info">
+											<span class="dropup-title">Custom Pin</span>
+											<span class="dropup-subtitle">Search & pin on map</span>
+										</div>
+									</button>
+								</div>
+							{/if}
+						</div>
+
+						<!-- Desktop GPS Buttons -->
+						<button 
+							type="button" 
+							class="chat-gps-btn chat-gps-desktop-btn" 
+							onclick={handleShareLocation}
+							disabled={sharingLocation || sendingMessage}
+							title="Share your current device GPS location"
+						>
+							{#if sharingLocation}
+								<span class="spinner spinner-sm"></span>
+							{:else}
+								<Navigation size={14} />
+							{/if}
+							<span style="font-size: 0.8rem;">Auto GPS</span>
+						</button>
+
+						<button 
+							type="button" 
+							class="chat-gps-btn chat-gps-desktop-btn" 
+							onclick={() => showCustomLocationModal = true}
+							disabled={sendingMessage}
+							title="Search & pin any custom location or friend's address"
+							style="border-color: var(--accent); color: var(--accent-hover);"
+						>
+							<Compass size={14} />
+							<span style="font-size: 0.8rem;">Pin Map</span>
+						</button>
+
 						<input 
 							type="text" 
 							name="content" 
@@ -863,9 +1089,10 @@
 							oninput={handleTypingInput}
 							autocomplete="off"
 							required 
-							style="flex: 1; padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary);"
+							class="chat-input-field"
+							style="flex: 1; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary);"
 						/>
-						<button type="submit" class="btn btn-primary" style="padding: 0.75rem 1.5rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;" disabled={sendingMessage || !newMessageContent.trim()}>
+						<button type="submit" class="btn btn-primary chat-send-btn" style="display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;" disabled={sendingMessage || !newMessageContent.trim()}>
 							{#if sendingMessage}
 								<span class="spinner spinner-sm"></span>
 							{/if}
@@ -1164,5 +1391,12 @@
 			activeTab = 'chat';
 		}
 	}}
+/>
+
+<!-- CUSTOM LOCATION PINNING MODAL FOR CHAT -->
+<LocationPickerModal 
+	bind:show={showCustomLocationModal}
+	title="Share Custom Pin / Friend's Location"
+	onSave={handleCustomChatLocationSaved}
 />
 

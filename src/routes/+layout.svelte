@@ -1,5 +1,6 @@
 <script>
 	import '../index.css';
+	import 'leaflet/dist/leaflet.css';
 	import { Menu, X, Settings, Loader2 } from 'lucide-svelte';
 	import { navigating } from '$app/stores';
 
