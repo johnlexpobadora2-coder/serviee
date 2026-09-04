@@ -1,7 +1,7 @@
 <script>
 	import '../index.css';
 	import 'leaflet/dist/leaflet.css';
-	import { Menu, X, Settings, Loader2 } from 'lucide-svelte';
+	import { Menu, X, Settings, LogOut, LogIn, UserPlus, Loader2 } from 'lucide-svelte';
 	import { navigating } from '$app/stores';
 
 	let { data, children } = $props();
@@ -18,11 +18,13 @@
 </script>
 
 {#if $navigating}
-	<div class="top-loading-bar-container">
-		<div class="top-loading-bar"></div>
-	</div>
 	<div class="global-loading-indicator">
-		<div class="spinner spinner-accent spinner-lg"></div>
+		<div class="brand-loading-pulse">
+			<div class="brand-pulse-ring"></div>
+			<div class="brand-pulse-core">
+				<Loader2 size={30} class="animate-spin text-[var(--accent)]" />
+			</div>
+		</div>
 	</div>
 {/if}
 
@@ -56,26 +58,57 @@
 			
 			<div class="nav-links" class:mobile-open={menuOpen}>
 				{#if data.user}
+					<!-- Mobile-only user header card -->
+					<div class="mobile-user-card">
+						<div class="mobile-user-avatar">
+							{data.user.name ? data.user.name.charAt(0).toUpperCase() : 'U'}
+						</div>
+						<div class="mobile-user-meta">
+							<span class="mobile-user-name">{data.user.name}</span>
+							<span class="mobile-user-role-badge">
+								{data.user.role === 'customer' ? 'Client' : data.user.role === 'admin' ? 'Admin' : 'Worker'}
+							</span>
+						</div>
+					</div>
+
+					<div class="mobile-nav-divider"></div>
+
+					<!-- Settings Link -->
 					<a 
 						href="/settings" 
-						class="nav-link" 
+						class="nav-link mobile-nav-link" 
 						onclick={closeMenu} 
 						id="nav-settings-link"
-						style="display: inline-flex; align-items: center; gap: 0.35rem;"
 					>
-						<Settings size={16} />
-						Account Settings
+						<span class="nav-icon-wrapper">
+							<Settings size={16} />
+						</span>
+						<span class="nav-link-text">Account Settings</span>
 					</a>
-					<span class="user-greeting">
+					
+					<!-- Desktop user greeting -->
+					<span class="user-greeting desktop-only-greeting">
 						Hello, <strong style="color: var(--text-primary);">{data.user.name}</strong> ({data.user.role === 'customer' ? 'Client' : data.user.role === 'admin' ? 'Admin' : 'Worker'})
 					</span>
-					
-					<form method="POST" action="/logout" style="display: inline;">
-						<button type="submit" class="btn btn-outline" style="padding: 0.4rem 1rem;" onclick={closeMenu} id="nav-logout-btn">Log Out</button>
+
+					<!-- Logout Action Form -->
+					<form method="POST" action="/logout" class="nav-logout-form">
+						<button type="submit" class="btn btn-outline nav-logout-btn" onclick={closeMenu} id="nav-logout-btn">
+							<LogOut size={15} />
+							<span>Log Out</span>
+						</button>
 					</form>
 				{:else}
-					<a href="/login" class="nav-link" onclick={closeMenu} id="nav-login-link">Log In</a>
-					<a href="/register" class="btn btn-primary" style="padding: 0.4rem 1rem;" onclick={closeMenu} id="nav-register-btn">Sign Up</a>
+					<a href="/login" class="nav-link mobile-nav-link" onclick={closeMenu} id="nav-login-link">
+						<span class="nav-icon-wrapper">
+							<LogIn size={16} />
+						</span>
+						<span>Log In</span>
+					</a>
+					<a href="/register" class="btn btn-primary nav-signup-btn" onclick={closeMenu} id="nav-register-btn">
+						<UserPlus size={15} />
+						<span>Sign Up</span>
+					</a>
 				{/if}
 			</div>
 		</nav>

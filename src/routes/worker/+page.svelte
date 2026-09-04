@@ -8,6 +8,8 @@
 	import { setupRealtimeChat, playNotificationSound } from '$lib/realtimeChat.js';
 	import { getCurrentCoordinates, formatGpsChatMessage, parseGpsMessage, getGoogleMapsUrl, getEmbedMapUrl, isGpsMessage } from '$lib/gpsUtils.js';
 
+	import { onMount } from 'svelte';
+
 	let { data, form } = $props();
 
 	let activeTab = $state("feed"); // 'feed' | 'my-jobs' | 'chat' | 'profile'
@@ -17,6 +19,42 @@
 	let sendingMessage = $state(false);
 	// svelte-ignore state_referenced_locally
 	let conversations = $state(data.conversations || []);
+
+	// Restore chat tab & active conversation on page refresh
+	onMount(() => {
+		try {
+			const savedTab = sessionStorage.getItem('serviee_worker_tab');
+			if (savedTab === 'chat') {
+				activeTab = 'chat';
+				const savedConvId = sessionStorage.getItem('serviee_worker_conv');
+				if (savedConvId) {
+					activeConvId = savedConvId;
+					loadConversationMessages(savedConvId);
+				}
+			}
+		} catch (e) {
+			console.error(e);
+		}
+	});
+
+	// Sync chat tab & active conversation with sessionStorage
+	$effect(() => {
+		try {
+			if (activeTab === 'chat') {
+				sessionStorage.setItem('serviee_worker_tab', 'chat');
+				if (activeConvId) {
+					sessionStorage.setItem('serviee_worker_conv', activeConvId);
+				} else {
+					sessionStorage.removeItem('serviee_worker_conv');
+				}
+			} else {
+				sessionStorage.removeItem('serviee_worker_tab');
+				sessionStorage.removeItem('serviee_worker_conv');
+			}
+		} catch (e) {
+			console.error(e);
+		}
+	});
 
 	// Keep conversations reactive to data updates
 	$effect(() => {

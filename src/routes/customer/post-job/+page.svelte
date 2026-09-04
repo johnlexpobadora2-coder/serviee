@@ -181,7 +181,7 @@
 							onclick={() => showPickerModal = true}
 							id="btn-custom-pin"
 						>
-							<Compass size={13} /> 📍 Pin / Custom Location
+							<MapPin size={14} /> Pin / Custom Location
 						</button>
 						<button 
 							type="button" 
