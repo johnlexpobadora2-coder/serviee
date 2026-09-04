@@ -1,7 +1,7 @@
 <script>
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
-	import { MessageSquare, Pin, RefreshCw, Star, UserCheck, Plus, User, ClipboardList, CheckCircle2, Clock, ArrowLeft, Radio, Send, MapPin, Navigation, ExternalLink, Compass } from 'lucide-svelte';
+	import { MessageSquare, Pin, RefreshCw, Star, UserCheck, Plus, User, ClipboardList, CheckCircle2, Clock, ArrowLeft, Radio, Send, MapPin, Navigation, ExternalLink, Compass, Trash2, Search, X, SlidersHorizontal, ChevronDown, ChevronUp } from 'lucide-svelte';
 	import ViewProfileModal from '$lib/ViewProfileModal.svelte';
 	import LocationPickerModal from '$lib/LocationPickerModal.svelte';
 	import { CITIES_MUNICIPALITIES } from '$lib/locations.js';
@@ -71,6 +71,9 @@
 		showViewProfileModal = true;
 	}
 
+	let loadingMessagesConvId = $state(null);
+	let loadingMoreMessages = $state(false);
+
 	function scrollToBottom(smooth = true) {
 		if (typeof window === 'undefined') return;
 		setTimeout(() => {
@@ -84,13 +87,120 @@
 		}, 50);
 	}
 
+	async function loadConversationMessages(convId, force = false) {
+		if (!convId || !conversations) return;
+		const targetConv = conversations.find(c => c.id === convId);
+		if (!targetConv) return;
+		if (targetConv.messagesLoaded && !force) return;
+
+		loadingMessagesConvId = convId;
+		try {
+			const res = await fetch(`/api/messages?jobId=${encodeURIComponent(targetConv.job_id)}&otherUserId=${encodeURIComponent(targetConv.other_user_id)}&limit=20`);
+			if (res.ok) {
+				const result = await res.json();
+				if (result.messages) {
+					conversations = conversations.map(c => {
+						if (c.id === convId) {
+							return {
+								...c,
+								messages: result.messages,
+								hasMore: result.hasMore,
+								messagesLoaded: true
+							};
+						}
+						return c;
+					});
+					scrollToBottom(false);
+				}
+			}
+		} catch (err) {
+			console.error('Failed to load conversation messages:', err);
+		} finally {
+			if (loadingMessagesConvId === convId) {
+				loadingMessagesConvId = null;
+			}
+		}
+	}
+
+	async function loadMoreMessages() {
+		if (loadingMoreMessages || !activeConversation || !activeConversation.messagesLoaded || activeConversation.hasMore === false || !activeConversation.messages || activeConversation.messages.length === 0) {
+			return;
+		}
+
+		const oldestMsg = activeConversation.messages[0];
+		const beforeTimestamp = oldestMsg ? oldestMsg.created_at : null;
+		if (!beforeTimestamp) return;
+
+		const targetConvId = activeConversation.id;
+		const targetJobId = activeConversation.job_id;
+		const targetOtherUserId = activeConversation.other_user_id;
+
+		loadingMoreMessages = true;
+		const body = document.getElementById('chat-messages-customer-body');
+		const prevScrollHeight = body ? body.scrollHeight : 0;
+		const prevScrollTop = body ? body.scrollTop : 0;
+
+		try {
+			const res = await fetch(`/api/messages?jobId=${encodeURIComponent(targetJobId)}&otherUserId=${encodeURIComponent(targetOtherUserId)}&limit=20&before=${encodeURIComponent(beforeTimestamp)}`);
+			if (res.ok) {
+				const result = await res.json();
+				if (result.messages && result.messages.length > 0) {
+					conversations = conversations.map(c => {
+						if (c.id === targetConvId) {
+							const existingIds = new Set((c.messages || []).map(m => m.id));
+							const newOlderMsgs = result.messages.filter(m => !existingIds.has(m.id));
+							return {
+								...c,
+								messages: [...newOlderMsgs, ...(c.messages || [])],
+								hasMore: result.hasMore && newOlderMsgs.length > 0
+							};
+						}
+						return c;
+					});
+
+					// Maintain exact scroll position after prepending older messages
+					setTimeout(() => {
+						if (body) {
+							const newScrollHeight = body.scrollHeight;
+							body.scrollTop = (newScrollHeight - prevScrollHeight) + prevScrollTop;
+						}
+					}, 20);
+				} else {
+					conversations = conversations.map(c => c.id === targetConvId ? { ...c, hasMore: false } : c);
+				}
+			}
+		} catch (err) {
+			console.error('Failed to load older messages:', err);
+		} finally {
+			loadingMoreMessages = false;
+		}
+	}
+
+	function handleChatScroll(e) {
+		const target = e.currentTarget;
+		if (target && target.scrollTop <= 40 && !loadingMoreMessages && activeConversation?.hasMore) {
+			loadMoreMessages();
+		}
+	}
+
 	async function refreshChatData() {
 		try {
 			const res = await fetch('/api/messages');
 			if (res.ok) {
 				const result = await res.json();
 				if (result.conversations) {
-					conversations = result.conversations;
+					const existingMap = new Map(conversations.map(c => [c.id, c]));
+					conversations = result.conversations.map(newConv => {
+						const existing = existingMap.get(newConv.id);
+						if (existing && existing.messagesLoaded) {
+							return {
+								...newConv,
+								messages: existing.messages,
+								messagesLoaded: true
+							};
+						}
+						return newConv;
+					});
 				}
 			}
 		} catch (err) {
@@ -108,17 +218,27 @@
 		unreadConvIds.delete(convId);
 		unreadConvIds = new Set(unreadConvIds);
 		isOtherUserTyping = false;
+		loadConversationMessages(convId);
 		scrollToBottom(false);
 	}
 
 	function openChat(jobId, workerId) {
-		activeConvId = `${jobId}_${workerId}`;
+		const convId = `${jobId}_${workerId}`;
+		activeConvId = convId;
 		showGpsDropup = false;
 		activeTab = 'chat';
-		unreadConvIds.delete(activeConvId);
+		unreadConvIds.delete(convId);
 		unreadConvIds = new Set(unreadConvIds);
+		loadConversationMessages(convId);
 		scrollToBottom(false);
 	}
+
+	// Auto load messages when chat tab is active
+	$effect(() => {
+		if (activeTab === 'chat' && activeConversation && !activeConversation.messagesLoaded && loadingMessagesConvId !== activeConversation.id) {
+			loadConversationMessages(activeConversation.id);
+		}
+	});
 
 	// Incoming message handler from Supabase Realtime WebSocket
 	function handleIncomingMessage(msg) {
@@ -131,21 +251,23 @@
 		if (matchedConv) {
 			conversations = conversations.map(c => {
 				if (c.id === matchedConv.id) {
-					const existingIdx = (c.messages || []).findIndex(m => m.id === msg.id);
-					if (existingIdx !== -1) {
-						return c;
-					}
+					let updatedMsgs = c.messages || [];
+					if (c.messagesLoaded) {
+						const existingIdx = (c.messages || []).findIndex(m => m.id === msg.id);
+						if (existingIdx !== -1) {
+							return c;
+						}
 
-					const optimisticIdx = (c.messages || []).findIndex(m => 
-						m.id && String(m.id).startsWith('temp_') && m.content === msg.content && m.sender_id === msg.sender_id
-					);
+						const optimisticIdx = (c.messages || []).findIndex(m => 
+							m.id && String(m.id).startsWith('temp_') && m.content === msg.content && m.sender_id === msg.sender_id
+						);
 
-					let updatedMsgs;
-					if (optimisticIdx !== -1) {
-						updatedMsgs = [...c.messages];
-						updatedMsgs[optimisticIdx] = msg;
-					} else {
-						updatedMsgs = [...(c.messages || []), msg];
+						if (optimisticIdx !== -1) {
+							updatedMsgs = [...c.messages];
+							updatedMsgs[optimisticIdx] = msg;
+						} else {
+							updatedMsgs = [...(c.messages || []), msg];
+						}
 					}
 
 					return {
@@ -253,7 +375,8 @@
 					...c,
 					last_message: previewText,
 					last_message_at: nowIso,
-					messages: [...(c.messages || []), optimisticMsg]
+					messages: [...(c.messages || []), optimisticMsg],
+					messagesLoaded: true
 				};
 			}
 			return c;
@@ -304,20 +427,32 @@
 		await sendChatMessagePayload(trimmed);
 	}
 
+	let showMobileFilters = $state(false);
+	let searchQuery = $state('');
 	let searchCategory = $state('');
 	// svelte-ignore state_referenced_locally
 	let searchLocation = $state(data.user?.address || '');
 	/** @type {number | null} */
 	let minBudget = $state(null);
 
-	// Client-side category filtering helper for global feed
+	let hasActiveFilters = $derived(
+		!!searchCategory || 
+		(searchLocation !== '' && searchLocation !== (data.user?.address || '')) || 
+		!!minBudget
+	);
+
+	// Client-side category & text filtering helper for global feed
 	let filteredJobs = $derived(
 		(data.allJobs || []).filter(job => {
 			const isNotCompleted = job.status !== 'completed';
+			const q = searchQuery.trim().toLowerCase();
+			const matchesSearch = !q || 
+				(job.title && job.title.toLowerCase().includes(q)) || 
+				(job.description && job.description.toLowerCase().includes(q));
 			const matchesCategory = !searchCategory || job.category === searchCategory;
 			const matchesLocation = !searchLocation || job.location.toLowerCase().includes(searchLocation.toLowerCase());
 			const matchesBudget = !minBudget || job.budget >= minBudget;
-			return isNotCompleted && matchesCategory && matchesLocation && matchesBudget;
+			return isNotCompleted && matchesSearch && matchesCategory && matchesLocation && matchesBudget;
 		})
 	);
 
@@ -334,6 +469,32 @@
 	// Client-side loading state
 	let postingJob = $state(false);
 	let changingStatus = $state(false);
+
+	// Delete Job Modal State
+	let deleteJobModal = $state({
+		open: false,
+		id: null,
+		title: '',
+		deleting: false
+	});
+
+	function openDeleteJobModal(job) {
+		deleteJobModal = {
+			open: true,
+			id: job.id,
+			title: job.title,
+			deleting: false
+		};
+	}
+
+	function closeDeleteJobModal() {
+		deleteJobModal = {
+			open: false,
+			id: null,
+			title: '',
+			deleting: false
+		};
+	}
 
 	// Category mapping for badge styling helper
 	function getCategoryBadge(category) {
@@ -426,51 +587,101 @@
 {#if activeTab === 'feed'}
 	<div class="dashboard-layout">
 		
-		<!-- Filters sidebar -->
-		<aside class="card" style="position: sticky; top: 90px; padding: 1.5rem; height: fit-content;">
-			<h4 style="font-size: 1.25rem; margin-bottom: 1rem;">Filter Jobs</h4>
+		<!-- Mobile Filter Toggle Button (visible only on mobile) -->
+		<button 
+			type="button" 
+			class="mobile-filter-toggle-btn"
+			onclick={() => showMobileFilters = !showMobileFilters}
+			aria-expanded={showMobileFilters}
+		>
+			<span style="display: flex; align-items: center; gap: 0.5rem;">
+				<SlidersHorizontal size={16} />
+				<span>{showMobileFilters ? 'Hide Filter Options' : 'Filter Jobs by Category / Location'}</span>
+				{#if hasActiveFilters}
+					<span class="active-filter-indicator"></span>
+				{/if}
+			</span>
+			{#if showMobileFilters}
+				<ChevronUp size={16} />
+			{:else}
+				<ChevronDown size={16} />
+			{/if}
+		</button>
+
+		<!-- Filters sidebar (always visible on desktop, toggleable on mobile) -->
+		<aside 
+			class="card feed-filters-card feed-filters-aside {showMobileFilters ? 'mobile-open' : ''}" 
+			style="position: sticky; top: 90px; padding: 1.25rem; height: fit-content;"
+		>
+			<h4 style="font-size: 1.1rem; margin-bottom: 0.75rem;">Filter Jobs</h4>
 			
-			<div class="form-group">
-				<label for="filter-category">Category</label>
-				<select id="filter-category" bind:value={searchCategory}>
-					<option value="">All Categories</option>
-					<option value="Plumbing / Tubero">Plumbing / Tubero</option>
-					<option value="Roofing / Ayos Yero">Roofing / Ayos Yero</option>
-					<option value="Excavation / Hukay Lupa">Excavation / Hukay Lupa</option>
-					<option value="Gardening">Gardening / Landscape</option>
-					<option value="Carpentry">Carpentry / Karpintero</option>
-					<option value="General Manual Labor">General Manual Labor</option>
-				</select>
-			</div>
+			<div class="feed-filters-grid">
+				<div class="form-group form-group-full">
+					<label for="filter-category">Category</label>
+					<select id="filter-category" bind:value={searchCategory}>
+						<option value="">All Categories</option>
+						<option value="Plumbing / Tubero">Plumbing / Tubero</option>
+						<option value="Roofing / Ayos Yero">Roofing / Ayos Yero</option>
+						<option value="Excavation / Hukay Lupa">Excavation / Hukay Lupa</option>
+						<option value="Gardening">Gardening / Landscape</option>
+						<option value="Carpentry">Carpentry / Karpintero</option>
+						<option value="General Manual Labor">General Manual Labor</option>
+					</select>
+				</div>
 
-			<div class="form-group">
-				<label for="filter-location">City/Municipality</label>
-				<select 
-					id="filter-location" 
-					bind:value={searchLocation} 
-				>
-					<option value="">All Locations</option>
-					{#each CITIES_MUNICIPALITIES as city}
-						<option value={city}>{city}</option>
-					{/each}
-				</select>
-			</div>
+				<div class="form-group">
+					<label for="filter-location">City/Municipality</label>
+					<select 
+						id="filter-location" 
+						bind:value={searchLocation} 
+					>
+						<option value="">All Locations</option>
+						{#each CITIES_MUNICIPALITIES as city}
+							<option value={city}>{city}</option>
+						{/each}
+					</select>
+				</div>
 
-			<div class="form-group" style="margin-bottom: 0;">
-				<label for="filter-budget">Minimum Budget (₱)</label>
-				<input 
-					type="number" 
-					id="filter-budget" 
-					placeholder="E.g. 500" 
-					bind:value={minBudget} 
-				/>
+				<div class="form-group">
+					<label for="filter-budget">Min Budget (₱)</label>
+					<input 
+						type="number" 
+						id="filter-budget" 
+						placeholder="E.g. 500" 
+						bind:value={minBudget} 
+					/>
+				</div>
 			</div>
 		</aside>
 
 		<!-- Feed stream list -->
-		<section style="display: flex; flex-direction: column; gap: 1.5rem;">
-			<div style="display: flex; justify-content: space-between; align-items: center;">
-				<h2 style="font-size: 1.5rem;">All Available Postings ({filteredJobs.length})</h2>
+		<section style="display: flex; flex-direction: column; gap: 1.25rem;">
+			<!-- Search Bar above Job Postings -->
+			<div class="job-search-bar-container">
+				<div class="job-search-input-wrapper">
+					<Search size={18} class="job-search-icon" />
+					<input 
+						type="text" 
+						id="job-search-input" 
+						placeholder="Search jobs by title or description..." 
+						bind:value={searchQuery}
+						class="job-search-input"
+					/>
+					{#if searchQuery}
+						<button 
+							type="button" 
+							class="job-search-clear-btn" 
+							onclick={() => searchQuery = ''}
+							aria-label="Clear search"
+						>
+							<X size={15} />
+						</button>
+					{/if}
+				</div>
+			</div>
+
+			<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+				<h2 style="font-size: 1.4rem;">All Available Postings ({filteredJobs.length})</h2>
 				<a href="/customer/post-job" class="btn btn-primary" style="width: auto; padding: 0.5rem 1.25rem;">
 					+ Post a Job
 				</a>
@@ -517,8 +728,20 @@
 									{/if}
 								</span>
 							</div>
-							<div style="text-align: right;">
+							<div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem;">
 								<strong class="feed-job-budget" style="color: var(--accent); font-size: 1.25rem; display: block;">₱{job.budget.toLocaleString()}</strong>
+								{#if job.customer_id === data.user.id}
+									<button
+										type="button"
+										class="btn btn-outline"
+										style="padding: 0.25rem 0.6rem; font-size: 0.75rem; border-color: #ef4444; color: #ef4444; display: inline-flex; align-items: center; gap: 0.3rem;"
+										onclick={() => openDeleteJobModal(job)}
+										title="Delete Your Job Post"
+									>
+										<Trash2 size={13} />
+										<span>Delete</span>
+									</button>
+								{/if}
 							</div>
 						</div>
 
@@ -620,8 +843,18 @@
 								<h3 class="feed-job-title">{job.title}</h3>
 							</div>
 
-							<div style="text-align: right;">
+							<div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem;">
 								<strong class="feed-job-budget" style="color: var(--accent); font-size: 1.25rem; display: block;">₱{job.budget.toLocaleString()}</strong>
+								<button
+									type="button"
+									class="btn btn-outline"
+									style="padding: 0.25rem 0.6rem; font-size: 0.75rem; border-color: #ef4444; color: #ef4444; display: inline-flex; align-items: center; gap: 0.3rem;"
+									onclick={() => openDeleteJobModal(job)}
+									title="Delete Job Post"
+								>
+									<Trash2 size={13} />
+									<span>Delete Post</span>
+								</button>
 							</div>
 						</div>
 
@@ -929,12 +1162,32 @@
 					</div>
 				</div>
 
-				<div class="chat-messages-body" id="chat-messages-customer-body">
-					{#if !activeConversation.messages || activeConversation.messages.length === 0}
+				<div class="chat-messages-body" id="chat-messages-customer-body" onscroll={handleChatScroll}>
+					{#if loadingMessagesConvId === activeConversation.id && (!activeConversation.messages || activeConversation.messages.length === 0)}
+						<div style="display: flex; align-items: center; justify-content: center; height: 100%; min-height: 180px; margin: auto;">
+							<div class="spinner spinner-accent"></div>
+						</div>
+					{:else if !activeConversation.messages || activeConversation.messages.length === 0}
 						<div style="text-align: center; color: var(--text-muted); margin: auto; font-size: 0.9rem;">
 							Start conversation with {activeConversation.other_user_name}...
 						</div>
 					{:else}
+						{#if loadingMoreMessages}
+							<div style="display: flex; align-items: center; justify-content: center; padding: 0.5rem 0; width: 100%;">
+								<div class="spinner spinner-sm spinner-accent"></div>
+							</div>
+						{:else if activeConversation.hasMore}
+							<div style="text-align: center; padding: 0.3rem 0; margin-bottom: 0.5rem;">
+								<button 
+									type="button" 
+									class="btn btn-outline" 
+									style="font-size: 0.72rem; padding: 0.15rem 0.6rem; opacity: 0.8; border-color: var(--border-color); color: var(--text-muted);"
+									onclick={loadMoreMessages}
+								>
+									Load older messages
+								</button>
+							</div>
+						{/if}
 						{#each activeConversation.messages as msg (msg.id || msg.created_at)}
 							{@const gpsData = parseGpsMessage(msg.content)}
 							<div class="chat-bubble {msg.sender_id === data.user.id ? 'sent' : 'received'}">
@@ -1221,8 +1474,18 @@
 										</div>
 										<h3 class="feed-job-title">{job.title}</h3>
 									</div>
-									<div style="text-align: right;">
+									<div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem;">
 										<strong class="feed-job-budget" style="color: var(--accent); font-size: 1.25rem; display: block;">₱{job.budget.toLocaleString()}</strong>
+										<button
+											type="button"
+											class="btn btn-outline"
+											style="padding: 0.25rem 0.6rem; font-size: 0.75rem; border-color: #ef4444; color: #ef4444; display: inline-flex; align-items: center; gap: 0.3rem;"
+											onclick={() => openDeleteJobModal(job)}
+											title="Delete Job Post"
+										>
+											<Trash2 size={13} />
+											<span>Delete</span>
+										</button>
 									</div>
 								</div>
 
@@ -1385,9 +1648,9 @@
 	userId={viewProfileUserId} 
 	currentUserId={data.user?.id}
 	onopenchat={(targetUserId) => {
-		const matchConv = data.conversations?.find(c => c.other_user_id === targetUserId);
+		const matchConv = conversations?.find(c => c.other_user_id === targetUserId);
 		if (matchConv) {
-			activeConvId = matchConv.id;
+			selectConversation(matchConv.id);
 			activeTab = 'chat';
 		}
 	}}
@@ -1399,4 +1662,65 @@
 	title="Share Custom Pin / Friend's Location"
 	onSave={handleCustomChatLocationSaved}
 />
+
+<!-- CONFIRM DELETE JOB MODAL -->
+{#if deleteJobModal.open}
+	<div class="modal-backdrop" style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 1rem;">
+		<div class="card" style="max-width: 440px; width: 100%; border: 1px solid rgba(239, 68, 68, 0.3); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); padding: 1.75rem; text-align: center; border-radius: var(--radius-lg); background: var(--bg-card);">
+			<div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(239, 68, 68, 0.15); color: #ef4444; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto;">
+				<Trash2 size={24} />
+			</div>
+			
+			<h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">
+				Delete Job Post?
+			</h3>
+			
+			<p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1.5rem;">
+				Sigurado ka bang gusto mong tanggalin ang <strong>"{deleteJobModal.title}"</strong>? Hindi na ito mababawi kapag na-delete.
+			</p>
+
+			<div style="display: flex; gap: 0.75rem; justify-content: center;">
+				<button 
+					type="button" 
+					class="btn btn-secondary" 
+					style="padding: 0.5rem 1.25rem; font-size: 0.9rem;"
+					onclick={closeDeleteJobModal}
+					disabled={deleteJobModal.deleting}
+				>
+					Cancel
+				</button>
+
+				<form 
+					method="POST" 
+					action="?/deleteJob" 
+					use:enhance={() => {
+						deleteJobModal.deleting = true;
+						return async ({ update }) => {
+							deleteJobModal.deleting = false;
+							closeDeleteJobModal();
+							await update();
+						};
+					}}
+				>
+					<input type="hidden" name="jobId" value={deleteJobModal.id} />
+					<button 
+						type="submit" 
+						class="btn btn-primary" 
+						style="background-color: #ef4444; border-color: #ef4444; padding: 0.5rem 1.25rem; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.4rem;"
+						disabled={deleteJobModal.deleting}
+					>
+						{#if deleteJobModal.deleting}
+							<span class="spinner spinner-sm"></span>
+							<span>Deleting...</span>
+						{:else}
+							<Trash2 size={15} />
+							<span>Confirm Delete</span>
+						{/if}
+					</button>
+				</form>
+			</div>
+		</div>
+	</div>
+{/if}
+
 

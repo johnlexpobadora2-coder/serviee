@@ -542,6 +542,36 @@ select {
 }
 
 /* Responsiveness Media Queries */
+.mobile-filter-toggle-btn {
+	display: none;
+	width: 100%;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0.75rem 1rem;
+	background: var(--bg-card);
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius-md);
+	color: var(--text-primary);
+	font-size: 0.9rem;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all var(--transition-fast);
+}
+
+.mobile-filter-toggle-btn:hover {
+	border-color: var(--accent);
+	background: hsla(222, 20%, 14%, 1);
+}
+
+.active-filter-indicator {
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--accent);
+	box-shadow: 0 0 8px var(--accent);
+}
+
 @media (max-width: 950px) {
 	.dashboard-layout,
 	.profile-layout {
@@ -551,6 +581,27 @@ select {
 	.dashboard-layout aside,
 	.dashboard-layout section:first-of-type {
 		position: static !important;
+	}
+	.mobile-filter-toggle-btn {
+		display: flex;
+	}
+	.feed-filters-aside {
+		display: none;
+	}
+	.feed-filters-aside.mobile-open {
+		display: block !important;
+		animation: slideDown 0.2s ease-out;
+	}
+}
+
+@keyframes slideDown {
+	from {
+		opacity: 0;
+		transform: translateY(-8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
 	}
 }
 
@@ -1676,14 +1727,14 @@ select {
 }
 
 .spinner-lg {
-	width: 32px;
-	height: 32px;
-	border-width: 3px;
+	width: 46px;
+	height: 46px;
+	border-width: 4px;
 	border-top-color: var(--accent);
 }
 
 .spinner-accent {
-	border: 3px solid var(--border-color);
+	border: 3.5px solid rgba(255, 255, 255, 0.15);
 	border-top-color: var(--accent);
 }
 
@@ -1707,26 +1758,95 @@ select {
 	animation: loadingBarProgress 1.5s ease-in-out infinite;
 }
 
-/* Floating Navigation / Fetching Loading Badge */
+/* Centered Transparent Navigation / Data Loading Spinner */
 .global-loading-indicator {
 	position: fixed;
-	bottom: 1.5rem;
-	right: 1.5rem;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
 	z-index: 99999;
-	background: var(--bg-card);
-	border: 1px solid var(--border-color);
-	box-shadow: var(--shadow-lg);
-	padding: 0.65rem 1.1rem;
-	border-radius: var(--radius-full);
+	background: transparent;
+	border: none;
+	box-shadow: none;
+	padding: 0;
 	display: flex;
 	align-items: center;
-	gap: 0.65rem;
-	color: var(--text-primary);
-	font-size: 0.88rem;
-	font-weight: 500;
-	animation: fadeInPulse 2s infinite ease-in-out;
+	justify-content: center;
 	pointer-events: none;
-	backdrop-filter: blur(8px);
+}
+
+.global-loading-indicator .spinner {
+	filter: drop-shadow(0 0 14px rgba(108, 92, 231, 0.6));
+}
+
+/* Job Postings Search Bar */
+.job-search-bar-container {
+	width: 100%;
+}
+
+.job-search-input-wrapper {
+	position: relative;
+	display: flex;
+	align-items: center;
+	width: 100%;
+	background: var(--bg-card);
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius-md);
+	transition: all var(--transition-fast);
+	box-shadow: var(--shadow-sm);
+}
+
+.job-search-input-wrapper:focus-within {
+	border-color: var(--accent);
+	box-shadow: 0 0 0 3px hsla(252, 78%, 62%, 0.2), var(--shadow-sm);
+}
+
+.job-search-icon {
+	position: absolute;
+	left: 0.9rem;
+	color: var(--text-muted);
+	pointer-events: none;
+	flex-shrink: 0;
+}
+
+.job-search-input {
+	width: 100%;
+	height: 42px;
+	padding: 0.55rem 2.6rem 0.55rem 2.6rem !important;
+	background: transparent !important;
+	border: none !important;
+	outline: none !important;
+	box-shadow: none !important;
+	color: var(--text-primary) !important;
+	font-size: 0.92rem;
+	font-family: inherit;
+}
+
+.job-search-input::placeholder {
+	color: var(--text-muted);
+	font-size: 0.88rem;
+}
+
+.job-search-clear-btn {
+	position: absolute;
+	right: 0.65rem;
+	background: hsla(222, 18%, 20%, 0.7);
+	border: none;
+	color: var(--text-secondary);
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	transition: all var(--transition-fast);
+	padding: 0;
+}
+
+.job-search-clear-btn:hover {
+	background: var(--accent);
+	color: #fff;
 }
 
 /* GPS & Google Maps Components */

@@ -22,8 +22,7 @@
 		<div class="top-loading-bar"></div>
 	</div>
 	<div class="global-loading-indicator">
-		<div class="spinner spinner-accent spinner-sm"></div>
-		<span>Fetching data...</span>
+		<div class="spinner spinner-accent spinner-lg"></div>
 	</div>
 {/if}
 

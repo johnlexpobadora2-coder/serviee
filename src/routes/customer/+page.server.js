@@ -204,6 +204,36 @@ export const actions = {
 		} catch (error) {
 			return fail(400, { error: error.message || 'Failed to send message.' });
 		}
+	},
+
+	deleteJob: async ({ request, locals }) => {
+		if (!locals.user || locals.user.role !== 'customer') {
+			return fail(401, { error: 'Unauthorized' });
+		}
+
+		const data = await request.formData();
+		const jobId = data.get('jobId')?.toString();
+
+		if (!jobId) {
+			return fail(400, { error: 'Missing jobId' });
+		}
+
+		try {
+			const job = await db.jobs.findById(jobId);
+			if (!job) {
+				return fail(404, { error: 'Job post not found.' });
+			}
+
+			// Security check: Only the customer who posted this job can delete it
+			if (job.customer_id !== locals.user.id) {
+				return fail(403, { error: 'You can only delete your own job posts.' });
+			}
+
+			await db.jobs.delete(jobId);
+			return { success: 'Job post deleted successfully!' };
+		} catch (error) {
+			return fail(400, { error: error.message || 'Could not delete job post.' });
+		}
 	}
 };
 

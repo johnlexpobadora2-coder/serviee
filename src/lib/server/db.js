@@ -244,6 +244,18 @@ export const db = {
 			return newJob;
 		},
 
+		async findById(id) {
+			if (!id) return null;
+			const supabase = getSupabase();
+			const { data, error } = await supabase
+				.from('job_posts')
+				.select('*')
+				.eq('id', id)
+				.maybeSingle();
+			if (error) throw new Error(error.message);
+			return data || null;
+		},
+
 		async apply(jobId, workerId) {
 			const supabase = getSupabase();
 			const { data: job, error: fetchError } = await supabase
@@ -488,6 +500,58 @@ export const db = {
 			return msg;
 		},
 
+		async listForThread(jobId, userAId, userBId, limit = 20, before = null) {
+			const supabase = getSupabase();
+			let dbMsgs = [];
+			try {
+				let query = supabase
+					.from('messages')
+					.select('*')
+					.eq('job_id', jobId)
+					.in('sender_id', [userAId, userBId])
+					.in('receiver_id', [userAId, userBId]);
+
+				if (before) {
+					query = query.lt('created_at', before);
+				}
+
+				const { data, error } = await query
+					.order('created_at', { ascending: false })
+					.limit(limit);
+
+				if (error) {
+					console.error('Error fetching thread messages from Supabase:', error.message);
+				} else if (data) {
+					dbMsgs = data;
+				}
+			} catch (err) {
+				console.warn('Supabase fetch thread exception:', err.message);
+			}
+
+			// Combine db and fallback messages
+			const fallbackFiltered = this.fallbackStore.filter(
+				m => m.job_id === jobId &&
+				((m.sender_id === userAId && m.receiver_id === userBId) || (m.sender_id === userBId && m.receiver_id === userAId)) &&
+				(!before || new Date(m.created_at).getTime() < new Date(before).getTime())
+			);
+
+			const map = new Map();
+			for (const m of [...dbMsgs, ...fallbackFiltered]) {
+				map.set(m.id, m);
+			}
+
+			// Return sorted chronologically (oldest to newest) for smooth reading
+			const sorted = Array.from(map.values()).sort(
+				(a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+			);
+
+			const messages = sorted.slice(-limit);
+			return {
+				messages,
+				hasMore: dbMsgs.length === limit || messages.length === limit
+			};
+		},
+
 		async listForUser(userId) {
 			const supabase = getSupabase();
 			let dbMsgs = [];
@@ -635,7 +699,8 @@ export const db = {
 					other_user_role: otherUser ? otherUser.role : '',
 					last_message: lastMsg ? lastMsg.content : 'Inquired on post. Send a message...',
 					last_message_at: lastMsg ? lastMsg.created_at : defaultTime,
-					messages: sortedMsgs
+					messages: [],
+					messagesLoaded: false
 				});
 			}
 

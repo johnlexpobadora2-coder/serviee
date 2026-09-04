@@ -73,7 +73,7 @@
 		</div>
 
 		<!-- Settings Tabs -->
-		<div class="tabs-header" role="tablist">
+		<div class="tabs-header settings-tabs" role="tablist">
 			<button
 				type="button"
 				class="tab-btn"
@@ -83,7 +83,7 @@
 				aria-selected={activeTab === 'profile'}
 			>
 				<User size={18} />
-				Profile Customization
+				<span class="tab-label">Profile Customization</span>
 			</button>
 			<button
 				type="button"
@@ -94,7 +94,7 @@
 				aria-selected={activeTab === 'password'}
 			>
 				<Lock size={18} />
-				Change Password
+				<span class="tab-label">Change Password</span>
 			</button>
 		</div>
 
@@ -408,14 +408,27 @@
 		font-size: 0.85rem;
 	}
 
-	.tabs-header {
-		margin-bottom: 0;
+	.tabs-header.settings-tabs {
+		display: grid !important;
+		grid-template-columns: 1fr 1fr !important;
+		gap: 0.5rem !important;
+		margin-bottom: 0 !important;
+		overflow-x: visible !important;
+		white-space: normal !important;
+		width: 100% !important;
 	}
 
-	.tab-btn {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.5rem;
+	.settings-tabs .tab-btn {
+		display: inline-flex !important;
+		align-items: center !important;
+		justify-content: center !important;
+		gap: 0.5rem !important;
+		width: 100% !important;
+		padding: 0.75rem 0.75rem !important;
+		text-align: center !important;
+		flex-shrink: 1 !important;
+		white-space: normal !important;
+		font-size: 0.95rem !important;
 	}
 
 	.tab-panel {
@@ -534,6 +547,17 @@
 	}
 
 	@media (max-width: 600px) {
+		.settings-tabs .tab-btn {
+			padding: 0.65rem 0.35rem !important;
+			font-size: 0.82rem !important;
+			gap: 0.35rem !important;
+		}
+
+		.tab-label {
+			line-height: 1.25;
+			display: inline-block;
+		}
+
 		.user-profile-card {
 			flex-direction: column;
 			text-align: center;
@@ -543,21 +567,20 @@
 			justify-content: center;
 		}
 
-		.tab-buttons {
-			flex-direction: column;
-		}
-
-		.tab-btn {
-			width: 100%;
-			justify-content: center;
-		}
-
 		.form-actions {
 			justify-content: stretch;
 		}
 
 		.form-actions button {
 			width: 100%;
+		}
+	}
+
+	@media (max-width: 380px) {
+		.settings-tabs .tab-btn {
+			font-size: 0.76rem !important;
+			padding: 0.55rem 0.2rem !important;
+			gap: 0.25rem !important;
 		}
 	}
 </style>

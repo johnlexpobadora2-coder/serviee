@@ -1,7 +1,7 @@
 <script>
 	import { enhance } from "$app/forms";
 	import { invalidateAll } from "$app/navigation";
-	import { MessageSquare, Pin, RefreshCw, Star, ClipboardList, Check, User, ArrowLeft, Radio, Send, MapPin, Navigation, ExternalLink, Compass } from 'lucide-svelte';
+	import { MessageSquare, Pin, RefreshCw, Star, ClipboardList, Check, User, ArrowLeft, Radio, Send, MapPin, Navigation, ExternalLink, Compass, Search, X, SlidersHorizontal, ChevronDown, ChevronUp } from 'lucide-svelte';
 	import ViewProfileModal from '$lib/ViewProfileModal.svelte';
 	import LocationPickerModal from '$lib/LocationPickerModal.svelte';
 	import { CITIES_MUNICIPALITIES } from '$lib/locations.js';
@@ -71,6 +71,9 @@
 		showViewProfileModal = true;
 	}
 
+	let loadingMessagesConvId = $state(null);
+	let loadingMoreMessages = $state(false);
+
 	function scrollToBottom(smooth = true) {
 		if (typeof window === 'undefined') return;
 		setTimeout(() => {
@@ -84,13 +87,120 @@
 		}, 50);
 	}
 
+	async function loadConversationMessages(convId, force = false) {
+		if (!convId || !conversations) return;
+		const targetConv = conversations.find(c => c.id === convId);
+		if (!targetConv) return;
+		if (targetConv.messagesLoaded && !force) return;
+
+		loadingMessagesConvId = convId;
+		try {
+			const res = await fetch(`/api/messages?jobId=${encodeURIComponent(targetConv.job_id)}&otherUserId=${encodeURIComponent(targetConv.other_user_id)}&limit=20`);
+			if (res.ok) {
+				const result = await res.json();
+				if (result.messages) {
+					conversations = conversations.map(c => {
+						if (c.id === convId) {
+							return {
+								...c,
+								messages: result.messages,
+								hasMore: result.hasMore,
+								messagesLoaded: true
+							};
+						}
+						return c;
+					});
+					scrollToBottom(false);
+				}
+			}
+		} catch (err) {
+			console.error("Failed to load conversation messages:", err);
+		} finally {
+			if (loadingMessagesConvId === convId) {
+				loadingMessagesConvId = null;
+			}
+		}
+	}
+
+	async function loadMoreMessages() {
+		if (loadingMoreMessages || !activeConversation || !activeConversation.messagesLoaded || activeConversation.hasMore === false || !activeConversation.messages || activeConversation.messages.length === 0) {
+			return;
+		}
+
+		const oldestMsg = activeConversation.messages[0];
+		const beforeTimestamp = oldestMsg ? oldestMsg.created_at : null;
+		if (!beforeTimestamp) return;
+
+		const targetConvId = activeConversation.id;
+		const targetJobId = activeConversation.job_id;
+		const targetOtherUserId = activeConversation.other_user_id;
+
+		loadingMoreMessages = true;
+		const body = document.getElementById('chat-messages-worker-body');
+		const prevScrollHeight = body ? body.scrollHeight : 0;
+		const prevScrollTop = body ? body.scrollTop : 0;
+
+		try {
+			const res = await fetch(`/api/messages?jobId=${encodeURIComponent(targetJobId)}&otherUserId=${encodeURIComponent(targetOtherUserId)}&limit=20&before=${encodeURIComponent(beforeTimestamp)}`);
+			if (res.ok) {
+				const result = await res.json();
+				if (result.messages && result.messages.length > 0) {
+					conversations = conversations.map(c => {
+						if (c.id === targetConvId) {
+							const existingIds = new Set((c.messages || []).map(m => m.id));
+							const newOlderMsgs = result.messages.filter(m => !existingIds.has(m.id));
+							return {
+								...c,
+								messages: [...newOlderMsgs, ...(c.messages || [])],
+								hasMore: result.hasMore && newOlderMsgs.length > 0
+							};
+						}
+						return c;
+					});
+
+					// Maintain exact scroll position after prepending older messages
+					setTimeout(() => {
+						if (body) {
+							const newScrollHeight = body.scrollHeight;
+							body.scrollTop = (newScrollHeight - prevScrollHeight) + prevScrollTop;
+						}
+					}, 20);
+				} else {
+					conversations = conversations.map(c => c.id === targetConvId ? { ...c, hasMore: false } : c);
+				}
+			}
+		} catch (err) {
+			console.error("Failed to load older messages:", err);
+		} finally {
+			loadingMoreMessages = false;
+		}
+	}
+
+	function handleChatScroll(e) {
+		const target = e.currentTarget;
+		if (target && target.scrollTop <= 40 && !loadingMoreMessages && activeConversation?.hasMore) {
+			loadMoreMessages();
+		}
+	}
+
 	async function refreshChatData() {
 		try {
 			const res = await fetch("/api/messages");
 			if (res.ok) {
 				const result = await res.json();
 				if (result.conversations) {
-					conversations = result.conversations;
+					const existingMap = new Map(conversations.map(c => [c.id, c]));
+					conversations = result.conversations.map(newConv => {
+						const existing = existingMap.get(newConv.id);
+						if (existing && existing.messagesLoaded) {
+							return {
+								...newConv,
+								messages: existing.messages,
+								messagesLoaded: true
+							};
+						}
+						return newConv;
+					});
 				}
 			}
 		} catch (err) {
@@ -110,17 +220,27 @@
 		unreadConvIds.delete(convId);
 		unreadConvIds = new Set(unreadConvIds);
 		isOtherUserTyping = false;
+		loadConversationMessages(convId);
 		scrollToBottom(false);
 	}
 
 	function openChat(jobId, customerId) {
-		activeConvId = `${jobId}_${customerId}`;
+		const convId = `${jobId}_${customerId}`;
+		activeConvId = convId;
 		showGpsDropup = false;
 		activeTab = "chat";
-		unreadConvIds.delete(activeConvId);
+		unreadConvIds.delete(convId);
 		unreadConvIds = new Set(unreadConvIds);
+		loadConversationMessages(convId);
 		scrollToBottom(false);
 	}
+
+	// Auto load messages when chat tab is active
+	$effect(() => {
+		if (activeTab === "chat" && activeConversation && !activeConversation.messagesLoaded && loadingMessagesConvId !== activeConversation.id) {
+			loadConversationMessages(activeConversation.id);
+		}
+	});
 
 	// Incoming message handler from Supabase Realtime WebSocket
 	function handleIncomingMessage(msg) {
@@ -133,21 +253,23 @@
 		if (matchedConv) {
 			conversations = conversations.map(c => {
 				if (c.id === matchedConv.id) {
-					const existingIdx = (c.messages || []).findIndex(m => m.id === msg.id);
-					if (existingIdx !== -1) {
-						return c;
-					}
+					let updatedMsgs = c.messages || [];
+					if (c.messagesLoaded) {
+						const existingIdx = (c.messages || []).findIndex(m => m.id === msg.id);
+						if (existingIdx !== -1) {
+							return c;
+						}
 
-					const optimisticIdx = (c.messages || []).findIndex(m => 
-						m.id && String(m.id).startsWith('temp_') && m.content === msg.content && m.sender_id === msg.sender_id
-					);
+						const optimisticIdx = (c.messages || []).findIndex(m => 
+							m.id && String(m.id).startsWith('temp_') && m.content === msg.content && m.sender_id === msg.sender_id
+						);
 
-					let updatedMsgs;
-					if (optimisticIdx !== -1) {
-						updatedMsgs = [...c.messages];
-						updatedMsgs[optimisticIdx] = msg;
-					} else {
-						updatedMsgs = [...(c.messages || []), msg];
+						if (optimisticIdx !== -1) {
+							updatedMsgs = [...c.messages];
+							updatedMsgs[optimisticIdx] = msg;
+						} else {
+							updatedMsgs = [...(c.messages || []), msg];
+						}
 					}
 
 					return {
@@ -255,7 +377,8 @@
 					...c,
 					last_message: previewText,
 					last_message_at: nowIso,
-					messages: [...(c.messages || []), optimisticMsg]
+					messages: [...(c.messages || []), optimisticMsg],
+					messagesLoaded: true
 				};
 			}
 			return c;
@@ -305,10 +428,18 @@
 		await sendChatMessagePayload(trimmed);
 	}
 
+	let showMobileFilters = $state(false);
+	let searchQuery = $state("");
 	let searchCategory = $state("");
 	// svelte-ignore state_referenced_locally
 	let searchLocation = $state(data.user?.address || "");
 	let minBudget = $state(null);
+
+	let hasActiveFilters = $derived(
+		!!searchCategory || 
+		(searchLocation !== "" && searchLocation !== (data.user?.address || "")) || 
+		!!minBudget
+	);
 
 	let applyingJobId = $state(null);
 
@@ -316,6 +447,11 @@
 
 	let filteredJobs = $derived(
 		data.availableJobs.filter((job) => {
+			const q = searchQuery.trim().toLowerCase();
+			const matchesSearch =
+				!q ||
+				(job.title && job.title.toLowerCase().includes(q)) ||
+				(job.description && job.description.toLowerCase().includes(q));
 			const matchesCategory =
 				!searchCategory || job.category === searchCategory;
 			const matchesLocation =
@@ -324,7 +460,7 @@
 					.toLowerCase()
 					.includes(searchLocation.toLowerCase());
 			const matchesBudget = !minBudget || job.budget >= minBudget;
-			return matchesCategory && matchesLocation && matchesBudget;
+			return matchesSearch && matchesCategory && matchesLocation && matchesBudget;
 		}),
 	);
 
@@ -470,9 +606,30 @@
 <!-- TAB 1: SIDELINE FEED -->
 {#if activeTab === "feed"}
 	<div class="dashboard-layout">
-		<!-- Filters sidebar -->
+		<!-- Mobile Filter Toggle Button (visible only on mobile) -->
+		<button 
+			type="button" 
+			class="mobile-filter-toggle-btn"
+			onclick={() => showMobileFilters = !showMobileFilters}
+			aria-expanded={showMobileFilters}
+		>
+			<span style="display: flex; align-items: center; gap: 0.5rem;">
+				<SlidersHorizontal size={16} />
+				<span>{showMobileFilters ? 'Hide Filter Options' : 'Filter Jobs by Category / Location'}</span>
+				{#if hasActiveFilters}
+					<span class="active-filter-indicator"></span>
+				{/if}
+			</span>
+			{#if showMobileFilters}
+				<ChevronUp size={16} />
+			{:else}
+				<ChevronDown size={16} />
+			{/if}
+		</button>
+
+		<!-- Filters sidebar (always visible on desktop, toggleable on mobile) -->
 		<aside
-			class="card feed-filters-card"
+			class="card feed-filters-card feed-filters-aside {showMobileFilters ? 'mobile-open' : ''}"
 			style="position: sticky; top: 90px; padding: 1.25rem;"
 		>
 			<h4 style="font-size: 1.1rem; margin-bottom: 0.75rem;">
@@ -526,6 +683,30 @@
 
 		<!-- Feed stream list -->
 		<section style="display: flex; flex-direction: column; gap: 1rem; min-width: 0; width: 100%;">
+			<!-- Search Bar above Job Postings -->
+			<div class="job-search-bar-container">
+				<div class="job-search-input-wrapper">
+					<Search size={18} class="job-search-icon" />
+					<input 
+						type="text" 
+						id="worker-job-search-input" 
+						placeholder="Search jobs by title or description..." 
+						bind:value={searchQuery}
+						class="job-search-input"
+					/>
+					{#if searchQuery}
+						<button 
+							type="button" 
+							class="job-search-clear-btn" 
+							onclick={() => searchQuery = ''}
+							aria-label="Clear search"
+						>
+							<X size={15} />
+						</button>
+					{/if}
+				</div>
+			</div>
+
 			<div
 				style="display: flex; justify-content: space-between; align-items: center;"
 			>
@@ -1033,14 +1214,34 @@
 					</div>
 				</div>
 
-				<div class="chat-messages-body" id="chat-messages-worker-body">
-					{#if !activeConversation.messages || activeConversation.messages.length === 0}
+				<div class="chat-messages-body" id="chat-messages-worker-body" onscroll={handleChatScroll}>
+					{#if loadingMessagesConvId === activeConversation.id && (!activeConversation.messages || activeConversation.messages.length === 0)}
+						<div style="display: flex; align-items: center; justify-content: center; height: 100%; min-height: 180px; margin: auto;">
+							<div class="spinner spinner-accent"></div>
+						</div>
+					{:else if !activeConversation.messages || activeConversation.messages.length === 0}
 						<div
 							style="text-align: center; color: var(--text-muted); margin: auto; font-size: 0.9rem;"
 						>
 							Start conversation with {activeConversation.other_user_name}...
 						</div>
 					{:else}
+						{#if loadingMoreMessages}
+							<div style="display: flex; align-items: center; justify-content: center; padding: 0.5rem 0; width: 100%;">
+								<div class="spinner spinner-sm spinner-accent"></div>
+							</div>
+						{:else if activeConversation.hasMore}
+							<div style="text-align: center; padding: 0.3rem 0; margin-bottom: 0.5rem;">
+								<button 
+									type="button" 
+									class="btn btn-outline" 
+									style="font-size: 0.72rem; padding: 0.15rem 0.6rem; opacity: 0.8; border-color: var(--border-color); color: var(--text-muted);"
+									onclick={loadMoreMessages}
+								>
+									Load older messages
+								</button>
+							</div>
+						{/if}
 						{#each activeConversation.messages as msg (msg.id || msg.created_at)}
 							{@const gpsData = parseGpsMessage(msg.content)}
 							<div
@@ -1563,9 +1764,9 @@
 	userId={viewProfileUserId}
 	currentUserId={data.user?.id}
 	onopenchat={(targetUserId) => {
-		const matchConv = data.conversations?.find((c) => c.other_user_id === targetUserId);
+		const matchConv = conversations?.find((c) => c.other_user_id === targetUserId);
 		if (matchConv) {
-			activeConvId = matchConv.id;
+			selectConversation(matchConv.id);
 			activeTab = "chat";
 		}
 	}}
