@@ -1,9 +1,10 @@
 <script>
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
-	import { MessageSquare, Pin, RefreshCw, Star, UserCheck, Plus, User, ClipboardList, CheckCircle2, Clock, ArrowLeft } from 'lucide-svelte';
+	import { MessageSquare, Pin, RefreshCw, Star, UserCheck, Plus, User, ClipboardList, CheckCircle2, Clock, ArrowLeft, Radio, Send } from 'lucide-svelte';
 	import ViewProfileModal from '$lib/ViewProfileModal.svelte';
 	import { CITIES_MUNICIPALITIES } from '$lib/locations.js';
+	import { setupRealtimeChat, playNotificationSound } from '$lib/realtimeChat.js';
 
 	let { data, form } = $props();
 
@@ -12,7 +13,24 @@
 	let activeConvId = $state('');
 	let newMessageContent = $state('');
 	let sendingMessage = $state(false);
-	let isRefreshingChat = $state(false);
+	// svelte-ignore state_referenced_locally
+	let conversations = $state(data.conversations || []);
+
+	// Keep conversations reactive to data updates
+	$effect(() => {
+		if (data.conversations) {
+			conversations = data.conversations;
+		}
+	});
+
+	// Real-Time Chat WebSocket States
+	let realtimeConnected = $state(false);
+	let isOtherUserTyping = $state(false);
+	let unreadConvIds = $state(new Set());
+	/** @type {any} */
+	let realtimeControls = $state(null);
+	let typingTimer = null;
+	let sendTypingDebounce = null;
 
 	// View Profile Modal State
 	let showViewProfileModal = $state(false);
@@ -24,30 +42,228 @@
 		showViewProfileModal = true;
 	}
 
+	function scrollToBottom(smooth = true) {
+		if (typeof window === 'undefined') return;
+		setTimeout(() => {
+			const body = document.getElementById('chat-messages-customer-body');
+			if (body) {
+				body.scrollTo({
+					top: body.scrollHeight,
+					behavior: smooth ? 'smooth' : 'auto'
+				});
+			}
+		}, 50);
+	}
+
 	async function refreshChatData() {
-		isRefreshingChat = true;
 		try {
 			const res = await fetch('/api/messages');
 			if (res.ok) {
 				const result = await res.json();
 				if (result.conversations) {
-					data.conversations = result.conversations;
+					conversations = result.conversations;
 				}
 			}
 		} catch (err) {
 			console.error('Failed to refresh chat:', err);
-		} finally {
-			isRefreshingChat = false;
 		}
 	}
 
 	let activeConversation = $derived(
-		data.conversations?.find(c => c.id === activeConvId) || data.conversations?.[0] || null
+		conversations.find(c => c.id === activeConvId) || conversations[0] || null
 	);
+
+	function selectConversation(convId) {
+		activeConvId = convId;
+		unreadConvIds.delete(convId);
+		unreadConvIds = new Set(unreadConvIds);
+		isOtherUserTyping = false;
+		scrollToBottom(false);
+	}
 
 	function openChat(jobId, workerId) {
 		activeConvId = `${jobId}_${workerId}`;
 		activeTab = 'chat';
+		unreadConvIds.delete(activeConvId);
+		unreadConvIds = new Set(unreadConvIds);
+		scrollToBottom(false);
+	}
+
+	// Incoming message handler from Supabase Realtime WebSocket
+	function handleIncomingMessage(msg) {
+		if (!msg || !conversations) return;
+
+		let matchedConv = conversations.find(c => 
+			c.job_id === msg.job_id && (c.other_user_id === msg.sender_id || c.other_user_id === msg.receiver_id)
+		);
+
+		if (matchedConv) {
+			conversations = conversations.map(c => {
+				if (c.id === matchedConv.id) {
+					const existingIdx = (c.messages || []).findIndex(m => m.id === msg.id);
+					if (existingIdx !== -1) {
+						return c;
+					}
+
+					const optimisticIdx = (c.messages || []).findIndex(m => 
+						m.id && String(m.id).startsWith('temp_') && m.content === msg.content && m.sender_id === msg.sender_id
+					);
+
+					let updatedMsgs;
+					if (optimisticIdx !== -1) {
+						updatedMsgs = [...c.messages];
+						updatedMsgs[optimisticIdx] = msg;
+					} else {
+						updatedMsgs = [...(c.messages || []), msg];
+					}
+
+					return {
+						...c,
+						last_message: msg.content,
+						last_message_at: msg.created_at,
+						messages: updatedMsgs
+					};
+				}
+				return c;
+			}).sort((a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime());
+
+			if (msg.sender_id !== data.user?.id) {
+				playNotificationSound();
+				isOtherUserTyping = false;
+				if (activeTab !== 'chat' || activeConversation?.id !== matchedConv.id) {
+					unreadConvIds.add(matchedConv.id);
+					unreadConvIds = new Set(unreadConvIds);
+				}
+			}
+
+			if (activeConversation?.id === matchedConv.id) {
+				scrollToBottom(true);
+			}
+		} else {
+			if (msg.sender_id !== data.user?.id) {
+				playNotificationSound();
+			}
+			refreshChatData();
+		}
+	}
+
+	// Realtime WebSocket Subscription Lifecycle Effect
+	$effect(() => {
+		if (!data.user?.id) return;
+
+		const rt = setupRealtimeChat({
+			currentUserId: data.user.id,
+			onMessage: (msg) => {
+				handleIncomingMessage(msg);
+			},
+			onTyping: ({ convId, isTyping }) => {
+				if (activeConversation && activeConversation.id === convId) {
+					isOtherUserTyping = isTyping;
+					if (typingTimer) clearTimeout(typingTimer);
+					if (isTyping) {
+						typingTimer = setTimeout(() => {
+							isOtherUserTyping = false;
+						}, 3000);
+					}
+				}
+			},
+			onStatusChange: (status) => {
+				realtimeConnected = (status === 'SUBSCRIBED');
+			}
+		});
+
+		realtimeControls = rt;
+
+		return () => {
+			if (rt) rt.unsubscribe();
+		};
+	});
+
+	function handleTypingInput() {
+		if (!realtimeControls || !activeConversation) return;
+		realtimeControls.sendTypingSignal(activeConversation.id, true);
+		if (sendTypingDebounce) clearTimeout(sendTypingDebounce);
+		sendTypingDebounce = setTimeout(() => {
+			if (realtimeControls && activeConversation) {
+				realtimeControls.sendTypingSignal(activeConversation.id, false);
+			}
+		}, 2000);
+	}
+
+	async function handleSendMessage(e) {
+		if (e) e.preventDefault();
+		const trimmed = newMessageContent.trim();
+		if (!trimmed || !activeConversation || sendingMessage) return;
+
+		const targetConv = activeConversation;
+		const currentJobId = targetConv.job_id;
+		const currentReceiverId = targetConv.other_user_id;
+		newMessageContent = '';
+
+		if (sendTypingDebounce) clearTimeout(sendTypingDebounce);
+		if (realtimeControls) {
+			realtimeControls.sendTypingSignal(targetConv.id, false);
+		}
+
+		// Optimistic Message Creation
+		const tempId = 'temp_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+		const nowIso = new Date().toISOString();
+		const optimisticMsg = {
+			id: tempId,
+			job_id: currentJobId,
+			sender_id: data.user.id,
+			receiver_id: currentReceiverId,
+			content: trimmed,
+			created_at: nowIso
+		};
+
+		conversations = conversations.map(c => {
+			if (c.id === targetConv.id) {
+				return {
+					...c,
+					last_message: trimmed,
+					last_message_at: nowIso,
+					messages: [...(c.messages || []), optimisticMsg]
+				};
+			}
+			return c;
+		}).sort((a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime());
+
+		scrollToBottom(true);
+
+		// Broadcast message instantly over WebSocket to recipient
+		if (realtimeControls) {
+			realtimeControls.sendBroadcastMessage(optimisticMsg);
+		}
+
+		sendingMessage = true;
+		try {
+			const res = await fetch('/api/messages/send', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					jobId: currentJobId,
+					receiverId: currentReceiverId,
+					content: trimmed
+				})
+			});
+			const result = await res.json();
+			if (result.success && result.message) {
+				conversations = conversations.map(c => {
+					if (c.id === targetConv.id) {
+						return {
+							...c,
+							messages: c.messages.map(m => m.id === tempId ? result.message : m)
+						};
+					}
+					return c;
+				});
+			}
+		} catch (err) {
+			console.error('Failed to send message:', err);
+		} finally {
+			sendingMessage = false;
+		}
 	}
 
 	let searchCategory = $state('');
@@ -130,11 +346,21 @@
 	<button 
 		type="button" 
 		class="tab-btn {activeTab === 'chat' ? 'active' : ''}" 
-		onclick={() => activeTab = 'chat'}
+		onclick={() => {
+			activeTab = 'chat';
+			if (activeConversation) {
+				unreadConvIds.delete(activeConversation.id);
+				unreadConvIds = new Set(unreadConvIds);
+			}
+			scrollToBottom(false);
+		}}
 		id="tab-chat-btn"
 		style="display: inline-flex; align-items: center; gap: 0.4rem;"
 	>
-		<MessageSquare size={16} /> Messages ({data.conversations?.length || 0})
+		<MessageSquare size={16} /> Messages ({conversations?.length || 0})
+		{#if unreadConvIds.size > 0}
+			<span class="badge-unread-counter">{unreadConvIds.size}</span>
+		{/if}
 	</button>
 	<button 
 		type="button" 
@@ -509,23 +735,33 @@
 	<div class="chat-container {activeConvId ? 'has-active-conv' : ''}">
 		<!-- Left Sidebar: Conversations List -->
 		<div class="chat-threads-sidebar">
-			<div class="chat-threads-header" style="display: flex; align-items: center; gap: 0.5rem;">
-				<MessageSquare size={18} /> Inquiries & Messages
+			<div class="chat-threads-header" style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
+				<div style="display: flex; align-items: center; gap: 0.5rem;">
+					<MessageSquare size={18} /> Inquiries & Messages
+				</div>
+				{#if realtimeConnected}
+					<span class="chat-realtime-badge" title="Connected to Supabase WebSocket">
+						<span class="chat-realtime-dot"></span> Live
+					</span>
+				{/if}
 			</div>
 			<div class="chat-thread-list">
-				{#if !data.conversations || data.conversations.length === 0}
+				{#if !conversations || conversations.length === 0}
 					<div style="padding: 2rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
 						No active chats yet.<br>When workers inquire on your job posts, chats will appear here.
 					</div>
 				{:else}
-					{#each data.conversations as conv (conv.id)}
+					{#each conversations as conv (conv.id)}
 						<button 
 							type="button" 
 							class="chat-thread-item {activeConversation?.id === conv.id ? 'active' : ''}"
-							onclick={() => activeConvId = conv.id}
+							onclick={() => selectConversation(conv.id)}
 						>
-							<div class="chat-avatar">
+							<div class="chat-avatar" style="position: relative;">
 								{conv.other_user_name ? conv.other_user_name.charAt(0).toUpperCase() : 'U'}
+								{#if unreadConvIds.has(conv.id)}
+									<span class="chat-unread-dot" style="position: absolute; top: -2px; right: -2px; border: 2px solid var(--bg-card);"></span>
+								{/if}
 							</div>
 							<div class="chat-thread-info">
 								<div class="chat-thread-top">
@@ -535,7 +771,14 @@
 								<div class="chat-thread-title">
 									<Pin size={11} style="flex-shrink: 0;" /> <span class="chat-thread-title-text">{conv.job_title}</span>
 								</div>
-								<div class="chat-thread-preview">{conv.last_message || 'No messages yet.'}</div>
+								<div class="chat-thread-preview" style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
+									<span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+										{conv.last_message || 'No messages yet.'}
+									</span>
+									{#if unreadConvIds.has(conv.id)}
+										<span class="badge-unread-counter" style="font-size: 0.65rem; height: 14px; min-width: 14px; padding: 0 3px;">•</span>
+									{/if}
+								</div>
 							</div>
 						</button>
 					{/each}
@@ -567,27 +810,17 @@
 								>
 									<User size={11} /> Profile
 								</button>
+								{#if realtimeConnected}
+									<span class="chat-realtime-badge">
+										<span class="chat-realtime-dot"></span> Live
+									</span>
+								{/if}
 							</h4>
 							<span style="font-size: 0.78rem; color: var(--accent-hover); display: block;">
 								Job: {activeConversation.job_title}
 							</span>
 						</div>
 					</div>
-					<button 
-						type="button" 
-						class="btn btn-outline" 
-						style="padding: 0.35rem 0.65rem; font-size: 0.8rem; display: flex; align-items: center; gap: 0.3rem;" 
-						onclick={refreshChatData}
-						disabled={isRefreshingChat}
-						id="refresh-chat-customer-btn"
-					>
-						{#if isRefreshingChat}
-							<span class="spinner spinner-sm"></span>
-							<span>Refreshing...</span>
-						{:else}
-							<RefreshCw size={13} /> Refresh
-						{/if}
-					</button>
 				</div>
 
 				<div class="chat-messages-body" id="chat-messages-customer-body">
@@ -596,7 +829,7 @@
 							Start conversation with {activeConversation.other_user_name}...
 						</div>
 					{:else}
-						{#each activeConversation.messages as msg (msg.id)}
+						{#each activeConversation.messages as msg (msg.id || msg.created_at)}
 							<div class="chat-bubble {msg.sender_id === data.user.id ? 'sent' : 'received'}">
 								<div>{msg.content}</div>
 								<div class="chat-time">
@@ -605,29 +838,30 @@
 							</div>
 						{/each}
 					{/if}
+
+					{#if isOtherUserTyping}
+						<div class="chat-typing-indicator">
+							<span>{activeConversation.other_user_name} is typing</span>
+							<div class="typing-dots">
+								<span class="typing-dot"></span>
+								<span class="typing-dot"></span>
+								<span class="typing-dot"></span>
+							</div>
+						</div>
+					{/if}
 				</div>
 
 				<div class="chat-footer">
-					<form method="POST" action="?/sendMessage" use:enhance={() => {
-						sendingMessage = true;
-						return async ({ update }) => {
-							sendingMessage = false;
-							newMessageContent = '';
-							await update({ reset: false });
-							await invalidateAll();
-							setTimeout(() => {
-								const body = document.getElementById('chat-messages-customer-body');
-								if (body) body.scrollTop = body.scrollHeight;
-							}, 50);
-						};
-					}} style="display: flex; gap: 0.75rem;">
+					<form onsubmit={handleSendMessage} style="display: flex; gap: 0.75rem;">
 						<input type="hidden" name="jobId" value={activeConversation.job_id} />
 						<input type="hidden" name="receiverId" value={activeConversation.other_user_id} />
 						<input 
 							type="text" 
 							name="content" 
-							placeholder="Type your reply here..." 
+							placeholder="Type your message here..." 
 							bind:value={newMessageContent}
+							oninput={handleTypingInput}
+							autocomplete="off"
 							required 
 							style="flex: 1; padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary);"
 						/>
