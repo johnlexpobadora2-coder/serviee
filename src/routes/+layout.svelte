@@ -2,6 +2,7 @@
 	import '../index.css';
 	import 'leaflet/dist/leaflet.css';
 	import { Menu, X, Settings, LogOut, LogIn, UserPlus, Loader2, Home, PlusCircle } from 'lucide-svelte';
+	import ThemeToggle from '$lib/ThemeToggle.svelte';
 	import { navigating } from '$app/stores';
 	import { page } from '$app/state';
 
@@ -55,20 +56,24 @@
 				Serviee <span class="logo-dot"></span>
 			</a>
 			
-			<!-- Hamburger button for mobile devices -->
-			<button 
-				type="button" 
-				class="menu-toggle-btn" 
-				onclick={toggleMenu} 
-				aria-label="Toggle menu"
-				aria-expanded={menuOpen}
-			>
-				{#if menuOpen}
-					<X size={20} />
-				{:else}
-					<Menu size={20} />
-				{/if}
-			</button>
+			<div class="nav-actions mobile-only">
+				<ThemeToggle />
+				
+				<!-- Hamburger button for mobile devices -->
+				<button 
+					type="button" 
+					class="menu-toggle-btn" 
+					onclick={toggleMenu} 
+					aria-label="Toggle menu"
+					aria-expanded={menuOpen}
+				>
+					{#if menuOpen}
+						<X size={20} />
+					{:else}
+						<Menu size={20} />
+					{/if}
+				</button>
+			</div>
 			
 			<div class="nav-links" class:mobile-open={menuOpen}>
 				{#if data.user}
@@ -115,6 +120,11 @@
 						Hello, <strong style="color: var(--text-primary);">{data.user.name}</strong> ({data.user.role === 'customer' ? 'Client' : data.user.role === 'admin' ? 'Admin' : 'Worker'})
 					</span>
 
+					<!-- Desktop-only Theme Toggle -->
+					<div class="desktop-only">
+						<ThemeToggle />
+					</div>
+
 					<!-- Logout Action Form -->
 					<form method="POST" action="/logout" class="nav-logout-form">
 						<button type="submit" class="btn btn-outline nav-logout-btn" onclick={closeMenu} id="nav-logout-btn">
@@ -127,6 +137,9 @@
 						<LogIn size={16} />
 						<span>Log In</span>
 					</a>
+					<div class="desktop-only">
+						<ThemeToggle />
+					</div>
 					<a href="/register" class="btn btn-primary nav-signup-btn" onclick={closeMenu} id="nav-register-btn">
 						<UserPlus size={15} />
 						<span>Sign Up</span>

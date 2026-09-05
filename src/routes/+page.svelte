@@ -97,7 +97,7 @@
 		and project needs.
 	</p>
 
-	<div class="categories-grid">
+	<div class="grid grid-cols-1 md:grid-cols-3 gap-y-14 gap-x-7 mt-16">
 		<!-- Plumbing -->
 		<div class="category-card">
 			<div class="category-circle-badge">

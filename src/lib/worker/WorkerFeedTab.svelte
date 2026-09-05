@@ -1,6 +1,6 @@
 <script>
 	import { enhance } from '$app/forms';
-	import { SlidersHorizontal, ChevronUp, ChevronDown, Search, X, MapPin, ExternalLink, MessageSquare } from 'lucide-svelte';
+	import { SlidersHorizontal, ChevronUp, ChevronDown, Search, X, MapPin, ExternalLink, MessageSquare, User, Calendar, Clock } from 'lucide-svelte';
 	import { CITIES_MUNICIPALITIES } from '$lib/locations.js';
 	import { getGoogleMapsUrl, getEmbedMapUrl } from '$lib/gpsUtils.js';
 
@@ -150,14 +150,14 @@
 			{#each visibleFeedJobs as job (job.id)}
 				<div
 					class="card feed-job-card"
-					style="padding: 1.25rem; display: flex; flex-direction: column; gap: 0.85rem;"
 				>
 					<div class="feed-job-header">
 						<div>
-							<div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.35rem;">
+							<div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
 								<span class="badge {getCategoryBadge(job.category)}">{job.category}</span>
-								<span style="font-size: 0.75rem; color: var(--text-muted);">
-									Posted: {new Date(job.created_at).toLocaleDateString("en-PH", {
+								<span style="font-size: 0.78rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 0.25rem;">
+									<Clock size={12} />
+									{new Date(job.created_at).toLocaleDateString("en-PH", {
 										month: "short",
 										day: "numeric",
 										year: "numeric",
@@ -166,54 +166,49 @@
 									})}
 								</span>
 							</div>
-							<h3 class="feed-job-title" style="font-size: 1.25rem; color: var(--text-primary);">
+							<h3 class="feed-job-title">
 								{job.title}
 							</h3>
-							<span style="font-size: 0.8rem; color: var(--text-secondary);">
-								Client: 
+							<div style="font-size: 0.82rem; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 0.35rem; margin-top: 0.15rem;">
+								<User size={13} style="color: var(--accent);" />
+								<span>Client:</span> 
 								<button 
 									type="button" 
-									style="background: none; border: none; color: var(--accent); font-weight: 600; cursor: pointer; text-decoration: underline; padding: 0; font-size: inherit;"
+									style="background: none; border: none; color: var(--accent-hover); font-weight: 600; cursor: pointer; text-decoration: underline; padding: 0; font-size: inherit;"
 									onclick={() => onopenviewprofile(job.customer_id)}
 								>
 									{job.customerName}
 								</button>
-							</span>
+							</div>
 						</div>
 						<div style="text-align: right;">
-							<strong class="feed-job-budget" style="color: var(--accent); font-size: 1.25rem; display: block;">
+							<strong class="feed-job-budget">
 								₱{job.budget.toLocaleString()}
 							</strong>
 						</div>
 					</div>
 
-					<p class="feed-job-desc" style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;">
+					<p class="feed-job-desc">
 						{job.description}
 					</p>
 
 					<div class="metadata-bar feed-job-meta">
-						<div><strong>Loc:</strong> {job.location}</div>
-						<div>
-							<strong>Sched:</strong>
-							{new Date(job.target_date).toLocaleDateString("en-PH", {
-								month: "short",
-								day: "numeric",
-								hour: "2-digit",
-								minute: "2-digit",
-							})}
+						<div style="display: flex; align-items: center; gap: 0.4rem;">
+							<MapPin size={15} style="color: #38bdf8; flex-shrink: 0;" />
+							<span><strong style="color: var(--text-primary);">Loc:</strong> {job.location}</span>
 						</div>
-						{#if job.latitude && job.longitude}
-							<div>
-								<a 
-									href={getGoogleMapsUrl(job.latitude, job.longitude, job.title)} 
-									target="_blank" 
-									rel="noopener noreferrer" 
-									class="gps-badge"
-								>
-									<MapPin size={12} /> Google Maps
-								</a>
-							</div>
-						{/if}
+						<div style="display: flex; align-items: center; gap: 0.4rem;">
+							<Calendar size={15} style="color: #a78bfa; flex-shrink: 0;" />
+							<span>
+								<strong style="color: var(--text-primary);">Sched:</strong>
+								{new Date(job.target_date).toLocaleDateString("en-PH", {
+									month: "short",
+									day: "numeric",
+									hour: "2-digit",
+									minute: "2-digit",
+								})}
+							</span>
+						</div>
 					</div>
 
 					{#if job.latitude && job.longitude}

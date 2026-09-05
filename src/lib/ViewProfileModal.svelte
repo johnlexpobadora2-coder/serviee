@@ -316,7 +316,7 @@
 
 				<!-- Navigation Tabs within Modal -->
 				<div
-					style="padding: 0.5rem 1rem 0 1rem; border-bottom: 1px solid var(--border-color); background: hsla(222, 20%, 10%, 0.4); overflow-x: auto;"
+					style="padding: 0.5rem 1rem 0 1rem; border-bottom: 1px solid var(--border-color); background: var(--bg-card); overflow-x: auto;"
 				>
 					<div
 						class="tabs-header"
@@ -937,7 +937,7 @@
 
 													{#if job.review && job.review.review_text}
 														<div
-															style="background: hsla(222, 20%, 14%, 0.6); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); font-size: 0.82rem; color: var(--text-secondary); font-style: italic;"
+															style="background: var(--bg-input); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); font-size: 0.82rem; color: var(--text-secondary); font-style: italic; border: 1px solid var(--border-color);"
 														>
 															"{job.review
 																.review_text}"
@@ -1022,7 +1022,7 @@
 
 				<!-- Modal Footer Actions -->
 				<div
-					style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); background: hsla(222, 20%, 10%, 0.6); display: flex; justify-content: flex-end; gap: 0.75rem;"
+					style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); background: var(--bg-card); display: flex; justify-content: flex-end; gap: 0.75rem;"
 				>
 					<button
 						type="button"
@@ -1051,22 +1051,27 @@
 		position: absolute;
 		top: 1rem;
 		right: 1rem;
-		background: rgba(0, 0, 0, 0.5);
-		border: 1px solid var(--border-color);
-		color: var(--text-primary);
-		width: 34px;
-		height: 34px;
+		background: rgba(15, 23, 42, 0.55);
+		backdrop-filter: blur(8px);
+		-webkit-backdrop-filter: blur(8px);
+		border: 1px solid rgba(255, 255, 255, 0.3);
+		color: #ffffff;
+		width: 36px;
+		height: 36px;
 		border-radius: 50%;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		cursor: pointer;
-		z-index: 10;
-		transition: all var(--transition-fast);
+		z-index: 20;
+		transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 	}
 	.close-modal-btn:hover {
-		background: rgba(255, 255, 255, 0.2);
+		background: rgba(15, 23, 42, 0.85);
+		border-color: rgba(255, 255, 255, 0.6);
 		transform: scale(1.08);
+		color: #ffffff;
 	}
 	.spinner {
 		width: 32px;
