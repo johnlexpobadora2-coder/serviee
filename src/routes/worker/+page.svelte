@@ -1,16 +1,18 @@
 <script>
-	import { enhance } from "$app/forms";
-	import { invalidateAll } from "$app/navigation";
-	import { MessageSquare, Pin, RefreshCw, Star, ClipboardList, Check, User, ArrowLeft, Radio, Send, MapPin, Navigation, ExternalLink, Compass, Search, X, SlidersHorizontal, ChevronDown, ChevronUp, Plus, Image as ImageIcon, Trash2 } from 'lucide-svelte';
+	import { onMount } from 'svelte';
 	import ViewProfileModal from '$lib/ViewProfileModal.svelte';
 	import LocationPickerModal from '$lib/LocationPickerModal.svelte';
 	import ConfirmDeleteModal from '$lib/ConfirmDeleteModal.svelte';
 	import MobileChatHistory from '$lib/MobileChatHistory.svelte';
-	import { CITIES_MUNICIPALITIES } from '$lib/locations.js';
 	import { setupRealtimeChat, playNotificationSound } from '$lib/realtimeChat.js';
-	import { getCurrentCoordinates, formatGpsChatMessage, parseGpsMessage, getGoogleMapsUrl, getEmbedMapUrl, isGpsMessage, formatImageChatMessage, isImageMessage, parseImageMessage, compressImageFile, formatMessagePreview } from '$lib/gpsUtils.js';
+	import { getCurrentCoordinates, formatGpsChatMessage, formatImageChatMessage, compressImageFile, formatMessagePreview } from '$lib/gpsUtils.js';
 
-	import { onMount } from 'svelte';
+	import WorkerTabsNav from '$lib/worker/WorkerTabsNav.svelte';
+	import WorkerFeedTab from '$lib/worker/WorkerFeedTab.svelte';
+	import WorkerActiveJobsTab from '$lib/worker/WorkerActiveJobsTab.svelte';
+	import WorkerChatTab from '$lib/worker/WorkerChatTab.svelte';
+	import WorkerProfileTab from '$lib/worker/WorkerProfileTab.svelte';
+	import WorkerImagePreviewModal from '$lib/worker/WorkerImagePreviewModal.svelte';
 
 	let { data, form } = $props();
 
@@ -90,7 +92,6 @@
 			const lng = coords.longitude.toFixed(6);
 			const gpsMsgContent = formatGpsChatMessage(lat, lng, `Location shared by ${data.user.name || 'Worker'}`);
 
-			// Send location message
 			await sendChatMessagePayload(gpsMsgContent);
 		} catch (err) {
 			alert(err.message || 'Could not acquire GPS location. Please check browser permissions.');
@@ -198,7 +199,6 @@
 						return c;
 					});
 
-					// Maintain exact scroll position after prepending older messages
 					setTimeout(() => {
 						if (body) {
 							const newScrollHeight = body.scrollHeight;
@@ -210,7 +210,7 @@
 				}
 			}
 		} catch (err) {
-			console.error("Failed to load older messages:", err);
+			console.error('Failed to load older messages:', err);
 		} finally {
 			loadingMoreMessages = false;
 		}
@@ -225,7 +225,7 @@
 
 	async function refreshChatData() {
 		try {
-			const res = await fetch("/api/messages");
+			const res = await fetch('/api/messages');
 			if (res.ok) {
 				const result = await res.json();
 				if (result.conversations) {
@@ -244,14 +244,12 @@
 				}
 			}
 		} catch (err) {
-			console.error("Failed to refresh chat:", err);
+			console.error('Failed to refresh chat:', err);
 		}
 	}
 
 	let activeConversation = $derived(
-		conversations.find((c) => c.id === activeConvId) ||
-			conversations[0] ||
-			null,
+		conversations.find(c => c.id === activeConvId) || conversations[0] || null
 	);
 
 	function closeActiveConversation() {
@@ -277,16 +275,15 @@
 		const convId = `${jobId}_${customerId}`;
 		activeConvId = convId;
 		showGpsDropup = false;
-		activeTab = "chat";
+		activeTab = 'chat';
 		unreadConvIds.delete(convId);
 		unreadConvIds = new Set(unreadConvIds);
 		loadConversationMessages(convId);
 		scrollToBottom(false);
 	}
 
-	// Auto load messages when chat tab is active
 	$effect(() => {
-		if (activeTab === "chat" && activeConversation && !activeConversation.messagesLoaded && loadingMessagesConvId !== activeConversation.id) {
+		if (activeTab === 'chat' && activeConversation && !activeConversation.messagesLoaded && loadingMessagesConvId !== activeConversation.id) {
 			loadConversationMessages(activeConversation.id);
 		}
 	});
@@ -325,7 +322,6 @@
 		}
 	}
 
-	// Incoming message handler from Supabase Realtime WebSocket
 	function handleIncomingMessage(msg) {
 		if (!msg || !msg.job_id || !msg.sender_id || !msg.receiver_id || !conversations) return;
 		const otherUserId = msg.sender_id === data.user?.id ? msg.receiver_id : msg.sender_id;
@@ -435,7 +431,6 @@
 		}
 	}
 
-	// Realtime WebSocket Subscription Lifecycle Effect
 	$effect(() => {
 		if (!data.user?.id) return;
 
@@ -494,7 +489,6 @@
 			realtimeControls.sendTypingSignal(targetConv.id, false);
 		}
 
-		// Optimistic Message Creation
 		const tempId = 'temp_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
 		const nowIso = new Date().toISOString();
 		const optimisticMsg = {
@@ -597,7 +591,7 @@
 					.includes(searchLocation.toLowerCase());
 			const matchesBudget = !minBudget || job.budget >= minBudget;
 			return matchesSearch && matchesCategory && matchesLocation && matchesBudget;
-		}),
+		})
 	);
 
 	let visibleFeedJobs = $derived(
@@ -628,23 +622,6 @@
 		}
 	});
 
-	// Category mapping for badge styling helper
-	function getCategoryBadge(category) {
-		switch (category) {
-			case "Plumbing / Tubero":
-				return "badge-plumbing";
-			case "Roofing / Ayos Yero":
-				return "badge-roofing";
-			case "Excavation / Hukay Lupa":
-				return "badge-excavation";
-			case "Gardening":
-				return "badge-gardening";
-			case "Carpentry":
-				return "badge-carpentry";
-			default:
-				return "badge-general";
-		}
-	}
 	let visibleMyJobsLimit = $state(20);
 
 	let sortedMyJobs = $derived(
@@ -676,1292 +653,97 @@
 	<title>Worker Dashboard | Serviee</title>
 </svelte:head>
 
-<!-- Tab Navigation Header -->
-<div class="tabs-header">
-	<button
-		type="button"
-		class="tab-btn {activeTab === 'feed' ? 'active' : ''}"
-		onclick={() => (activeTab = "feed")}
-		id="tab-feed-btn"
-	>
-		Sideline Feed (Job Board)
-	</button>
-	<button
-		type="button"
-		class="tab-btn {activeTab === 'my-jobs' ? 'active' : ''}"
-		onclick={() => (activeTab = "my-jobs")}
-		id="tab-myjobs-btn"
-	>
-		My Jobs ({data.myJobs.length})
-	</button>
-	<button
-		type="button"
-		class="tab-btn {activeTab === 'chat' ? 'active' : ''}"
-		onclick={() => {
-			activeTab = "chat";
-			if (activeConversation) {
-				unreadConvIds.delete(activeConversation.id);
-				unreadConvIds = new Set(unreadConvIds);
-			}
-			scrollToBottom(false);
-		}}
-		id="tab-chat-btn"
-		style="display: inline-flex; align-items: center; gap: 0.4rem;"
-	>
-		<MessageSquare size={16} /> Messages ({conversations?.length || 0})
-		{#if unreadConvIds.size > 0}
-			<span class="badge-unread-counter">{unreadConvIds.size}</span>
-		{/if}
-	</button>
-	<button
-		type="button"
-		class="tab-btn {activeTab === 'profile' ? 'active' : ''}"
-		onclick={() => (activeTab = "profile")}
-		id="tab-profile-btn"
-	>
-		My Profile & Feedback
-	</button>
-</div>
+<WorkerTabsNav 
+	bind:activeTab 
+	myJobsCount={data.myJobs.length} 
+	conversationsCount={conversations?.length || 0} 
+	unreadCount={unreadConvIds.size} 
+	onselectchat={() => {
+		if (activeConversation) {
+			unreadConvIds.delete(activeConversation.id);
+			unreadConvIds = new Set(unreadConvIds);
+		}
+		scrollToBottom(false);
+	}} 
+/>
 
 {#if form?.success}
-	<div
-		style="background-color: var(--success-light); border: 1px solid var(--success); color: var(--text-primary); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; font-size: 0.95rem;"
-	>
+	<div style="background-color: var(--success-light); border: 1px solid var(--success); color: var(--text-primary); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; font-size: 0.95rem;">
 		{form.success}
 	</div>
 {/if}
 
 {#if form?.error}
-	<div
-		style="background-color: var(--error-light); border: 1px solid var(--error); color: var(--text-primary); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; font-size: 0.95rem;"
-	>
+	<div style="background-color: var(--error-light); border: 1px solid var(--error); color: var(--text-primary); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; font-size: 0.95rem;">
 		{form.error}
 	</div>
 {/if}
 
-<!-- TAB 1: SIDELINE FEED -->
 {#if activeTab === "feed"}
-	<div class="dashboard-layout">
-		<!-- Mobile Filter Toggle Button (visible only on mobile) -->
-		<button 
-			type="button" 
-			class="mobile-filter-toggle-btn"
-			onclick={() => showMobileFilters = !showMobileFilters}
-			aria-expanded={showMobileFilters}
-		>
-			<span style="display: flex; align-items: center; gap: 0.5rem;">
-				<SlidersHorizontal size={16} />
-				<span>{showMobileFilters ? 'Hide Filter Options' : 'Filter Jobs by Category / Location'}</span>
-				{#if hasActiveFilters}
-					<span class="active-filter-indicator"></span>
-				{/if}
-			</span>
-			{#if showMobileFilters}
-				<ChevronUp size={16} />
-			{:else}
-				<ChevronDown size={16} />
-			{/if}
-		</button>
-
-		<!-- Filters sidebar (always visible on desktop, toggleable on mobile) -->
-		<aside
-			class="card feed-filters-card feed-filters-aside {showMobileFilters ? 'mobile-open' : ''}"
-			style="position: sticky; top: 90px; padding: 1.25rem;"
-		>
-			<h4 style="font-size: 1.1rem; margin-bottom: 0.75rem;">
-				Filter Jobs
-			</h4>
-
-			<div class="feed-filters-grid">
-				<div class="form-group form-group-full">
-					<label for="filter-category">Category</label>
-					<select id="filter-category" bind:value={searchCategory}>
-						<option value="">All Categories</option>
-						<option value="Plumbing / Tubero">Plumbing / Tubero</option>
-						<option value="Roofing / Ayos Yero"
-							>Roofing / Ayos Yero</option
-						>
-						<option value="Excavation / Hukay Lupa"
-							>Excavation / Hukay Lupa</option
-						>
-						<option value="Gardening">Gardening / Landscape</option>
-						<option value="Carpentry">Carpentry / Karpintero</option>
-						<option value="General Manual Labor"
-							>General Manual Labor</option
-						>
-					</select>
-				</div>
-
-				<div class="form-group">
-					<label for="filter-location">City/Municipality</label>
-					<select
-						id="filter-location"
-						bind:value={searchLocation}
-					>
-						<option value="">All Locations</option>
-						{#each CITIES_MUNICIPALITIES as city}
-							<option value={city}>{city}</option>
-						{/each}
-					</select>
-				</div>
-
-				<div class="form-group">
-					<label for="filter-budget">Min Budget (₱)</label>
-					<input
-						type="number"
-						id="filter-budget"
-						placeholder="E.g. 500"
-						bind:value={minBudget}
-					/>
-				</div>
-			</div>
-		</aside>
-
-		<!-- Feed stream list -->
-		<section style="display: flex; flex-direction: column; gap: 1rem; min-width: 0; width: 100%;">
-			<!-- Search Bar above Job Postings -->
-			<div class="job-search-bar-container">
-				<div class="job-search-input-wrapper">
-					<Search size={18} class="job-search-icon" />
-					<input 
-						type="text" 
-						id="worker-job-search-input" 
-						placeholder="Search jobs by title or description..." 
-						bind:value={searchQuery}
-						class="job-search-input"
-					/>
-					{#if searchQuery}
-						<button 
-							type="button" 
-							class="job-search-clear-btn" 
-							onclick={() => searchQuery = ''}
-							aria-label="Clear search"
-						>
-							<X size={15} />
-						</button>
-					{/if}
-				</div>
-			</div>
-
-			<div
-				style="display: flex; justify-content: space-between; align-items: center;"
-			>
-				<h2 style="font-size: 1.3rem;">
-					Available Jobs ({filteredJobs.length})
-				</h2>
-			</div>
-
-			{#if filteredJobs.length === 0}
-				<div
-					class="card"
-					style="text-align: center; padding: 3rem 1.5rem; border-style: dashed;"
-				>
-					<h4 style="font-size: 1.15rem; margin-bottom: 0.5rem;">
-						No sideline jobs found.
-					</h4>
-					<p style="color: var(--text-secondary); font-size: 0.85rem;">
-						Try modifying your filters or check back later for new
-						job postings from clients.
-					</p>
-				</div>
-			{:else}
-				{#each visibleFeedJobs as job (job.id)}
-					<div
-						class="card feed-job-card"
-						style="padding: 1.25rem; display: flex; flex-direction: column; gap: 0.85rem;"
-					>
-						<div class="feed-job-header">
-							<div>
-								<div
-									style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.35rem;"
-								>
-									<span
-										class="badge {getCategoryBadge(
-											job.category,
-										)}">{job.category}</span
-									>
-									<span
-										style="font-size: 0.75rem; color: var(--text-muted);"
-									>
-										Posted: {new Date(
-											job.created_at,
-										).toLocaleDateString("en-PH", {
-											month: "short",
-											day: "numeric",
-											year: "numeric",
-											hour: "numeric",
-											minute: "2-digit",
-										})}
-									</span>
-								</div>
-								<h3
-									class="feed-job-title"
-									style="font-size: 1.25rem; color: var(--text-primary);"
-								>
-									{job.title}
-								</h3>
-								<span style="font-size: 0.8rem; color: var(--text-secondary);">
-									Client: 
-									<button 
-										type="button" 
-										style="background: none; border: none; color: var(--accent); font-weight: 600; cursor: pointer; text-decoration: underline; padding: 0; font-size: inherit;"
-										onclick={() => openViewProfile(job.customer_id)}
-									>
-										{job.customerName}
-									</button>
-								</span>
-							</div>
-							<div style="text-align: right;">
-								<strong
-									class="feed-job-budget"
-									style="color: var(--accent); font-size: 1.25rem; display: block;"
-									>₱{job.budget.toLocaleString()}</strong
-								>
-							</div>
-						</div>
-
-						<p
-							class="feed-job-desc"
-							style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;"
-						>
-							{job.description}
-						</p>
-
-						<div class="metadata-bar feed-job-meta">
-							<div><strong>Loc:</strong> {job.location}</div>
-							<div>
-								<strong>Sched:</strong>
-								{new Date(job.target_date).toLocaleDateString(
-									"en-PH",
-									{
-										month: "short",
-										day: "numeric",
-										hour: "2-digit",
-										minute: "2-digit",
-									},
-								)}
-							</div>
-							{#if job.latitude && job.longitude}
-								<div>
-									<a 
-										href={getGoogleMapsUrl(job.latitude, job.longitude, job.title)} 
-										target="_blank" 
-										rel="noopener noreferrer" 
-										class="gps-badge"
-									>
-										<MapPin size={12} /> Google Maps
-									</a>
-								</div>
-							{/if}
-						</div>
-
-						{#if job.latitude && job.longitude}
-							<div class="feed-job-map-preview">
-								<div class="feed-job-map-header">
-									<div style="display: flex; align-items: center; gap: 0.35rem; color: var(--accent-hover); font-weight: 600;">
-										<MapPin size={13} /> Pinned GPS Location ({job.latitude}, {job.longitude})
-									</div>
-									<a 
-										href={getGoogleMapsUrl(job.latitude, job.longitude, job.title)} 
-										target="_blank" 
-										rel="noopener noreferrer" 
-										class="btn btn-outline"
-										style="padding: 0.15rem 0.5rem; font-size: 0.72rem; border-color: var(--accent); color: var(--accent-hover);"
-									>
-										<ExternalLink size={11} /> Open Directions
-									</a>
-								</div>
-								<div class="feed-job-map-iframe-container">
-									<iframe 
-										title="Pinned Job Location Map"
-										src={getEmbedMapUrl(job.latitude, job.longitude)}
-										loading="lazy"
-									></iframe>
-								</div>
-							</div>
-						{/if}
-
-						<div
-							class="feed-job-actions"
-							style="display: flex; justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top: 0.75rem;"
-						>
-							{#if job.hasApplied}
-								<button
-									type="button"
-									class="btn btn-outline"
-									style="padding: 0.45rem 1.1rem; border-color: var(--accent); color: var(--accent-hover); display: inline-flex; align-items: center; gap: 0.35rem;"
-									onclick={() =>
-										openChat(job.id, job.customer_id)}
-								>
-									<MessageSquare size={14} /> Open Chat
-								</button>
-							{:else}
-								<form
-									method="POST"
-									action="?/inquireJob"
-									use:enhance={() => {
-										applyingJobId = job.id;
-										return async ({ update }) => {
-											applyingJobId = null;
-											await update();
-											openChat(job.id, job.customer_id);
-										};
-									}}
-									style="width: 100%; display: flex; justify-content: flex-end;"
-								>
-									<input
-										type="hidden"
-										name="jobId"
-										value={job.id}
-									/>
-									<input
-										type="hidden"
-										name="customerId"
-										value={job.customer_id}
-									/>
-									<input
-										type="hidden"
-										name="initialMessage"
-										value="Hello! Inquiring po ako sa sideline job na ito: {job.title}."
-									/>
-									<button
-										type="submit"
-										class="btn btn-primary"
-										style="padding: 0.45rem 1.1rem; display: inline-flex; align-items: center; gap: 0.35rem;"
-										disabled={applyingJobId === job.id}
-										id="inquire-btn-{job.id}"
-									>
-										{#if applyingJobId === job.id}
-											<span class="spinner spinner-sm"></span>
-											<span>Connecting...</span>
-										{:else}
-											<MessageSquare size={14} />
-											<span>Apply / Chat Client</span>
-										{/if}
-									</button>
-								</form>
-							{/if}
-						</div>
-					</div>
-				{/each}
-
-				{#if visibleFeedJobsLimit < filteredJobs.length}
-					<div style="text-align: center; padding: 1rem 0;">
-						<button
-							type="button"
-							class="btn btn-secondary"
-							onclick={loadMoreFeedJobs}
-							style="padding: 0.6rem 1.5rem;"
-						>
-							Load 20 More Jobs ({filteredJobs.length - visibleFeedJobsLimit} remaining)
-						</button>
-					</div>
-				{/if}
-			{/if}
-		</section>
-	</div>
+	<WorkerFeedTab 
+		{filteredJobs} 
+		{visibleFeedJobs} 
+		bind:visibleFeedJobsLimit 
+		bind:searchCategory 
+		bind:searchLocation 
+		bind:minBudget 
+		bind:searchQuery 
+		bind:showMobileFilters 
+		{hasActiveFilters} 
+		bind:applyingJobId 
+		onopenviewprofile={openViewProfile} 
+		onopenchat={openChat} 
+		onloadmorefeedjobs={loadMoreFeedJobs} 
+	/>
+{:else if activeTab === "my-jobs"}
+	<WorkerActiveJobsTab 
+		{sortedMyJobs} 
+		{visibleMyJobs} 
+		bind:visibleMyJobsLimit 
+		onopenviewprofile={openViewProfile} 
+		onopenchat={openChat} 
+		onloadmoremyjobs={loadMoreMyJobs} 
+		onmyjobsscroll={handleMyJobsScroll} 
+	/>
+{:else if activeTab === "chat"}
+	<WorkerChatTab 
+		{conversations} 
+		{activeConversation} 
+		bind:activeConvId 
+		{unreadConvIds} 
+		{loadingMessagesConvId} 
+		{loadingMoreMessages} 
+		{isOtherUserTyping} 
+		bind:newMessageContent 
+		{sendingMessage} 
+		{sharingLocation} 
+		{uploadingImage} 
+		bind:showGpsDropup 
+		currentUserId={data.user?.id} 
+		bind:fileInputRef 
+		onselectconversation={selectConversation} 
+		oncloseactiveconversation={closeActiveConversation} 
+		onchatscroll={handleChatScroll} 
+		onloadmoremessages={loadMoreMessages} 
+		onopenviewprofile={openViewProfile} 
+		onpromptdeletemessage={promptDeleteMessage} 
+		ontriggerimageupload={triggerImageUpload} 
+		onimagefileselect={handleImageFileSelect} 
+		onsharelocation={handleShareLocation} 
+		onopencustomlocationmodal={() => showCustomLocationModal = true} 
+		onhandletypinginput={handleTypingInput} 
+		onsendmessage={handleSendMessage} 
+		onpreviewimage={(url) => previewImageModalUrl = url} 
+	/>
+{:else if activeTab === "profile"}
+	<WorkerProfileTab 
+		user={data.user} 
+		stats={data.stats} 
+		completedJobs={data.completedJobs} 
+		bind:profileSubTab 
+	/>
 {/if}
 
-<!-- TAB 2: MY CURRENT JOBS -->
-{#if activeTab === "my-jobs"}
-	<section
-		style="display: flex; flex-direction: column; gap: 1.5rem; max-width: 900px; margin: 0 auto; max-height: calc(100vh - 180px); overflow-y: auto; padding-right: 0.5rem;"
-		onscroll={handleMyJobsScroll}
-	>
-		<h2 style="font-size: 1.5rem;">
-			My Active Jobs ({sortedMyJobs.length})
-		</h2>
-
-		{#if sortedMyJobs.length === 0}
-			<div
-				class="card"
-				style="text-align: center; padding: 4rem 2rem; border-style: dashed;"
-			>
-				<h4 style="font-size: 1.25rem; margin-bottom: 0.5rem;">
-					You have no active jobs at the moment.
-				</h4>
-				<p style="color: var(--text-secondary); font-size: 0.9rem;">
-					Head over to the **Sideline Feed** tab to browse and apply
-					for available jobs.
-				</p>
-			</div>
-		{:else}
-			{#each visibleMyJobs as job (job.id)}
-				<div
-					class="card active-job-card"
-					style="padding: 1.25rem; display: flex; flex-direction: column; gap: 0.85rem;"
-				>
-					<div class="active-job-header">
-						<div>
-							<div
-								style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.35rem;"
-							>
-								<span
-									class="badge {getCategoryBadge(
-										job.category,
-									)}">{job.category}</span
-								>
-								<span class="status status-{job.status}">
-									{job.status === "assigned"
-										? "Assigned"
-										: "In Progress"}
-								</span>
-								{#if job.created_at}
-									<span
-										style="font-size: 0.75rem; color: var(--text-muted);"
-									>
-										Posted: {new Date(
-											job.created_at,
-										).toLocaleDateString("en-PH", {
-											month: "short",
-											day: "numeric",
-											year: "numeric",
-											hour: "numeric",
-											minute: "2-digit",
-										})}
-									</span>
-								{/if}
-							</div>
-							<h3
-								class="active-job-title"
-								style="font-size: 1.25rem; color: var(--text-primary);"
-							>
-								{job.title}
-							</h3>
-						</div>
-						<strong
-							class="active-job-budget"
-							style="color: var(--success); font-size: 1.25rem;"
-							>₱{job.budget.toLocaleString()}</strong
-						>
-					</div>
-
-					<p
-						class="active-job-desc"
-						style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;"
-					>
-						{job.description}
-					</p>
-
-					<!-- Client Contact Box -->
-					<div
-						class="active-contact-box"
-						style="padding: 0.85rem 1rem; background-color: var(--accent-light); border: 1px dashed var(--accent); border-radius: var(--radius-md); font-size: 0.85rem; margin: 0.25rem 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;"
-					>
-						<div>
-							<p style="margin-bottom: 0.2rem; font-size: 0.85rem;">
-								<strong>Client:</strong> {job.customerName}
-							</p>
-							<p style="margin-bottom: 0;">
-								<strong>Phone:</strong>
-								<span
-									style="font-family: monospace; font-size: 0.95rem; color: var(--accent-hover); font-weight: 600;"
-									>{job.customerPhone}</span
-								>
-							</p>
-						</div>
-
-						<div class="active-contact-actions" style="display: flex; gap: 0.4rem; align-items: center;">
-							<button
-								type="button"
-								class="btn btn-outline"
-								style="padding: 0.4rem 0.75rem; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.3rem;"
-								onclick={() => openViewProfile(job.customer_id)}
-							>
-								<User size={13} /> Profile
-							</button>
-
-							<button
-								type="button"
-								class="btn btn-outline"
-								style="padding: 0.4rem 0.75rem; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.3rem;"
-								onclick={() => openChat(job.id, job.customer_id)}
-							>
-								<MessageSquare size={13} /> Chat
-							</button>
-						</div>
-					</div>
-
-					<div class="metadata-bar feed-job-meta">
-						<div><strong>Loc:</strong> {job.location}</div>
-						<div>
-							<strong>Target:</strong>
-							{new Date(job.target_date).toLocaleDateString(
-								"en-PH",
-								{
-									month: "short",
-									day: "numeric",
-									hour: "2-digit",
-									minute: "2-digit",
-								},
-							)}
-						</div>
-						{#if job.latitude && job.longitude}
-							<div>
-								<a 
-									href={getGoogleMapsUrl(job.latitude, job.longitude, job.title)} 
-									target="_blank" 
-									rel="noopener noreferrer" 
-									class="gps-badge"
-								>
-									<MapPin size={12} /> Google Maps
-								</a>
-							</div>
-						{/if}
-					</div>
-
-					{#if job.latitude && job.longitude}
-						<div class="feed-job-map-preview">
-							<div class="feed-job-map-header">
-								<div style="display: flex; align-items: center; gap: 0.35rem; color: var(--accent-hover); font-weight: 600;">
-									<MapPin size={13} /> Pinned GPS Location ({job.latitude}, {job.longitude})
-								</div>
-								<a 
-									href={getGoogleMapsUrl(job.latitude, job.longitude, job.title)} 
-									target="_blank" 
-									rel="noopener noreferrer" 
-									class="btn btn-outline"
-									style="padding: 0.15rem 0.5rem; font-size: 0.72rem; border-color: var(--accent); color: var(--accent-hover);"
-								>
-									<ExternalLink size={11} /> Open Directions
-								</a>
-							</div>
-							<div class="feed-job-map-iframe-container">
-								<iframe 
-									title="Pinned Job Location Map"
-									src={getEmbedMapUrl(job.latitude, job.longitude)}
-									loading="lazy"
-								></iframe>
-							</div>
-						</div>
-					{/if}
-				</div>
-			{/each}
-
-			{#if visibleMyJobsLimit < sortedMyJobs.length}
-				<div style="text-align: center; padding: 1rem 0;">
-					<button
-						type="button"
-						class="btn btn-secondary"
-						onclick={loadMoreMyJobs}
-						style="padding: 0.6rem 1.5rem;"
-					>
-						Load 20 More Jobs ({sortedMyJobs.length - visibleMyJobsLimit} remaining)
-					</button>
-				</div>
-			{/if}
-		{/if}
-	</section>
-{/if}
-
-<!-- TAB: MESSAGES & CHAT -->
-{#if activeTab === "chat"}
-	<div class="chat-container {activeConvId ? 'has-active-conv' : ''}">
-		<!-- Left Sidebar: Conversations List -->
-		<div class="chat-threads-sidebar">
-			<div class="chat-threads-header" style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
-				<div style="display: flex; align-items: center; gap: 0.5rem;">
-					<MessageSquare size={18} /> Inquiries & Messages
-				</div>
-			</div>
-			<div class="chat-thread-list">
-				{#if !conversations || conversations.length === 0}
-					<div
-						style="padding: 2rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;"
-					>
-						No active chats yet.<br />Click "Chat / Inquire" on any
-						job post to contact clients.
-					</div>
-				{:else}
-					{#each conversations as conv (conv.id)}
-						<button
-							type="button"
-							class="chat-thread-item {activeConversation?.id ===
-							conv.id
-								? 'active'
-								: ''}"
-							onclick={() => selectConversation(conv.id)}
-						>
-							<div class="chat-avatar" style="position: relative;">
-								{conv.other_user_name ? conv.other_user_name.charAt(0).toUpperCase() : 'U'}
-								{#if unreadConvIds.has(conv.id)}
-									<span class="chat-unread-dot" style="position: absolute; top: -2px; right: -2px; border: 2px solid var(--bg-card);"></span>
-								{/if}
-							</div>
-							<div class="chat-thread-info">
-								<div class="chat-thread-top">
-									<span class="chat-thread-name">{conv.other_user_name}</span>
-									<span class="chat-role-badge">Client</span>
-								</div>
-								<div class="chat-thread-title">
-									<Pin size={11} style="flex-shrink: 0;" /> <span class="chat-thread-title-text">{conv.job_title}</span>
-								</div>
-								<div class="chat-thread-preview" style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
-									<span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-										{conv.last_message || "No messages yet."}
-									</span>
-									{#if unreadConvIds.has(conv.id)}
-										<span class="badge-unread-counter" style="font-size: 0.65rem; height: 14px; min-width: 14px; padding: 0 3px;">•</span>
-									{/if}
-								</div>
-							</div>
-						</button>
-					{/each}
-				{/if}
-			</div>
-		</div>
-
-		<!-- Right Panel: Message Thread Window -->
-		<div class="chat-window">
-			{#if activeConversation}
-				<div class="chat-header">
-					<div style="display: flex; align-items: center; gap: 0.5rem;">
-						<button
-							type="button"
-							class="btn btn-outline mobile-back-btn"
-							aria-label="Back to chat list"
-							style="display: none;"
-							onclick={closeActiveConversation}
-						>
-							<ArrowLeft size={22} />
-							<span>Back</span>
-						</button>
-						<div>
-							<h4
-								style="margin: 0; font-size: 1.05rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;"
-							>
-								{activeConversation.other_user_name}
-								<button
-									type="button"
-									class="btn btn-outline"
-									style="padding: 0.15rem 0.5rem; font-size: 0.72rem; border-color: var(--accent); color: var(--accent-hover);"
-									onclick={() => openViewProfile(activeConversation.other_user_id)}
-								>
-									<User size={11} /> Profile
-								</button>
-							</h4>
-							<span
-								style="font-size: 0.78rem; color: var(--accent-hover); display: block;"
-							>
-								Job: {activeConversation.job_title}
-							</span>
-						</div>
-					</div>
-				</div>
-
-				<div class="chat-messages-body" id="chat-messages-worker-body" onscroll={handleChatScroll}>
-					{#if loadingMessagesConvId === activeConversation.id && (!activeConversation.messages || activeConversation.messages.length === 0)}
-						<div style="display: flex; align-items: center; justify-content: center; height: 100%; min-height: 180px; margin: auto;">
-							<div class="spinner spinner-accent"></div>
-						</div>
-					{:else if !activeConversation.messages || activeConversation.messages.length === 0}
-						<div
-							style="text-align: center; color: var(--text-muted); margin: auto; font-size: 0.9rem;"
-						>
-							Start conversation with {activeConversation.other_user_name}...
-						</div>
-					{:else}
-						{#if loadingMoreMessages}
-							<div style="display: flex; align-items: center; justify-content: center; padding: 0.5rem 0; width: 100%;">
-								<div class="spinner spinner-sm spinner-accent"></div>
-							</div>
-						{:else if activeConversation.hasMore}
-							<div style="text-align: center; padding: 0.3rem 0; margin-bottom: 0.5rem;">
-								<button 
-									type="button" 
-									class="btn btn-outline" 
-									style="font-size: 0.72rem; padding: 0.15rem 0.6rem; opacity: 0.8; border-color: var(--border-color); color: var(--text-muted);"
-									onclick={loadMoreMessages}
-								>
-									Load older messages
-								</button>
-							</div>
-						{/if}
-						{#each activeConversation.messages as msg (msg.id || msg.created_at)}
-							{@const gpsData = parseGpsMessage(msg.content)}
-							{@const imgData = parseImageMessage(msg.content)}
-							<div class="chat-bubble-row {msg.sender_id === data.user?.id ? 'sent' : 'received'}">
-								{#if msg.sender_id === data.user?.id}
-									<button 
-										type="button" 
-										class="chat-msg-delete-btn" 
-										onclick={() => promptDeleteMessage(msg.id)} 
-										title="Delete message"
-										aria-label="Delete message"
-									>
-										<Trash2 size={13} />
-									</button>
-								{/if}
-								<div class="chat-bubble {msg.sender_id === data.user?.id ? 'sent' : 'received'}">
-									{#if gpsData}
-										<div class="chat-location-card">
-											<div class="chat-location-header">
-												<MapPin size={15} color="var(--accent-hover)" />
-												<span>{gpsData.label}</span>
-											</div>
-											<div class="chat-location-preview-box">
-												<iframe 
-													title="Shared GPS Location"
-													src={gpsData.embedUrl}
-													loading="lazy"
-												></iframe>
-											</div>
-											<div style="font-size: 0.72rem; opacity: 0.85;">
-												Coordinates: {gpsData.lat}, {gpsData.lng}
-											</div>
-											<div class="chat-location-actions">
-												<a 
-													href={gpsData.mapUrl} 
-													target="_blank" 
-													rel="noopener noreferrer" 
-													class="chat-location-btn"
-												>
-													<ExternalLink size={13} /> Open in Google Maps
-												</a>
-											</div>
-										</div>
-									{:else if imgData}
-										<div class="chat-image-card">
-											<button 
-												type="button" 
-												class="chat-image-btn" 
-												onclick={() => previewImageModalUrl = imgData.url}
-												title="Click to view full photo"
-											>
-												<img src={imgData.url} alt="Shared attachment" class="chat-image-preview" loading="lazy" />
-											</button>
-											{#if imgData.caption}
-												<div class="chat-image-caption">{imgData.caption}</div>
-											{/if}
-										</div>
-									{:else}
-										<div>{msg.content}</div>
-									{/if}
-									<div class="chat-time">
-										{new Date(
-											msg.created_at,
-										).toLocaleTimeString("en-PH", {
-											hour: "2-digit",
-											minute: "2-digit",
-										})}
-									</div>
-								</div>
-							</div>
-						{/each}
-					{/if}
-
-					{#if isOtherUserTyping}
-						<div class="chat-typing-indicator">
-							<span>{activeConversation.other_user_name} is typing</span>
-							<div class="typing-dots">
-								<span class="typing-dot"></span>
-								<span class="typing-dot"></span>
-								<span class="typing-dot"></span>
-							</div>
-						</div>
-					{/if}
-				</div>
-
-				<div class="chat-footer">
-					<form
-						onsubmit={handleSendMessage}
-						style="display: flex; gap: 0.5rem; align-items: center; width: 100%;"
-					>
-						<input
-							type="hidden"
-							name="jobId"
-							value={activeConversation.job_id}
-						/>
-						<input
-							type="hidden"
-							name="receiverId"
-							value={activeConversation.other_user_id}
-						/>
-
-						<!-- Hidden File Input for Image Upload -->
-						<input 
-							type="file" 
-							bind:this={fileInputRef} 
-							accept="image/*" 
-							style="display: none;" 
-							onchange={handleImageFileSelect} 
-						/>
-
-						<!-- Mobile Plus Trigger Button with Dropup Menu -->
-						<div class="chat-gps-mobile-container">
-							<button 
-								type="button" 
-								class="chat-gps-mobile-trigger {showGpsDropup ? 'active' : ''}" 
-								onclick={() => showGpsDropup = !showGpsDropup}
-								aria-label="Action options"
-								title="Add Attachment or Location"
-								disabled={sharingLocation || uploadingImage}
-							>
-								{#if sharingLocation || uploadingImage}
-									<span class="spinner spinner-sm"></span>
-								{:else}
-									<Plus size={20} class="dropup-plus-icon" />
-								{/if}
-							</button>
-
-							{#if showGpsDropup}
-								<button 
-									type="button" 
-									class="chat-dropup-backdrop" 
-									onclick={() => showGpsDropup = false}
-									aria-label="Close menu"
-									tabindex="-1"
-								></button>
-
-								<div class="chat-gps-dropup-menu" role="menu">
-									<!-- Custom Pin -->
-									<button 
-										type="button" 
-										class="chat-dropup-item" 
-										onclick={() => {
-											showGpsDropup = false;
-											showCustomLocationModal = true;
-										}}
-										disabled={sendingMessage || uploadingImage}
-									>
-										<Compass size={16} color="var(--accent-hover)" />
-										<div class="chat-dropup-item-info">
-											<span class="dropup-title">Custom Pin</span>
-											<span class="dropup-subtitle">Search & pin on map</span>
-										</div>
-									</button>
-
-									<!-- Auto GPS -->
-									<button 
-										type="button" 
-										class="chat-dropup-item" 
-										onclick={() => {
-											showGpsDropup = false;
-											handleShareLocation();
-										}}
-										disabled={sharingLocation || sendingMessage || uploadingImage}
-									>
-										<Navigation size={16} color="var(--accent-hover)" />
-										<div class="chat-dropup-item-info">
-											<span class="dropup-title">Auto GPS</span>
-											<span class="dropup-subtitle">Share current GPS location</span>
-										</div>
-									</button>
-
-									<!-- Send Image -->
-									<button 
-										type="button" 
-										class="chat-dropup-item" 
-										onclick={() => {
-											showGpsDropup = false;
-											triggerImageUpload();
-										}}
-										disabled={uploadingImage || sendingMessage}
-									>
-										<ImageIcon size={16} color="var(--accent-hover)" />
-										<div class="chat-dropup-item-info">
-											<span class="dropup-title">Send Image</span>
-											<span class="dropup-subtitle">Upload & send a photo</span>
-										</div>
-									</button>
-								</div>
-							{/if}
-						</div>
-
-						<!-- Desktop GPS & Image Buttons -->
-						<button 
-							type="button" 
-							class="chat-gps-btn chat-gps-desktop-btn" 
-							onclick={handleShareLocation}
-							disabled={sharingLocation || sendingMessage || uploadingImage}
-							title="Share your current device GPS location"
-						>
-							{#if sharingLocation}
-								<span class="spinner spinner-sm"></span>
-							{:else}
-								<Navigation size={14} />
-							{/if}
-							<span style="font-size: 0.8rem;">Auto GPS</span>
-						</button>
-
-						<button 
-							type="button" 
-							class="chat-gps-btn chat-gps-desktop-btn" 
-							onclick={() => showCustomLocationModal = true}
-							disabled={sendingMessage || uploadingImage}
-							title="Search & pin any custom location or landmark"
-							style="border-color: var(--accent); color: var(--accent-hover);"
-						>
-							<Compass size={14} />
-							<span style="font-size: 0.8rem;">Pin Map</span>
-						</button>
-
-						<button 
-							type="button" 
-							class="chat-gps-btn chat-gps-desktop-btn" 
-							onclick={triggerImageUpload}
-							disabled={uploadingImage || sendingMessage}
-							title="Upload and send a photo"
-							style="border-color: var(--border-color); color: var(--text-primary);"
-						>
-							{#if uploadingImage}
-								<span class="spinner spinner-sm"></span>
-							{:else}
-								<ImageIcon size={14} />
-							{/if}
-							<span style="font-size: 0.8rem;">Send Pic</span>
-						</button>
-
-						<input
-							type="text"
-							name="content"
-							placeholder="Type your message here..."
-							bind:value={newMessageContent}
-							oninput={handleTypingInput}
-							autocomplete="off"
-							required
-							class="chat-input-field"
-							style="flex: 1; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary);"
-						/>
-						<button
-							type="submit"
-							class="btn btn-primary chat-send-btn"
-							style="display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;"
-							disabled={sendingMessage ||
-								!newMessageContent.trim()}
-						>
-							{#if sendingMessage}
-								<span class="spinner spinner-sm"></span>
-							{/if}
-							Send
-						</button>
-					</form>
-				</div>
-			{:else}
-				<div
-					style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); flex-direction: column; gap: 0.75rem; padding: 2rem;"
-				>
-					<MessageSquare size={48} style="opacity: 0.6;" />
-					<p style="font-size: 0.95rem;">
-						Select an inquiry on the left to start messaging.
-					</p>
-				</div>
-			{/if}
-		</div>
-	</div>
-{/if}
-
-<!-- TAB 3: MY PROFILE -->
-<!-- TAB 3: MY PROFILE -->
-{#if activeTab === "profile"}
-	<div class="profile-container">
-		<!-- Cover Banner & Header Card -->
-		<div class="profile-header-card">
-			<div class="profile-cover-banner"></div>
-			<div class="profile-header-content">
-				<div class="profile-header-row">
-					<!-- Left Side: Avatar + Name + Role Badge -->
-					<div class="profile-user-left">
-						<div class="profile-avatar-wrapper">
-							{data.user?.name
-								? data.user.name.charAt(0).toUpperCase()
-								: "W"}
-						</div>
-						<div class="profile-user-text">
-							<h2
-								style="font-size: 1.6rem; margin-bottom: 0.25rem;"
-							>
-								{data.user?.name}
-							</h2>
-							<span
-								class="badge badge-general"
-								style="font-size: 0.75rem;">Worker Account</span
-							>
-						</div>
-					</div>
-
-					<!-- Right Side: Stat Numbers (Tasks Completed & Star Rating) -->
-					<div class="profile-stats-group">
-						<div class="profile-stat-item">
-							<span
-								class="profile-stat-value"
-								style="color: var(--success);"
-								>{data.stats?.completed_jobs_count || 0}</span
-							>
-							<span class="profile-stat-label"
-								>Tasks Completed</span
-							>
-						</div>
-						<div class="profile-stat-item">
-							<span
-								class="rating-badge {data.stats
-									?.average_rating > 0
-									? 'rating-badge-positive'
-									: data.stats?.average_rating < 0
-										? 'rating-badge-negative'
-										: 'rating-badge-zero'}"
-								style="font-size: 1.1rem; padding: 0.3rem 0.8rem; display: inline-flex; align-items: center; gap: 0.25rem;"
-							>
-								<Star size={14} fill="currentColor" /> {data.stats?.average_rating > 0
-									? `+${data.stats.average_rating}`
-									: data.stats?.average_rating || "0"}
-							</span>
-							<span
-								class="profile-stat-label"
-								style="margin-top: 0.3rem;">Total Rating</span
-							>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<!-- Main 2-Column Grid -->
-		<div class="profile-main-grid">
-			<!-- Left Column: Introduction / Details -->
-			<aside class="card" style="padding: 1.5rem;">
-				<h4
-					style="font-size: 1.25rem; margin-bottom: 1.25rem; color: var(--text-primary);"
-				>
-					Introduction
-				</h4>
-				<div
-					style="display: flex; flex-direction: column; gap: 1rem; font-size: 0.9rem;"
-				>
-					<div>
-						<span
-							style="color: var(--text-muted); font-size: 0.8rem; display: block; text-transform: uppercase;"
-							>Email Address</span
-						>
-						<strong style="color: var(--text-primary);"
-							>{data.user?.email}</strong
-						>
-					</div>
-					<div>
-						<span
-							style="color: var(--text-muted); font-size: 0.8rem; display: block; text-transform: uppercase;"
-							>Phone Number</span
-						>
-						<strong style="color: var(--text-primary);"
-							>{data.user?.phone}</strong
-						>
-					</div>
-					<div>
-						<span
-							style="color: var(--text-muted); font-size: 0.8rem; display: block; text-transform: uppercase;"
-							>Address / City</span
-						>
-						<strong style="color: var(--text-primary);"
-							>{data.user?.address}</strong
-						>
-					</div>
-				</div>
-			</aside>
-
-			<!-- Right Column: Service History & Feedback Sub-tabs -->
-			<section
-				style="display: flex; flex-direction: column; gap: 1.25rem; min-width: 0; width: 100%;"
-			>
-				<!-- Sub-tabs header nav matching main tabs design -->
-				<div class="tabs-header" style="margin-bottom: 0.5rem;">
-					<button
-						type="button"
-						class="tab-btn {profileSubTab === 'history' ? 'active' : ''}"
-						onclick={() => (profileSubTab = "history")}
-						id="subtab-history-btn"
-						style="display: inline-flex; align-items: center; gap: 0.4rem;"
-					>
-						<ClipboardList size={16} /> Service History ({data.completedJobs?.length || 0})
-					</button>
-					<button
-						type="button"
-						class="tab-btn {profileSubTab === 'reviews' ? 'active' : ''}"
-						onclick={() => (profileSubTab = "reviews")}
-						id="subtab-reviews-btn"
-						style="display: inline-flex; align-items: center; gap: 0.4rem;"
-					>
-						<Star size={16} fill="currentColor" /> Reviews & Feedback ({data
-							.stats?.reviews?.length || 0})
-					</button>
-				</div>
-
-				{#if profileSubTab === "history"}
-					<!-- TAB 1: SERVICE HISTORY -->
-					{#if !data.completedJobs || data.completedJobs.length === 0}
-						<div
-							class="card"
-							style="text-align: center; padding: 3.5rem 2rem; border-style: dashed;"
-						>
-							<h4
-								style="font-size: 1.15rem; margin-bottom: 0.5rem;"
-							>
-								No service history yet.
-							</h4>
-							<p
-								style="color: var(--text-secondary); font-size: 0.9rem;"
-							>
-								Completed jobs and work history will appear here
-								once you finish assigned services.
-							</p>
-						</div>
-					{:else}
-						<div
-							style="display: flex; flex-direction: column; gap: 1rem; min-width: 0; width: 100%;"
-						>
-							{#each data.completedJobs as job (job.id)}
-								<div
-									class="card"
-									style="padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; min-width: 0; max-width: 100%; box-sizing: border-box; overflow: hidden;"
-								>
-									<div
-										style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem; flex-wrap: wrap; min-width: 0; width: 100%;"
-									>
-										<div style="min-width: 0; flex: 1 1 auto;">
-											<div
-												style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem; flex-wrap: wrap;"
-											>
-												<span
-													class="badge {getCategoryBadge(
-														job.category,
-													)}">{job.category}</span
-												>
-												<span
-													class="badge"
-													style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); display: inline-flex; align-items: center; gap: 0.25rem;"
-												>
-													<Check size={14} /> Completed
-												</span>
-											</div>
-											<h4
-												style="font-size: 1.15rem; color: var(--text-primary); margin: 0; overflow-wrap: break-word; word-break: break-word;"
-											>
-												{job.title}
-											</h4>
-											<span
-												style="font-size: 0.85rem; color: var(--text-secondary); overflow-wrap: break-word;"
-												>Client: <strong
-													>{job.customerName}</strong
-												></span
-											>
-										</div>
-										<strong
-											style="color: var(--success); font-size: 1.15rem; flex-shrink: 0; white-space: nowrap;"
-											>₱{job.budget.toLocaleString()}</strong
-										>
-									</div>
-									<p
-										style="font-size: 0.9rem; color: var(--text-secondary); margin: 0; overflow-wrap: break-word; word-break: break-word;"
-									>
-										{job.description}
-									</p>
-									<div
-										style="font-size: 0.8rem; color: var(--text-muted); display: flex; justify-content: space-between; border-top: 1px dashed var(--border-color); padding-top: 0.5rem; flex-wrap: wrap; gap: 0.5rem; min-width: 0; width: 100%;"
-									>
-										<span style="min-width: 0; overflow-wrap: break-word; word-break: break-word;"
-											><strong>Location:</strong>
-											{job.location}</span
-										>
-										<span style="min-width: 0; overflow-wrap: break-word; word-break: break-word;"
-											><strong>Date Completed:</strong>
-											{new Date(
-												job.target_date ||
-													job.created_at,
-											).toLocaleDateString("en-PH", {
-												month: "short",
-												day: "numeric",
-												year: "numeric",
-											})}</span
-										>
-									</div>
-								</div>
-							{/each}
-						</div>
-					{/if}
-				{:else if profileSubTab === "reviews"}
-					<!-- TAB 2: CUSTOMER COMMENTS, FEEDBACK & REVIEW RATINGS -->
-					{#if (data.stats?.reviews?.length || 0) === 0}
-						<div
-							class="card"
-							style="text-align: center; padding: 3.5rem 2rem; border-style: dashed;"
-						>
-							<h4
-								style="font-size: 1.15rem; margin-bottom: 0.5rem;"
-							>
-								No reviews received yet.
-							</h4>
-							<p
-								style="color: var(--text-secondary); font-size: 0.9rem;"
-							>
-								Once clients review and rate your completed
-								work, their feedback, comments, and ratings will
-								be displayed here.
-							</p>
-						</div>
-					{:else}
-						<div
-							style="display: flex; flex-direction: column; gap: 1rem; min-width: 0; width: 100%;"
-						>
-							{#each data.stats.reviews as review (review.id)}
-								<div
-									class="card"
-									style="padding: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; max-width: 100%; box-sizing: border-box; overflow: hidden;"
-								>
-									<div
-										style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; min-width: 0; width: 100%;"
-									>
-										<div style="min-width: 0;">
-											<strong
-												style="color: var(--text-primary); overflow-wrap: break-word;"
-												>{review.customer_name}</strong
-											>
-											<span
-												style="font-size: 0.75rem; color: var(--text-muted); margin-left: 0.5rem;"
-											>
-												{new Date(
-													review.created_at,
-												).toLocaleDateString("en-PH", {
-													month: "short",
-													day: "numeric",
-													year: "numeric",
-												})}
-											</span>
-										</div>
-										<div style="flex-shrink: 0;">
-											<span
-												class="rating-badge {review.rating >
-												0
-													? 'rating-badge-positive'
-													: review.rating < 0
-														? 'rating-badge-negative'
-														: 'rating-badge-zero'}"
-												style="display: inline-flex; align-items: center; gap: 0.25rem;"
-											>
-												<Star size={12} fill="currentColor" /> {review.rating > 0
-													? `+${review.rating}`
-													: review.rating} Star{Math.abs(
-													review.rating,
-												) === 1
-													? ""
-													: "s"}
-											</span>
-										</div>
-									</div>
-									<p
-										style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; font-style: italic; margin: 0; overflow-wrap: break-word; word-break: break-word;"
-									>
-										"{review.review_text}"
-									</p>
-								</div>
-							{/each}
-						</div>
-					{/if}
-				{/if}
-			</section>
-		</div>
-	</div>
-{/if}
-
-<!-- VIEW PROFILE MODAL FOR OTHER USERS -->
 <ViewProfileModal
 	bind:show={showViewProfileModal}
 	userId={viewProfileUserId}
@@ -1975,7 +757,6 @@
 	}}
 />
 
-<!-- CUSTOM LOCATION PINNING MODAL FOR CHAT -->
 <LocationPickerModal 
 	bind:show={showCustomLocationModal}
 	title="Share Custom Pin / Landmark Location"
@@ -1984,28 +765,7 @@
 
 <MobileChatHistory bind:activeConvId bind:showGpsDropup {activeTab} />
 
-<!-- IMAGE PREVIEW LIGHTBOX MODAL -->
-{#if previewImageModalUrl}
-	<div 
-		class="image-preview-modal-backdrop" 
-		onclick={() => previewImageModalUrl = null} 
-		role="dialog" 
-		aria-modal="true"
-		tabindex="-1"
-	>
-		<div class="image-preview-modal-content" onclick={(e) => e.stopPropagation()} role="document">
-			<button 
-				type="button" 
-				class="image-preview-close-btn" 
-				onclick={() => previewImageModalUrl = null} 
-				aria-label="Close image preview"
-			>
-				<X size={20} />
-			</button>
-			<img src={previewImageModalUrl} alt="Enlarged photo preview" class="image-preview-full-img" />
-		</div>
-	</div>
-{/if}
+<WorkerImagePreviewModal bind:previewImageModalUrl />
 
 <ConfirmDeleteModal 
 	bind:show={showDeleteConfirmModal} 

@@ -3,10 +3,13 @@
 	import 'leaflet/dist/leaflet.css';
 	import { Menu, X, Settings, LogOut, LogIn, UserPlus, Loader2, Home, PlusCircle } from 'lucide-svelte';
 	import { navigating } from '$app/stores';
+	import { page } from '$app/state';
 
 	let { data, children } = $props();
 
 	let menuOpen = $state(false);
+
+	let isAdminPage = $derived(page.url.pathname.startsWith('/admin'));
 
 	function toggleMenu() {
 		menuOpen = !menuOpen;
@@ -34,7 +37,7 @@
 	<meta name="description" content="Connect local clients needing quick repairs or manual labor with available sideline workers and handymen in the Philippines." />
 </svelte:head>
 
-{#if menuOpen}
+{#if menuOpen && !isAdminPage}
 	<!-- Backdrop overlay on mobile when burger menu is open -->
 	<button
 		type="button"
@@ -45,8 +48,9 @@
 {/if}
 
 <div class="app-container">
-	<header>
-		<nav class="nav-container">
+	{#if !isAdminPage}
+		<header>
+			<nav class="nav-container">
 			<a href="/" class="logo" onclick={closeMenu} id="nav-logo">
 				Serviee <span class="logo-dot"></span>
 			</a>
@@ -131,15 +135,18 @@
 			</div>
 		</nav>
 	</header>
+	{/if}
 
 	<main>
 		{@render children()}
 	</main>
 
-	<footer>
-		<div style="max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 0.5rem; align-items: center;">
-			<p>&copy; {new Date().getFullYear()} <strong>Serviee</strong>. All rights reserved.</p>
-			<p style="font-size: 0.8rem; color: var(--text-muted);">Linking handymen and local sideline service providers in the Philippines.</p>
-		</div>
-	</footer>
+	{#if !isAdminPage}
+		<footer>
+			<div style="max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 0.5rem; align-items: center;">
+				<p>&copy; {new Date().getFullYear()} <strong>Serviee</strong>. All rights reserved.</p>
+				<p style="font-size: 0.8rem; color: var(--text-muted);">Linking handymen and local sideline service providers in the Philippines.</p>
+			</div>
+		</footer>
+	{/if}
 </div>

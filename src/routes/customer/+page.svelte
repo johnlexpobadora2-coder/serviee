@@ -1,16 +1,21 @@
 <script>
-	import { enhance } from '$app/forms';
-	import { invalidateAll } from '$app/navigation';
-	import { MessageSquare, Pin, RefreshCw, Star, UserCheck, Plus, User, ClipboardList, CheckCircle2, Clock, ArrowLeft, Radio, Send, MapPin, Navigation, ExternalLink, Compass, Trash2, Search, X, SlidersHorizontal, ChevronDown, ChevronUp, Image as ImageIcon, Pencil } from 'lucide-svelte';
+	import { onMount } from 'svelte';
 	import ViewProfileModal from '$lib/ViewProfileModal.svelte';
 	import LocationPickerModal from '$lib/LocationPickerModal.svelte';
 	import ConfirmDeleteModal from '$lib/ConfirmDeleteModal.svelte';
 	import MobileChatHistory from '$lib/MobileChatHistory.svelte';
-	import { CITIES_MUNICIPALITIES } from '$lib/locations.js';
 	import { setupRealtimeChat, playNotificationSound } from '$lib/realtimeChat.js';
-	import { getCurrentCoordinates, formatGpsChatMessage, parseGpsMessage, getGoogleMapsUrl, getEmbedMapUrl, isGpsMessage, formatImageChatMessage, isImageMessage, parseImageMessage, compressImageFile, formatMessagePreview } from '$lib/gpsUtils.js';
+	import { getCurrentCoordinates, formatGpsChatMessage, formatImageChatMessage, compressImageFile, formatMessagePreview } from '$lib/gpsUtils.js';
 
-	import { onMount } from 'svelte';
+	import CustomerTabsNav from '$lib/customer/CustomerTabsNav.svelte';
+	import CustomerFeedTab from '$lib/customer/CustomerFeedTab.svelte';
+	import CustomerActiveJobsTab from '$lib/customer/CustomerActiveJobsTab.svelte';
+	import CustomerChatTab from '$lib/customer/CustomerChatTab.svelte';
+	import CustomerProfileTab from '$lib/customer/CustomerProfileTab.svelte';
+	import CustomerRatingModal from '$lib/customer/CustomerRatingModal.svelte';
+	import CustomerDeleteJobModal from '$lib/customer/CustomerDeleteJobModal.svelte';
+	import CustomerEditJobModal from '$lib/customer/CustomerEditJobModal.svelte';
+	import CustomerImagePreviewModal from '$lib/customer/CustomerImagePreviewModal.svelte';
 
 	let { data, form } = $props();
 
@@ -90,7 +95,6 @@
 			const lng = coords.longitude.toFixed(6);
 			const gpsMsgContent = formatGpsChatMessage(lat, lng, `Location shared by ${data.user.name || 'Client'}`);
 
-			// Send location message
 			await sendChatMessagePayload(gpsMsgContent);
 		} catch (err) {
 			alert(err.message || 'Could not acquire GPS location. Please check browser permissions.');
@@ -198,7 +202,6 @@
 						return c;
 					});
 
-					// Maintain exact scroll position after prepending older messages
 					setTimeout(() => {
 						if (body) {
 							const newScrollHeight = body.scrollHeight;
@@ -282,7 +285,6 @@
 		scrollToBottom(false);
 	}
 
-	// Auto load messages when chat tab is active
 	$effect(() => {
 		if (activeTab === 'chat' && activeConversation && !activeConversation.messagesLoaded && loadingMessagesConvId !== activeConversation.id) {
 			loadConversationMessages(activeConversation.id);
@@ -323,7 +325,6 @@
 		}
 	}
 
-	// Incoming message handler from Supabase Realtime WebSocket
 	function handleIncomingMessage(msg) {
 		if (!msg || !msg.job_id || !msg.sender_id || !msg.receiver_id || !conversations) return;
 		const otherUserId = msg.sender_id === data.user?.id ? msg.receiver_id : msg.sender_id;
@@ -433,7 +434,6 @@
 		}
 	}
 
-	// Realtime WebSocket Subscription Lifecycle Effect
 	$effect(() => {
 		if (!data.user?.id) return;
 
@@ -492,7 +492,6 @@
 			realtimeControls.sendTypingSignal(targetConv.id, false);
 		}
 
-		// Optimistic Message Creation
 		const tempId = 'temp_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
 		const nowIso = new Date().toISOString();
 		const optimisticMsg = {
@@ -520,7 +519,6 @@
 
 		scrollToBottom(true);
 
-		// Broadcast message instantly over WebSocket to recipient
 		if (realtimeControls) {
 			realtimeControls.sendBroadcastMessage(optimisticMsg);
 		}
@@ -577,7 +575,6 @@
 		!!minBudget
 	);
 
-	// Client-side category & text filtering helper for global feed
 	let filteredJobs = $derived(
 		(data.allJobs || []).filter(job => {
 			const isNotCompleted = job.status !== 'completed';
@@ -602,11 +599,9 @@
 	let ratingValue = $state(5);
 	let reviewText = $state('');
 
-	// Client-side loading state
 	let postingJob = $state(false);
 	let changingStatus = $state(false);
 
-	// Delete Job Modal State
 	let deleteJobModal = $state({
 		open: false,
 		id: null,
@@ -632,7 +627,6 @@
 		};
 	}
 
-	// Edit Job Modal State
 	let editJobModal = $state({
 		open: false,
 		id: null,
@@ -690,27 +684,11 @@
 		}
 	}
 
-	// Category mapping for badge styling helper
-	function getCategoryBadge(category) {
-		switch (category) {
-			case 'Plumbing / Tubero': return 'badge-plumbing';
-			case 'Roofing / Ayos Yero': return 'badge-roofing';
-			case 'Excavation / Hukay Lupa': return 'badge-excavation';
-			case 'Gardening': return 'badge-gardening';
-			case 'Carpentry': return 'badge-carpentry';
-			default: return 'badge-general';
-		}
-	}
-
 	function openRatingModal(job) {
 		activeJobForRating = job;
 		ratingValue = 5;
 		reviewText = '';
 		showRatingModal = true;
-	}
-
-	function selectRating(val) {
-		ratingValue = val;
 	}
 </script>
 
@@ -718,52 +696,19 @@
 	<title>Customer Dashboard | Serviee</title>
 </svelte:head>
 
-<!-- Tab Navigation Header -->
-<div class="tabs-header">
-	<button 
-		type="button" 
-		class="tab-btn {activeTab === 'feed' ? 'active' : ''}" 
-		onclick={() => activeTab = 'feed'}
-		id="tab-feed-btn"
-	>
-		Sideline Feed (Job Board)
-	</button>
-	<button 
-		type="button" 
-		class="tab-btn {activeTab === 'my-jobs' ? 'active' : ''}" 
-		onclick={() => activeTab = 'my-jobs'}
-		id="tab-myjobs-btn"
-	>
-		My Active Jobs ({activeJobs.length})
-	</button>
-	<button 
-		type="button" 
-		class="tab-btn {activeTab === 'chat' ? 'active' : ''}" 
-		onclick={() => {
-			activeTab = 'chat';
-			if (activeConversation) {
-				unreadConvIds.delete(activeConversation.id);
-				unreadConvIds = new Set(unreadConvIds);
-			}
-			scrollToBottom(false);
-		}}
-		id="tab-chat-btn"
-		style="display: inline-flex; align-items: center; gap: 0.4rem;"
-	>
-		<MessageSquare size={16} /> Messages ({conversations?.length || 0})
-		{#if unreadConvIds.size > 0}
-			<span class="badge-unread-counter">{unreadConvIds.size}</span>
-		{/if}
-	</button>
-	<button 
-		type="button" 
-		class="tab-btn {activeTab === 'profile' ? 'active' : ''}" 
-		onclick={() => activeTab = 'profile'}
-		id="tab-profile-btn"
-	>
-		My Profile & History
-	</button>
-</div>
+<CustomerTabsNav 
+	bind:activeTab 
+	activeJobsCount={activeJobs.length} 
+	conversationsCount={conversations?.length || 0} 
+	unreadCount={unreadConvIds.size} 
+	onselectchat={() => {
+		if (activeConversation) {
+			unreadConvIds.delete(activeConversation.id);
+			unreadConvIds = new Set(unreadConvIds);
+		}
+		scrollToBottom(false);
+	}} 
+/>
 
 {#if form?.success}
 	<div style="background-color: var(--success-light); border: 1px solid var(--success); color: var(--text-primary); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; font-size: 0.95rem;">
@@ -777,1149 +722,78 @@
 	</div>
 {/if}
 
-<!-- TAB 1: SIDELINE FEED (GLOBAL JOB BOARD + FILTERS) -->
 {#if activeTab === 'feed'}
-	<div class="dashboard-layout">
-		
-		<!-- Mobile Filter Toggle Button (visible only on mobile) -->
-		<button 
-			type="button" 
-			class="mobile-filter-toggle-btn"
-			onclick={() => showMobileFilters = !showMobileFilters}
-			aria-expanded={showMobileFilters}
-		>
-			<span style="display: flex; align-items: center; gap: 0.5rem;">
-				<SlidersHorizontal size={16} />
-				<span>{showMobileFilters ? 'Hide Filter Options' : 'Filter Jobs by Category / Location'}</span>
-				{#if hasActiveFilters}
-					<span class="active-filter-indicator"></span>
-				{/if}
-			</span>
-			{#if showMobileFilters}
-				<ChevronUp size={16} />
-			{:else}
-				<ChevronDown size={16} />
-			{/if}
-		</button>
-
-		<!-- Filters sidebar (always visible on desktop, toggleable on mobile) -->
-		<aside 
-			class="card feed-filters-card feed-filters-aside {showMobileFilters ? 'mobile-open' : ''}" 
-			style="position: sticky; top: 90px; padding: 1.25rem; height: fit-content;"
-		>
-			<h4 style="font-size: 1.1rem; margin-bottom: 0.75rem;">Filter Jobs</h4>
-			
-			<div class="feed-filters-grid">
-				<div class="form-group form-group-full">
-					<label for="filter-category">Category</label>
-					<select id="filter-category" bind:value={searchCategory}>
-						<option value="">All Categories</option>
-						<option value="Plumbing / Tubero">Plumbing / Tubero</option>
-						<option value="Roofing / Ayos Yero">Roofing / Ayos Yero</option>
-						<option value="Excavation / Hukay Lupa">Excavation / Hukay Lupa</option>
-						<option value="Gardening">Gardening / Landscape</option>
-						<option value="Carpentry">Carpentry / Karpintero</option>
-						<option value="General Manual Labor">General Manual Labor</option>
-					</select>
-				</div>
-
-				<div class="form-group">
-					<label for="filter-location">City/Municipality</label>
-					<select 
-						id="filter-location" 
-						bind:value={searchLocation} 
-					>
-						<option value="">All Locations</option>
-						{#each CITIES_MUNICIPALITIES as city}
-							<option value={city}>{city}</option>
-						{/each}
-					</select>
-				</div>
-
-				<div class="form-group">
-					<label for="filter-budget">Min Budget (₱)</label>
-					<input 
-						type="number" 
-						id="filter-budget" 
-						placeholder="E.g. 500" 
-						bind:value={minBudget} 
-					/>
-				</div>
-			</div>
-		</aside>
-
-		<!-- Feed stream list -->
-		<section style="display: flex; flex-direction: column; gap: 1.25rem;">
-			<!-- Search Bar above Job Postings -->
-			<div class="job-search-bar-container">
-				<div class="job-search-input-wrapper">
-					<Search size={18} class="job-search-icon" />
-					<input 
-						type="text" 
-						id="job-search-input" 
-						placeholder="Search jobs by title or description..." 
-						bind:value={searchQuery}
-						class="job-search-input"
-					/>
-					{#if searchQuery}
-						<button 
-							type="button" 
-							class="job-search-clear-btn" 
-							onclick={() => searchQuery = ''}
-							aria-label="Clear search"
-						>
-							<X size={15} />
-						</button>
-					{/if}
-				</div>
-			</div>
-
-			<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
-				<h2 style="font-size: 1.4rem;">All Available Postings ({filteredJobs.length})</h2>
-				<a href="/customer/post-job" class="btn btn-primary" style="width: auto; padding: 0.5rem 1.25rem;">
-					+ Post a Job
-				</a>
-			</div>
-
-			{#if filteredJobs.length === 0}
-				<div class="card" style="text-align: center; padding: 4rem 2rem; border-style: dashed;">
-					<h4 style="font-size: 1.25rem; margin-bottom: 0.5rem;">No job postings found.</h4>
-					<p style="color: var(--text-secondary); font-size: 0.9rem;">
-						Try modifying your filters or check back later for new job postings.
-					</p>
-				</div>
-			{:else}
-				{#each filteredJobs as job (job.id)}
-					<div class="card feed-job-card">
-						<div class="feed-job-header">
-							<div>
-								<div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.35rem;">
-									<span class="badge {getCategoryBadge(job.category)}">{job.category}</span>
-									<span class="status status-{job.status}">
-										{#if job.status === 'open'} Open
-										{:else if job.status === 'assigned'} Assigned
-										{:else if job.status === 'in_progress'} In Progress
-										{:else} Completed
-										{/if}
-									</span>
-									<span style="font-size: 0.75rem; color: var(--text-muted);">
-										Posted: {new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
-									</span>
-								</div>
-								<h3 class="feed-job-title">{job.title}</h3>
-								<span style="font-size: 0.8rem; color: var(--text-secondary);">
-									Posted by: 
-									{#if job.customer_id !== data.user.id}
-										<button 
-											type="button" 
-											style="background: none; border: none; color: var(--accent); font-weight: 600; cursor: pointer; text-decoration: underline; padding: 0; font-size: inherit;"
-											onclick={() => openViewProfile(job.customer_id)}
-										>
-											{job.customerName}
-										</button>
-									{:else}
-										<strong>{job.customerName} (You)</strong>
-									{/if}
-								</span>
-							</div>
-							<div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem;">
-								<strong class="feed-job-budget" style="color: var(--accent); font-size: 1.25rem; display: block;">₱{job.budget.toLocaleString()}</strong>
-								{#if job.customer_id === data.user.id}
-									<button
-										type="button"
-										class="btn btn-outline"
-										style="padding: 0.25rem 0.6rem; font-size: 0.75rem; border-color: #ef4444; color: #ef4444; display: inline-flex; align-items: center; gap: 0.3rem;"
-										onclick={() => openDeleteJobModal(job)}
-										title="Delete Your Job Post"
-									>
-										<Trash2 size={13} />
-										<span>Delete</span>
-									</button>
-								{/if}
-							</div>
-						</div>
-
-						<p class="feed-job-desc">
-							{job.description}
-						</p>
-
-						<div class="metadata-bar feed-job-meta">
-							<div><strong>Location:</strong> {job.location}</div>
-							<div><strong>Schedule:</strong> {new Date(job.target_date).toLocaleDateString('en-PH', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
-							{#if job.latitude && job.longitude}
-								<div>
-									<a 
-										href={getGoogleMapsUrl(job.latitude, job.longitude, job.title)} 
-										target="_blank" 
-										rel="noopener noreferrer" 
-										class="gps-badge"
-									>
-										<MapPin size={12} /> Google Maps
-									</a>
-								</div>
-							{/if}
-						</div>
-
-						{#if job.latitude && job.longitude}
-							<div class="feed-job-map-preview">
-								<div class="feed-job-map-header">
-									<div style="display: flex; align-items: center; gap: 0.35rem; color: var(--accent-hover); font-weight: 600;">
-										<MapPin size={13} /> Pinned GPS Location ({job.latitude}, {job.longitude})
-									</div>
-									<a 
-										href={getGoogleMapsUrl(job.latitude, job.longitude, job.title)} 
-										target="_blank" 
-										rel="noopener noreferrer" 
-										class="btn btn-outline"
-										style="padding: 0.15rem 0.5rem; font-size: 0.72rem; border-color: var(--accent); color: var(--accent-hover);"
-									>
-										<ExternalLink size={11} /> Open Directions
-									</a>
-								</div>
-								<div class="feed-job-map-iframe-container">
-									<iframe 
-										title="Pinned Job Location Map"
-										src={getEmbedMapUrl(job.latitude, job.longitude)}
-										loading="lazy"
-									></iframe>
-								</div>
-							</div>
-						{/if}
-					</div>
-				{/each}
-			{/if}
-		</section>
-	</div>
+	<CustomerFeedTab 
+		{filteredJobs} 
+		bind:searchCategory 
+		bind:searchLocation 
+		bind:minBudget 
+		bind:searchQuery 
+		bind:showMobileFilters 
+		{hasActiveFilters} 
+		currentUserId={data.user?.id} 
+		onopenviewprofile={openViewProfile} 
+		onopendeletejob={openDeleteJobModal} 
+	/>
+{:else if activeTab === 'my-jobs'}
+	<CustomerActiveJobsTab 
+		{activeJobs} 
+		bind:changingStatus 
+		onopeneditjob={openEditJobModal} 
+		onopendeletejob={openDeleteJobModal} 
+		onopenviewprofile={openViewProfile} 
+		onopenchat={openChat} 
+		onopenratingmodal={openRatingModal} 
+	/>
+{:else if activeTab === 'chat'}
+	<CustomerChatTab 
+		{conversations} 
+		{activeConversation} 
+		bind:activeConvId 
+		{unreadConvIds} 
+		{loadingMessagesConvId} 
+		{loadingMoreMessages} 
+		{isOtherUserTyping} 
+		bind:newMessageContent 
+		{sendingMessage} 
+		{sharingLocation} 
+		{uploadingImage} 
+		bind:showGpsDropup 
+		currentUserId={data.user?.id} 
+		bind:fileInputRef 
+		onselectconversation={selectConversation} 
+		oncloseactiveconversation={closeActiveConversation} 
+		onchatscroll={handleChatScroll} 
+		onloadmoremessages={loadMoreMessages} 
+		onopenviewprofile={openViewProfile} 
+		onpromptdeletemessage={promptDeleteMessage} 
+		ontriggerimageupload={triggerImageUpload} 
+		onimagefileselect={handleImageFileSelect} 
+		onsharelocation={handleShareLocation} 
+		onopencustomlocationmodal={() => showCustomLocationModal = true} 
+		onhandletypinginput={handleTypingInput} 
+		onsendmessage={handleSendMessage} 
+		onpreviewimage={(url) => previewImageModalUrl = url} 
+	/>
+{:else if activeTab === 'profile'}
+	<CustomerProfileTab 
+		user={data.user} 
+		posts={data.posts} 
+		{completedJobs} 
+		bind:historySubTab 
+		onopendeletejob={openDeleteJobModal} 
+	/>
 {/if}
 
-<!-- TAB 2: MY ACTIVE JOBS -->
-{#if activeTab === 'my-jobs'}
-	<div style="max-width: 900px; margin: 0 auto; width: 100%;">
-		<!-- Dashboard Header -->
-		<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
-			<h2 style="font-size: 1.75rem; margin: 0;">My Active Jobs ({activeJobs.length})</h2>
-			<a href="/customer/post-job" class="btn btn-primary" style="width: auto; padding: 0.6rem 1.5rem;" id="post-new-job-btn">
-				+ Post a New Job
-			</a>
-		</div>
+<CustomerRatingModal 
+	bind:showRatingModal 
+	{activeJobForRating} 
+	bind:ratingValue 
+	bind:reviewText 
+	bind:changingStatus 
+	{form} 
+/>
 
-		<div style="display: flex; flex-direction: column; gap: 1.5rem;">
-			{#if activeJobs.length === 0}
-				<div class="card" style="text-align: center; padding: 5rem 2rem; border-style: dashed;">
-					<h4 style="font-size: 1.25rem; margin-bottom: 0.5rem;">You have no active jobs right now.</h4>
-					<p style="color: var(--text-secondary); font-size: 0.9rem; max-width: 450px; margin: 0 auto 1.5rem auto;">
-						Post a job describing what you need to connect with local sideline workers and handymen in your area.
-					</p>
-					<a href="/customer/post-job" class="btn btn-primary" style="width: auto; display: inline-flex; margin: 0 auto;">
-						Post Your First Job
-					</a>
-				</div>
-			{:else}
-				{#each activeJobs as job (job.id)}
-					<div class="card feed-job-card">
-						
-						<!-- Job Header -->
-						<div class="feed-job-header">
-							<div>
-								<div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.35rem;">
-									<span class="badge {getCategoryBadge(job.category)}">{job.category}</span>
-									<span class="status status-{job.status}">
-										{#if job.status === 'open'} Naghahanap
-										{:else if job.status === 'assigned'} Assigned
-										{:else if job.status === 'in_progress'} In Progress
-										{:else} Completed
-										{/if}
-									</span>
-									<span style="font-size: 0.75rem; color: var(--text-muted);">
-										Posted: {new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
-									</span>
-								</div>
-								<h3 class="feed-job-title">{job.title}</h3>
-							</div>
-
-							<div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem;">
-								<strong class="feed-job-budget" style="color: var(--accent); font-size: 1.25rem; display: block;">₱{job.budget.toLocaleString()}</strong>
-								<div style="display: flex; gap: 0.35rem; align-items: center;">
-									<button
-										type="button"
-										class="btn btn-outline"
-										style="padding: 0.25rem 0.6rem; font-size: 0.75rem; border-color: var(--accent); color: var(--accent-hover); display: inline-flex; align-items: center; gap: 0.3rem;"
-										onclick={() => openEditJobModal(job)}
-										title="Edit Job Post"
-									>
-										<Pencil size={13} />
-										<span>Edit</span>
-									</button>
-									<button
-										type="button"
-										class="btn btn-outline"
-										style="padding: 0.25rem 0.6rem; font-size: 0.75rem; border-color: #ef4444; color: #ef4444; display: inline-flex; align-items: center; gap: 0.3rem;"
-										onclick={() => openDeleteJobModal(job)}
-										title="Delete Job Post"
-									>
-										<Trash2 size={13} />
-										<span>Delete</span>
-									</button>
-								</div>
-							</div>
-						</div>
-
-						<!-- Details Info -->
-						<div style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; border-left: 2px solid var(--border-color); padding-left: 1rem;">
-							<p>{job.description}</p>
-						</div>
-
-						<!-- Metadata details bar -->
-						<div class="metadata-bar">
-							<div><strong>Location:</strong> {job.location}</div>
-							<div><strong>Target Date:</strong> {new Date(job.target_date).toLocaleDateString('en-PH', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
-							{#if job.latitude && job.longitude}
-								<div>
-									<a 
-										href={getGoogleMapsUrl(job.latitude, job.longitude, job.title)} 
-										target="_blank" 
-										rel="noopener noreferrer" 
-										class="gps-badge"
-									>
-										<MapPin size={12} /> Google Maps
-									</a>
-								</div>
-							{/if}
-						</div>
-
-						{#if job.latitude && job.longitude}
-							<div class="feed-job-map-preview">
-								<div class="feed-job-map-header">
-									<div style="display: flex; align-items: center; gap: 0.35rem; color: var(--accent-hover); font-weight: 600;">
-										<MapPin size={13} /> Pinned GPS Location ({job.latitude}, {job.longitude})
-									</div>
-									<a 
-										href={getGoogleMapsUrl(job.latitude, job.longitude, job.title)} 
-										target="_blank" 
-										rel="noopener noreferrer" 
-										class="btn btn-outline"
-										style="padding: 0.15rem 0.5rem; font-size: 0.72rem; border-color: var(--accent); color: var(--accent-hover);"
-									>
-										<ExternalLink size={11} /> Open Directions
-									</a>
-								</div>
-								<div class="feed-job-map-iframe-container">
-									<iframe 
-										title="Pinned Job Location Map"
-										src={getEmbedMapUrl(job.latitude, job.longitude)}
-										loading="lazy"
-									></iframe>
-								</div>
-							</div>
-						{/if}
-
-						<!-- WORKER ASSIGNMENT & STATUS ACTIONS -->
-						<div style="border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 0.5rem;">
-							{#if job.status === 'open'}
-								<h4 style="font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--text-primary);">
-									Applicants ({job.applicants.length})
-								</h4>
-								{#if job.applicants.length === 0}
-									<p style="color: var(--text-muted); font-size: 0.85rem; font-style: italic;">
-										Waiting for interested handymen or workers to apply...
-									</p>
-								{:else}
-									<div style="display: flex; flex-direction: column; gap: 0.75rem;">
-										{#each job.applicants as applicant (applicant.id)}
-											<div class="applicant-card">
-												<div class="applicant-info">
-													<strong style="color: var(--text-primary); font-size: 0.95rem;">{applicant.name}</strong>
-													<div class="applicant-meta-row">
-														<span class="rating-badge {applicant.average_rating > 0 ? 'rating-badge-positive' : applicant.average_rating < 0 ? 'rating-badge-negative' : 'rating-badge-zero'}" style="display: inline-flex; align-items: center; gap: 0.2rem;">
-															<Star size={11} fill="currentColor" /> {applicant.average_rating > 0 ? `+${applicant.average_rating}` : applicant.average_rating} rating
-														</span>
-														<span>•</span>
-														<span>Completed: {applicant.completed_jobs_count}</span>
-														<span>•</span>
-														<span>Phone: {applicant.phone}</span>
-													</div>
-													{#if applicant.address}
-														<span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.2rem;">Address: {applicant.address}</span>
-													{/if}
-												</div>
-												<div class="applicant-actions">
-													<button 
-														type="button" 
-														class="btn btn-outline" 
-														style="padding: 0.35rem 0.65rem; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.3rem;"
-														onclick={() => openViewProfile(applicant.id)}
-													>
-														<User size={13} /> Profile
-													</button>
-													<button 
-														type="button" 
-														class="btn btn-outline" 
-														style="padding: 0.35rem 0.65rem; font-size: 0.8rem; border-color: var(--accent); color: var(--accent-hover); display: inline-flex; align-items: center; gap: 0.3rem;"
-														onclick={() => openChat(job.id, applicant.id)}
-													>
-														<MessageSquare size={13} /> Open Chat
-													</button>
-
-													<form method="POST" action="?/assignWorker" use:enhance={() => {
-														changingStatus = true;
-														return async ({ update }) => {
-															changingStatus = false;
-															await update();
-														};
-													}}>
-														<input type="hidden" name="jobId" value={job.id} />
-														<input type="hidden" name="workerId" value={applicant.id} />
-														<button type="submit" class="btn btn-primary" style="padding: 0.35rem 0.85rem; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.3rem;" disabled={changingStatus}>
-															{#if changingStatus}
-																<span class="spinner spinner-sm"></span>
-															{:else}
-																<UserCheck size={14} />
-															{/if}
-															Hire Worker
-														</button>
-													</form>
-												</div>
-											</div>
-										{/each}
-									</div>
-								{/if}
-							{:else if job.status === 'assigned'}
-								<div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
-									<div>
-										<span style="color: var(--text-muted); font-size: 0.85rem; display: block;">Assigned Worker:</span>
-										<button 
-											type="button"
-											style="background: none; border: none; color: var(--text-primary); font-weight: 700; font-size: 1rem; cursor: pointer; text-decoration: underline; padding: 0;"
-											onclick={() => openViewProfile(job.worker_id)}
-										>
-											{job.assignedWorker?.name}
-										</button>
-										<span class="rating-badge {job.assignedWorker?.average_rating > 0 ? 'rating-badge-positive' : job.assignedWorker?.average_rating < 0 ? 'rating-badge-negative' : 'rating-badge-zero'}" style="margin-left: 0.35rem; display: inline-flex; align-items: center; gap: 0.2rem;">
-											<Star size={12} fill="currentColor" /> {job.assignedWorker?.average_rating > 0 ? `+${job.assignedWorker.average_rating}` : job.assignedWorker?.average_rating || 0}
-										</span>
-										<span style="color: var(--text-secondary); font-size: 0.85rem; margin-left: 0.5rem;">Phone: {job.assignedWorker?.phone}</span>
-									</div>
-									
-									<div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-										{#if job.worker_id}
-											<button 
-												type="button" 
-												class="btn btn-outline" 
-												style="padding: 0.4rem 0.85rem; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.35rem;"
-												onclick={() => openViewProfile(job.worker_id)}
-											>
-												<User size={14} /> Profile
-											</button>
-											<button 
-												type="button" 
-												class="btn btn-outline" 
-												style="padding: 0.4rem 0.85rem; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.35rem;"
-												onclick={() => openChat(job.id, job.worker_id)}
-											>
-												<MessageSquare size={14} /> Chat Worker
-											</button>
-										{/if}
-
-										<form method="POST" action="?/startJob" use:enhance={() => {
-											changingStatus = true;
-											return async ({ update }) => {
-												changingStatus = false;
-												await update();
-											};
-										}}>
-											<input type="hidden" name="jobId" value={job.id} />
-											<button type="submit" class="btn btn-primary" style="padding: 0.4rem 1rem; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.35rem;" disabled={changingStatus}>
-												{#if changingStatus}
-													<span class="spinner spinner-sm"></span>
-												{/if}
-												Start Job Execution
-											</button>
-										</form>
-									</div>
-								</div>
-							{:else if job.status === 'in_progress'}
-								<div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
-									<div>
-										<span style="color: var(--text-muted); font-size: 0.85rem; display: block;">Job Status:</span>
-										<span style="color: var(--accent); font-weight: 600;">Work In Progress by {job.assignedWorker?.name}</span>
-									</div>
-									
-									<div style="display: flex; gap: 0.5rem; align-items: center;">
-										{#if job.worker_id}
-											<button 
-												type="button" 
-												class="btn btn-outline" 
-												style="padding: 0.4rem 0.85rem; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.35rem;"
-												onclick={() => openChat(job.id, job.worker_id)}
-											>
-												<MessageSquare size={14} /> Chat Worker
-											</button>
-										{/if}
-
-										<button 
-											type="button" 
-											class="btn btn-primary" 
-											style="padding: 0.4rem 1rem; font-size: 0.85rem;"
-											onclick={() => openRatingModal(job)}
-										>
-											Mark Completed & Rate (-5 to +5 Stars)
-										</button>
-									</div>
-								</div>
-							{:else if job.status === 'completed'}
-								<div style="font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem;">
-									<span>
-										This project has been successfully completed by <strong>{job.assignedWorker?.name}</strong>.
-									</span>
-								</div>
-							{/if}
-						</div>
-
-					</div>
-				{/each}
-			{/if}
-		</div>
-	</div>
-{/if}
-
-<!-- TAB: MESSAGES & CHAT -->
-{#if activeTab === 'chat'}
-	<div class="chat-container {activeConvId ? 'has-active-conv' : ''}">
-		<!-- Left Sidebar: Conversations List -->
-		<div class="chat-threads-sidebar">
-			<div class="chat-threads-header" style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
-				<div style="display: flex; align-items: center; gap: 0.5rem;">
-					<MessageSquare size={18} /> Inquiries & Messages
-				</div>
-			</div>
-			<div class="chat-thread-list">
-				{#if !conversations || conversations.length === 0}
-					<div style="padding: 2rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
-						No active chats yet.<br>When workers inquire on your job posts, chats will appear here.
-					</div>
-				{:else}
-					{#each conversations as conv (conv.id)}
-						<button 
-							type="button" 
-							class="chat-thread-item {activeConversation?.id === conv.id ? 'active' : ''}"
-							onclick={() => selectConversation(conv.id)}
-						>
-							<div class="chat-avatar" style="position: relative;">
-								{conv.other_user_name ? conv.other_user_name.charAt(0).toUpperCase() : 'U'}
-								{#if unreadConvIds.has(conv.id)}
-									<span class="chat-unread-dot" style="position: absolute; top: -2px; right: -2px; border: 2px solid var(--bg-card);"></span>
-								{/if}
-							</div>
-							<div class="chat-thread-info">
-								<div class="chat-thread-top">
-									<span class="chat-thread-name">{conv.other_user_name}</span>
-									<span class="chat-role-badge">{conv.other_user_role || 'Worker'}</span>
-								</div>
-								<div class="chat-thread-title">
-									<Pin size={11} style="flex-shrink: 0;" /> <span class="chat-thread-title-text">{conv.job_title}</span>
-								</div>
-								<div class="chat-thread-preview" style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
-									<span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-										{conv.last_message || 'No messages yet.'}
-									</span>
-									{#if unreadConvIds.has(conv.id)}
-										<span class="badge-unread-counter" style="font-size: 0.65rem; height: 14px; min-width: 14px; padding: 0 3px;">•</span>
-									{/if}
-								</div>
-							</div>
-						</button>
-					{/each}
-				{/if}
-			</div>
-		</div>
-
-		<!-- Right Panel: Message Thread Window -->
-		<div class="chat-window">
-			{#if activeConversation}
-				<div class="chat-header">
-					<div style="display: flex; align-items: center; gap: 0.5rem;">
-						<button
-							type="button"
-							class="btn btn-outline mobile-back-btn"
-							aria-label="Back to chat list"
-							style="display: none;"
-							onclick={closeActiveConversation}
-						>
-							<ArrowLeft size={22} />
-							<span>Back</span>
-						</button>
-						<div>
-							<h4 style="margin: 0; font-size: 1.05rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
-								{activeConversation.other_user_name}
-								<button 
-									type="button" 
-									class="btn btn-outline" 
-									style="padding: 0.15rem 0.5rem; font-size: 0.72rem; border-color: var(--accent); color: var(--accent-hover);"
-									onclick={() => openViewProfile(activeConversation.other_user_id)}
-								>
-									<User size={11} /> Profile
-								</button>
-							</h4>
-							<span style="font-size: 0.78rem; color: var(--accent-hover); display: block;">
-								Job: {activeConversation.job_title}
-							</span>
-						</div>
-					</div>
-				</div>
-
-				<div class="chat-messages-body" id="chat-messages-customer-body" onscroll={handleChatScroll}>
-					{#if loadingMessagesConvId === activeConversation.id && (!activeConversation.messages || activeConversation.messages.length === 0)}
-						<div style="display: flex; align-items: center; justify-content: center; height: 100%; min-height: 180px; margin: auto;">
-							<div class="spinner spinner-accent"></div>
-						</div>
-					{:else if !activeConversation.messages || activeConversation.messages.length === 0}
-						<div style="text-align: center; color: var(--text-muted); margin: auto; font-size: 0.9rem;">
-							Start conversation with {activeConversation.other_user_name}...
-						</div>
-					{:else}
-						{#if loadingMoreMessages}
-							<div style="display: flex; align-items: center; justify-content: center; padding: 0.5rem 0; width: 100%;">
-								<div class="spinner spinner-sm spinner-accent"></div>
-							</div>
-						{:else if activeConversation.hasMore}
-							<div style="text-align: center; padding: 0.3rem 0; margin-bottom: 0.5rem;">
-								<button 
-									type="button" 
-									class="btn btn-outline" 
-									style="font-size: 0.72rem; padding: 0.15rem 0.6rem; opacity: 0.8; border-color: var(--border-color); color: var(--text-muted);"
-									onclick={loadMoreMessages}
-								>
-									Load older messages
-								</button>
-							</div>
-						{/if}
-						{#each activeConversation.messages as msg (msg.id || msg.created_at)}
-							{@const gpsData = parseGpsMessage(msg.content)}
-							{@const imgData = parseImageMessage(msg.content)}
-							<div class="chat-bubble-row {msg.sender_id === data.user.id ? 'sent' : 'received'}">
-								{#if msg.sender_id === data.user.id}
-									<button 
-										type="button" 
-										class="chat-msg-delete-btn" 
-										onclick={() => promptDeleteMessage(msg.id)} 
-										title="Delete message"
-										aria-label="Delete message"
-									>
-										<Trash2 size={13} />
-									</button>
-								{/if}
-								<div class="chat-bubble {msg.sender_id === data.user.id ? 'sent' : 'received'}">
-									{#if gpsData}
-										<div class="chat-location-card">
-											<div class="chat-location-header">
-												<MapPin size={15} color="var(--accent-hover)" />
-												<span>{gpsData.label}</span>
-											</div>
-											<div class="chat-location-preview-box">
-												<iframe 
-													title="Shared GPS Location"
-													src={gpsData.embedUrl}
-													loading="lazy"
-												></iframe>
-											</div>
-											<div style="font-size: 0.72rem; opacity: 0.85;">
-												Coordinates: {gpsData.lat}, {gpsData.lng}
-											</div>
-											<div class="chat-location-actions">
-												<a 
-													href={gpsData.mapUrl} 
-													target="_blank" 
-													rel="noopener noreferrer" 
-													class="chat-location-btn"
-												>
-													<ExternalLink size={13} /> Open in Google Maps
-												</a>
-											</div>
-										</div>
-									{:else if imgData}
-										<div class="chat-image-card">
-											<button 
-												type="button" 
-												class="chat-image-btn" 
-												onclick={() => previewImageModalUrl = imgData.url}
-												title="Click to view full photo"
-											>
-												<img src={imgData.url} alt="Shared attachment" class="chat-image-preview" loading="lazy" />
-											</button>
-											{#if imgData.caption}
-												<div class="chat-image-caption">{imgData.caption}</div>
-											{/if}
-										</div>
-									{:else}
-										<div>{msg.content}</div>
-									{/if}
-									<div class="chat-time">
-										{new Date(msg.created_at).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' })}
-									</div>
-								</div>
-							</div>
-						{/each}
-					{/if}
-
-					{#if isOtherUserTyping}
-						<div class="chat-typing-indicator">
-							<span>{activeConversation.other_user_name} is typing</span>
-							<div class="typing-dots">
-								<span class="typing-dot"></span>
-								<span class="typing-dot"></span>
-								<span class="typing-dot"></span>
-							</div>
-						</div>
-					{/if}
-				</div>
-
-				<div class="chat-footer">
-					<form onsubmit={handleSendMessage} style="display: flex; gap: 0.5rem; align-items: center; width: 100%;">
-						<input type="hidden" name="jobId" value={activeConversation.job_id} />
-						<input type="hidden" name="receiverId" value={activeConversation.other_user_id} />
-						
-						<!-- Hidden File Input for Image Upload -->
-						<input 
-							type="file" 
-							bind:this={fileInputRef} 
-							accept="image/*" 
-							style="display: none;" 
-							onchange={handleImageFileSelect} 
-						/>
-
-						<!-- Mobile Plus Trigger Button with Dropup Menu -->
-						<div class="chat-gps-mobile-container">
-							<button 
-								type="button" 
-								class="chat-gps-mobile-trigger {showGpsDropup ? 'active' : ''}" 
-								onclick={() => showGpsDropup = !showGpsDropup}
-								aria-label="Action options"
-								title="Add Attachment or Location"
-								disabled={sharingLocation || uploadingImage}
-							>
-								{#if sharingLocation || uploadingImage}
-									<span class="spinner spinner-sm"></span>
-								{:else}
-									<Plus size={20} class="dropup-plus-icon" />
-								{/if}
-							</button>
-
-							{#if showGpsDropup}
-								<button 
-									type="button" 
-									class="chat-dropup-backdrop" 
-									onclick={() => showGpsDropup = false}
-									aria-label="Close menu"
-									tabindex="-1"
-								></button>
-
-								<div class="chat-gps-dropup-menu" role="menu">
-									<!-- Custom Pin -->
-									<button 
-										type="button" 
-										class="chat-dropup-item" 
-										onclick={() => {
-											showGpsDropup = false;
-											showCustomLocationModal = true;
-										}}
-										disabled={sendingMessage || uploadingImage}
-									>
-										<Compass size={16} color="var(--accent-hover)" />
-										<div class="chat-dropup-item-info">
-											<span class="dropup-title">Custom Pin</span>
-											<span class="dropup-subtitle">Search & pin on map</span>
-										</div>
-									</button>
-
-									<!-- Auto GPS -->
-									<button 
-										type="button" 
-										class="chat-dropup-item" 
-										onclick={() => {
-											showGpsDropup = false;
-											handleShareLocation();
-										}}
-										disabled={sharingLocation || sendingMessage || uploadingImage}
-									>
-										<Navigation size={16} color="var(--accent-hover)" />
-										<div class="chat-dropup-item-info">
-											<span class="dropup-title">Auto GPS</span>
-											<span class="dropup-subtitle">Share current GPS location</span>
-										</div>
-									</button>
-
-									<!-- Send Image -->
-									<button 
-										type="button" 
-										class="chat-dropup-item" 
-										onclick={() => {
-											showGpsDropup = false;
-											triggerImageUpload();
-										}}
-										disabled={uploadingImage || sendingMessage}
-									>
-										<ImageIcon size={16} color="var(--accent-hover)" />
-										<div class="chat-dropup-item-info">
-											<span class="dropup-title">Send Image</span>
-											<span class="dropup-subtitle">Upload & send a photo</span>
-										</div>
-									</button>
-								</div>
-							{/if}
-						</div>
-
-						<!-- Desktop GPS & Image Buttons -->
-						<button 
-							type="button" 
-							class="chat-gps-btn chat-gps-desktop-btn" 
-							onclick={handleShareLocation}
-							disabled={sharingLocation || sendingMessage || uploadingImage}
-							title="Share your current device GPS location"
-						>
-							{#if sharingLocation}
-								<span class="spinner spinner-sm"></span>
-							{:else}
-								<Navigation size={14} />
-							{/if}
-							<span style="font-size: 0.8rem;">Auto GPS</span>
-						</button>
-
-						<button 
-							type="button" 
-							class="chat-gps-btn chat-gps-desktop-btn" 
-							onclick={() => showCustomLocationModal = true}
-							disabled={sendingMessage || uploadingImage}
-							title="Search & pin any custom location or friend's address"
-							style="border-color: var(--accent); color: var(--accent-hover);"
-						>
-							<Compass size={14} />
-							<span style="font-size: 0.8rem;">Pin Map</span>
-						</button>
-
-						<button 
-							type="button" 
-							class="chat-gps-btn chat-gps-desktop-btn" 
-							onclick={triggerImageUpload}
-							disabled={uploadingImage || sendingMessage}
-							title="Upload and send a photo"
-							style="border-color: var(--border-color); color: var(--text-primary);"
-						>
-							{#if uploadingImage}
-								<span class="spinner spinner-sm"></span>
-							{:else}
-								<ImageIcon size={14} />
-							{/if}
-							<span style="font-size: 0.8rem;">Send Pic</span>
-						</button>
-
-						<input 
-							type="text" 
-							name="content" 
-							placeholder="Type your message here..." 
-							bind:value={newMessageContent}
-							oninput={handleTypingInput}
-							autocomplete="off"
-							class="chat-input-field"
-							style="flex: 1; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary);"
-						/>
-						<button type="submit" class="btn btn-primary chat-send-btn" style="display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;" disabled={sendingMessage || uploadingImage || !newMessageContent.trim()}>
-							{#if sendingMessage}
-								<span class="spinner spinner-sm"></span>
-							{/if}
-							Send
-						</button>
-					</form>
-				</div>
-			{:else}
-				<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); flex-direction: column; gap: 0.75rem; padding: 2rem;">
-					<MessageSquare size={48} style="opacity: 0.6;" />
-					<p style="font-size: 0.95rem;">Select an inquiry on the left to start messaging.</p>
-				</div>
-			{/if}
-		</div>
-	</div>
-{/if}
-
-<!-- TAB 3: MY PROFILE & HISTORY OF TRANSACTIONS -->
-{#if activeTab === 'profile'}
-	<div class="profile-container">
-		
-		<!-- Cover Banner & Header Card -->
-		<div class="profile-header-card">
-			<div class="profile-cover-banner"></div>
-			<div class="profile-header-content">
-				<div class="profile-header-row">
-					
-					<!-- Left Side: Avatar + Name + Role Badge -->
-					<div class="profile-user-left">
-						<div class="profile-avatar-wrapper">
-							{data.user?.name ? data.user.name.charAt(0).toUpperCase() : 'U'}
-						</div>
-						<div class="profile-user-text">
-							<h2 style="font-size: 1.6rem; margin-bottom: 0.25rem;">{data.user?.name}</h2>
-							<span class="badge badge-general" style="font-size: 0.75rem;">Customer Account</span>
-						</div>
-					</div>
-
-					<!-- Right Side: Stat Numbers (Total Posts & Tasks Completed) -->
-					<div class="profile-stats-group">
-						<div class="profile-stat-item">
-							<span class="profile-stat-value">{data.posts.length}</span>
-							<span class="profile-stat-label">Total Posts</span>
-						</div>
-						<div class="profile-stat-item">
-							<span class="profile-stat-value" style="color: var(--success);">{completedJobs.length}</span>
-							<span class="profile-stat-label">Tasks Completed</span>
-						</div>
-					</div>
-
-				</div>
-			</div>
-		</div>
-
-		<!-- Main 2-Column Grid -->
-		<div class="profile-main-grid">
-			
-			<!-- Left Column: Introduction / Details -->
-			<aside class="card" style="padding: 1.5rem;">
-				<h4 style="font-size: 1.25rem; margin-bottom: 1.25rem; color: var(--text-primary);">Introduction</h4>
-				<div style="display: flex; flex-direction: column; gap: 1rem; font-size: 0.9rem;">
-					<div>
-						<span style="color: var(--text-muted); font-size: 0.8rem; display: block; text-transform: uppercase;">Email Address</span>
-						<strong style="color: var(--text-primary);">{data.user?.email}</strong>
-					</div>
-					<div>
-						<span style="color: var(--text-muted); font-size: 0.8rem; display: block; text-transform: uppercase;">Phone Number</span>
-						<strong style="color: var(--text-primary);">{data.user?.phone}</strong>
-					</div>
-					<div>
-						<span style="color: var(--text-muted); font-size: 0.8rem; display: block; text-transform: uppercase;">Address / City</span>
-						<strong style="color: var(--text-primary);">{data.user?.address}</strong>
-					</div>
-				</div>
-			</aside>
-
-			<!-- Right Column: History of Transactions with 2 Sub-tabs -->
-			<section style="display: flex; flex-direction: column; gap: 1.25rem;">
-				<div class="tabs-header" style="margin-bottom: 0.25rem;">
-					<button 
-						type="button" 
-						class="tab-btn {historySubTab === 'posted' ? 'active' : ''}" 
-						onclick={() => historySubTab = 'posted'}
-						id="subtab-posted-btn"
-						style="display: inline-flex; align-items: center; gap: 0.4rem;"
-					>
-						<ClipboardList size={16} /> Job Posted ({data.posts.length})
-					</button>
-					<button 
-						type="button" 
-						class="tab-btn {historySubTab === 'completed' ? 'active' : ''}" 
-						onclick={() => historySubTab = 'completed'}
-						id="subtab-completed-btn"
-						style="display: inline-flex; align-items: center; gap: 0.4rem;"
-					>
-						<CheckCircle2 size={16} /> Completed Jobs ({completedJobs.length})
-					</button>
-				</div>
-
-				{#if historySubTab === 'posted'}
-					<!-- TAB 1: ALL JOBS POSTED (COMPLETED & UNCOMPLETED) -->
-					{#if data.posts.length === 0}
-						<div class="card" style="text-align: center; padding: 4rem 2rem; border-style: dashed;">
-							<h4 style="font-size: 1.25rem; margin-bottom: 0.5rem;">No job postings created yet.</h4>
-							<p style="color: var(--text-secondary); font-size: 0.9rem;">
-								Your job postings (both completed and ongoing) will appear here.
-							</p>
-						</div>
-					{:else}
-						{#each data.posts as job (job.id)}
-							<div class="card feed-job-card">
-								<div class="feed-job-header">
-									<div>
-										<div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.35rem;">
-											<span class="badge {getCategoryBadge(job.category)}">{job.category}</span>
-											{#if job.status === 'completed'}
-												<span class="status status-completed">Completed</span>
-											{:else if job.status === 'in_progress'}
-												<span class="status status-in-progress">In Progress</span>
-											{:else}
-												<span class="status status-open">Open</span>
-											{/if}
-											<span style="font-size: 0.75rem; color: var(--text-muted);">
-												Posted: {new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
-											</span>
-										</div>
-										<h3 class="feed-job-title">{job.title}</h3>
-									</div>
-									<div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem;">
-										<strong class="feed-job-budget" style="color: var(--accent); font-size: 1.25rem; display: block;">₱{job.budget.toLocaleString()}</strong>
-										<button
-											type="button"
-											class="btn btn-outline"
-											style="padding: 0.25rem 0.6rem; font-size: 0.75rem; border-color: #ef4444; color: #ef4444; display: inline-flex; align-items: center; gap: 0.3rem;"
-											onclick={() => openDeleteJobModal(job)}
-											title="Delete Job Post"
-										>
-											<Trash2 size={13} />
-											<span>Delete</span>
-										</button>
-									</div>
-								</div>
-
-								<div style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; border-left: 2px solid var(--border-color); padding-left: 1rem;">
-									<p>{job.description}</p>
-								</div>
-
-								{#if job.assignedWorker}
-									<div style="border-top: 1px solid var(--border-color); padding-top: 0.75rem; margin-top: 0.25rem; font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem;">
-										<span>Assigned Worker: <strong style="color: var(--text-primary);">{job.assignedWorker.name}</strong></span>
-									</div>
-								{/if}
-							</div>
-						{/each}
-					{/if}
-
-				{:else if historySubTab === 'completed'}
-					<!-- TAB 2: COMPLETED JOBS (ONLY COMPLETE & RATING GIVEN TO WORKER) -->
-					{#if completedJobs.length === 0}
-						<div class="card" style="text-align: center; padding: 4rem 2rem; border-style: dashed;">
-							<h4 style="font-size: 1.25rem; margin-bottom: 0.5rem;">No completed transactions yet.</h4>
-							<p style="color: var(--text-secondary); font-size: 0.9rem;">
-								Your past completed job postings and worker ratings will appear here.
-							</p>
-						</div>
-					{:else}
-						{#each completedJobs as job (job.id)}
-							<div class="card feed-job-card">
-								<div class="feed-job-header">
-									<div>
-										<div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.35rem;">
-											<span class="badge {getCategoryBadge(job.category)}">{job.category}</span>
-											<span class="status status-completed">Completed</span>
-											<span style="font-size: 0.75rem; color: var(--text-muted);">
-												Posted: {new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
-											</span>
-										</div>
-										<h3 class="feed-job-title">{job.title}</h3>
-									</div>
-									<div style="text-align: right;">
-										<strong class="feed-job-budget" style="color: var(--accent); font-size: 1.25rem; display: block;">₱{job.budget.toLocaleString()}</strong>
-									</div>
-								</div>
-
-								<div style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; border-left: 2px solid var(--border-color); padding-left: 1rem;">
-									<p>{job.description}</p>
-								</div>
-
-								<!-- Worker & Rating details given -->
-								<div style="border-top: 1px solid var(--border-color); padding-top: 0.75rem; margin-top: 0.25rem; display: flex; flex-direction: column; gap: 0.5rem;">
-									<div style="font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
-										<span>Completed by: <strong style="color: var(--text-primary);">{job.assignedWorker?.name || 'Worker'}</strong></span>
-										{#if job.review}
-											<span class="rating-badge {job.review.rating > 0 ? 'rating-badge-positive' : job.review.rating < 0 ? 'rating-badge-negative' : 'rating-badge-zero'}">
-												<Star size={12} fill="currentColor" /> Rating Given: {job.review.rating > 0 ? `+${job.review.rating}` : job.review.rating} Star{Math.abs(job.review.rating) === 1 ? '' : 's'}
-											</span>
-										{/if}
-									</div>
-
-									{#if job.review && job.review.review_text}
-										<div style="background: var(--bg-input); padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-size: 0.88rem; color: var(--text-secondary); font-style: italic;">
-											"{job.review.review_text}"
-										</div>
-									{/if}
-								</div>
-
-							</div>
-						{/each}
-					{/if}
-				{/if}
-			</section>
-
-		</div>
-	</div>
-{/if}
-
-<!-- COMPLETED RATING & REVIEW MODAL (-5 to +5 Stars) -->
-{#if showRatingModal}
-	<div class="modal-backdrop">
-		<div class="modal-content" style="max-width: 600px; width: 92%;">
-			<h3 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Mark Job as Completed & Rate Worker</h3>
-			<p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.5rem;">
-				Rate worker <strong>{activeJobForRating?.assignedWorker?.name}</strong> from <strong>-5 Stars (Very Poor)</strong> to <strong>+5 Stars (Excellent)</strong>.
-			</p>
-
-			{#if form?.error && showRatingModal}
-				<div style="background-color: var(--error-light); border: 1px solid var(--error); color: var(--text-primary); padding: 0.75rem; border-radius: var(--radius-md); margin-bottom: 1rem; font-size: 0.85rem;">
-					{form.error}
-				</div>
-			{/if}
-
-			<form method="POST" action="?/completeAndRateJob" use:enhance={() => {
-				changingStatus = true;
-				return async ({ update }) => {
-					changingStatus = false;
-					showRatingModal = false;
-					await update();
-				};
-			}}>
-				<input type="hidden" name="jobId" value={activeJobForRating?.id} />
-				<input type="hidden" name="workerId" value={activeJobForRating?.worker_id} />
-				<input type="hidden" name="rating" value={ratingValue} />
-
-				<!-- Rating Selector UI (-5 to +5 Stars) -->
-				<div class="form-group">
-					<div style="font-weight: 600; font-size: 0.95rem; color: var(--text-primary); display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-						<span>Select Star Rating (-5 to +5):</span>
-						<span class="rating-badge {ratingValue > 0 ? 'rating-badge-positive' : ratingValue < 0 ? 'rating-badge-negative' : 'rating-badge-zero'}" style="display: inline-flex; align-items: center; gap: 0.2rem;">
-							<Star size={12} fill="currentColor" /> {ratingValue > 0 ? `+${ratingValue}` : ratingValue} Star{Math.abs(ratingValue) === 1 ? '' : 's'}
-						</span>
-					</div>
-					
-					<div class="rating-options-container">
-						{#each [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5] as num}
-							<button 
-								type="button"
-								class="rating-btn {ratingValue === num ? (num > 0 ? 'active-positive' : num < 0 ? 'active-negative' : 'active-zero') : ''}"
-								onclick={() => selectRating(num)}
-								aria-label="Rating {num}"
-							>
-								<span class="rating-num">{num > 0 ? `+${num}` : num}</span>
-								<span class="rating-star-icon" style="display: inline-flex; align-items: center;"><Star size={12} fill="currentColor" /></span>
-							</button>
-						{/each}
-					</div>
-				</div>
-
-				<div class="form-group" style="margin-bottom: 2rem;">
-					<label for="reviewText">Comment / Feedback Review</label>
-					<textarea 
-						id="reviewText" 
-						name="reviewText" 
-						bind:value={reviewText}
-						placeholder="E.g. Excellent work, completed the sideline quickly and professionally!" 
-						required
-					></textarea>
-				</div>
-
-				<div style="display: flex; gap: 1rem; justify-content: flex-end;">
-					<button type="button" class="btn btn-secondary" onclick={() => showRatingModal = false}>
-						Cancel
-					</button>
-					<button type="submit" class="btn btn-primary" style="background-color: var(--success); display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;" disabled={changingStatus}>
-						{#if changingStatus}
-							<span class="spinner spinner-sm"></span>
-							<span>Submitting...</span>
-						{:else}
-							Submit & Complete
-						{/if}
-					</button>
-				</div>
-			</form>
-		</div>
-	</div>
-{/if}
-
-<!-- VIEW PROFILE MODAL FOR OTHER USERS -->
 <ViewProfileModal 
 	bind:show={showViewProfileModal} 
 	userId={viewProfileUserId} 
@@ -1933,171 +807,23 @@
 	}}
 />
 
-<!-- CUSTOM LOCATION PINNING MODAL FOR CHAT -->
 <LocationPickerModal 
 	bind:show={showCustomLocationModal}
 	title="Share Custom Pin / Friend's Location"
 	onSave={handleCustomChatLocationSaved}
 />
 
-<!-- CONFIRM DELETE JOB MODAL -->
-{#if deleteJobModal.open}
-	<div class="modal-backdrop" style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 1rem;">
-		<div class="card" style="max-width: 440px; width: 100%; border: 1px solid rgba(239, 68, 68, 0.3); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); padding: 1.75rem; text-align: center; border-radius: var(--radius-lg); background: var(--bg-card);">
-			<div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(239, 68, 68, 0.15); color: #ef4444; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto;">
-				<Trash2 size={24} />
-			</div>
-			
-			<h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">
-				Delete Job Post?
-			</h3>
-			
-			<p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1.5rem;">
-				Sigurado ka bang gusto mong tanggalin ang <strong>"{deleteJobModal.title}"</strong>? Hindi na ito mababawi kapag na-delete.
-			</p>
+<CustomerDeleteJobModal 
+	bind:deleteJobModal 
+	onclose={closeDeleteJobModal} 
+/>
 
-			<div style="display: flex; gap: 0.75rem; justify-content: center;">
-				<button 
-					type="button" 
-					class="btn btn-secondary" 
-					style="padding: 0.5rem 1.25rem; font-size: 0.9rem;"
-					onclick={closeDeleteJobModal}
-					disabled={deleteJobModal.deleting}
-				>
-					Cancel
-				</button>
+<CustomerEditJobModal 
+	bind:editJobModal 
+	bind:showEditJobLocationModal 
+	onclose={closeEditJobModal} 
+/>
 
-				<form 
-					method="POST" 
-					action="?/deleteJob" 
-					use:enhance={() => {
-						deleteJobModal.deleting = true;
-						return async ({ update }) => {
-							deleteJobModal.deleting = false;
-							closeDeleteJobModal();
-							await update();
-						};
-					}}
-				>
-					<input type="hidden" name="jobId" value={deleteJobModal.id} />
-					<button 
-						type="submit" 
-						class="btn btn-primary" 
-						style="background-color: #ef4444; border-color: #ef4444; padding: 0.5rem 1.25rem; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.4rem;"
-						disabled={deleteJobModal.deleting}
-					>
-						{#if deleteJobModal.deleting}
-							<span class="spinner spinner-sm"></span>
-							<span>Deleting...</span>
-						{:else}
-							<Trash2 size={15} />
-							<span>Confirm Delete</span>
-						{/if}
-					</button>
-				</form>
-			</div>
-		</div>
-	</div>
-{/if}
-
-<!-- EDIT JOB MODAL -->
-{#if editJobModal.open}
-	<div class="modal-backdrop" style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 1rem; overflow-y: auto;">
-		<div class="card" style="max-width: 550px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 1.5rem; border-radius: var(--radius-lg); background: var(--bg-card); border: 1px solid var(--border-color);">
-			<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
-				<h3 style="font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
-					<Pencil size={18} color="var(--accent)" /> Edit Job Post
-				</h3>
-				<button type="button" class="btn btn-outline" style="padding: 0.25rem; border: none; color: var(--text-muted);" onclick={closeEditJobModal}>
-					<X size={20} />
-				</button>
-			</div>
-
-			<form 
-				method="POST" 
-				action="?/updateJob" 
-				use:enhance={() => {
-					editJobModal.saving = true;
-					return async ({ update }) => {
-						editJobModal.saving = false;
-						closeEditJobModal();
-						await update();
-					};
-				}}
-			>
-				<input type="hidden" name="jobId" value={editJobModal.id} />
-				<input type="hidden" name="latitude" value={editJobModal.latitude || ''} />
-				<input type="hidden" name="longitude" value={editJobModal.longitude || ''} />
-
-				<div class="form-group" style="margin-bottom: 1rem;">
-					<label for="edit-title" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem;">Job Title / Service Needed</label>
-					<input type="text" id="edit-title" name="title" class="form-control" bind:value={editJobModal.title} required style="width: 100%; padding: 0.6rem 0.8rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-primary);" />
-				</div>
-
-				<div class="form-group" style="margin-bottom: 1rem;">
-					<label for="edit-category" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem;">Category</label>
-					<select id="edit-category" name="category" class="form-control" bind:value={editJobModal.category} required style="width: 100%; padding: 0.6rem 0.8rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-primary);">
-						<option value="Plumbing / Tubero">Plumbing / Tubero</option>
-						<option value="Roofing / Ayos Yero">Roofing / Ayos Yero</option>
-						<option value="Excavation / Hukay Lupa">Excavation / Hukay Lupa</option>
-						<option value="Gardening">Gardening</option>
-						<option value="Carpentry">Carpentry</option>
-						<option value="Electrical / Kuryente">Electrical / Kuryente</option>
-						<option value="General Handyman">General Handyman</option>
-					</select>
-				</div>
-
-				<div class="form-group" style="margin-bottom: 1rem;">
-					<label for="edit-description" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem;">Description & Requirements</label>
-					<textarea id="edit-description" name="description" rows="4" class="form-control" bind:value={editJobModal.description} required style="width: 100%; padding: 0.6rem 0.8rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-primary); resize: vertical;"></textarea>
-				</div>
-
-				<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
-					<div class="form-group">
-						<label for="edit-budget" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem;">Budget (₱)</label>
-						<input type="number" id="edit-budget" name="budget" min="1" step="any" class="form-control" bind:value={editJobModal.budget} required style="width: 100%; padding: 0.6rem 0.8rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-primary);" />
-					</div>
-
-					<div class="form-group">
-						<label for="edit-target_date" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem;">Target Date & Time</label>
-						<input type="datetime-local" id="edit-target_date" name="target_date" class="form-control" bind:value={editJobModal.target_date} required style="width: 100%; padding: 0.6rem 0.8rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-primary);" />
-					</div>
-				</div>
-
-				<div class="form-group" style="margin-bottom: 1.25rem;">
-					<label for="edit-location" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem;">Location / Address</label>
-					<div style="display: flex; gap: 0.5rem;">
-						<input type="text" id="edit-location" name="location" class="form-control" bind:value={editJobModal.location} required style="flex: 1; padding: 0.6rem 0.8rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-primary);" />
-						<button type="button" class="btn btn-outline" style="padding: 0.6rem 0.85rem; font-size: 0.8rem; display: flex; align-items: center; gap: 0.3rem; border-color: var(--accent); color: var(--accent-hover);" onclick={() => showEditJobLocationModal = true}>
-							<MapPin size={14} /> Pin GPS
-						</button>
-					</div>
-					{#if editJobModal.latitude && editJobModal.longitude}
-						<span style="font-size: 0.72rem; color: var(--accent-hover); display: block; margin-top: 0.25rem;">
-							📍 GPS Pinned: {editJobModal.latitude}, {editJobModal.longitude}
-						</span>
-					{/if}
-				</div>
-
-				<div style="display: flex; gap: 0.75rem; justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top: 1rem;">
-					<button type="button" class="btn btn-secondary" style="padding: 0.5rem 1.25rem; font-size: 0.9rem;" onclick={closeEditJobModal} disabled={editJobModal.saving}>
-						Cancel
-					</button>
-					<button type="submit" class="btn btn-primary" style="padding: 0.5rem 1.25rem; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.4rem;" disabled={editJobModal.saving}>
-						{#if editJobModal.saving}
-							<span class="spinner spinner-sm"></span>
-							<span>Saving...</span>
-						{:else}
-							<span>Save Changes</span>
-						{/if}
-					</button>
-				</div>
-			</form>
-		</div>
-	</div>
-{/if}
-
-<!-- EDIT JOB LOCATION PICKER MODAL -->
 <LocationPickerModal 
 	bind:show={showEditJobLocationModal}
 	title="Update Pinned Job Location"
@@ -2108,32 +834,10 @@
 
 <MobileChatHistory bind:activeConvId bind:showGpsDropup {activeTab} />
 
-<!-- IMAGE PREVIEW LIGHTBOX MODAL -->
-{#if previewImageModalUrl}
-	<div 
-		class="image-preview-modal-backdrop" 
-		onclick={() => previewImageModalUrl = null} 
-		role="dialog" 
-		aria-modal="true"
-		tabindex="-1"
-	>
-		<div class="image-preview-modal-content" onclick={(e) => e.stopPropagation()} role="document">
-			<button 
-				type="button" 
-				class="image-preview-close-btn" 
-				onclick={() => previewImageModalUrl = null} 
-				aria-label="Close image preview"
-			>
-				<X size={20} />
-			</button>
-			<img src={previewImageModalUrl} alt="Enlarged photo preview" class="image-preview-full-img" />
-		</div>
-	</div>
-{/if}
+<CustomerImagePreviewModal bind:previewImageModalUrl />
 
 <ConfirmDeleteModal 
 	bind:show={showDeleteConfirmModal} 
 	loading={deletingMessage} 
 	onConfirm={confirmDeleteMessage} 
 />
-
