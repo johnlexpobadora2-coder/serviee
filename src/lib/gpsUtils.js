@@ -196,3 +196,102 @@ export function parseGpsMessage(content) {
 		return null;
 	}
 }
+
+/**
+ * Formats an image payload for sending via chat
+ * Protocol: [IMAGE_MESSAGE:dataUrl|optionalCaption]
+ * @param {string} dataUrl
+ * @param {string} [caption]
+ * @returns {string}
+ */
+export function formatImageChatMessage(dataUrl, caption = '') {
+	return caption ? `[IMAGE_MESSAGE:${dataUrl}|${caption}]` : `[IMAGE_MESSAGE:${dataUrl}]`;
+}
+
+/**
+ * Checks whether a message content string is an image message
+ * @param {string} content
+ * @returns {boolean}
+ */
+export function isImageMessage(content) {
+	if (!content || typeof content !== 'string') return false;
+	return content.startsWith('[IMAGE_MESSAGE:') && content.endsWith(']');
+}
+
+/**
+ * Parses an image message string into structured data
+ * @param {string} content
+ * @returns {{ isImage: boolean, url: string, caption: string } | null}
+ */
+export function parseImageMessage(content) {
+	if (!isImageMessage(content)) return null;
+	try {
+		const raw = content.slice('[IMAGE_MESSAGE:'.length, -1);
+		const pipeIdx = raw.indexOf('|');
+		if (pipeIdx !== -1) {
+			const url = raw.substring(0, pipeIdx);
+			const caption = raw.substring(pipeIdx + 1);
+			return { isImage: true, url, caption };
+		}
+		return { isImage: true, url: raw, caption: '' };
+	} catch (e) {
+		return null;
+	}
+}
+
+/**
+ * Compress and downscale an image File using HTML Canvas
+ * @param {File} file
+ * @param {number} [maxWidth=1200]
+ * @param {number} [maxHeight=1200]
+ * @param {number} [quality=0.8]
+ * @returns {Promise<string>} Data URL of compressed image
+ */
+export function compressImageFile(file, maxWidth = 1200, maxHeight = 1200, quality = 0.8) {
+	return new Promise((resolve, reject) => {
+		const reader = new FileReader();
+		reader.onload = (e) => {
+			const img = new Image();
+			img.onload = () => {
+				let width = img.width;
+				let height = img.height;
+
+				if (width > maxWidth || height > maxHeight) {
+					if (width / height > maxWidth / maxHeight) {
+						height = Math.round((height * maxWidth) / width);
+						width = maxWidth;
+					} else {
+						width = Math.round((width * maxHeight) / height);
+						height = maxHeight;
+					}
+				}
+
+				const canvas = document.createElement('canvas');
+				canvas.width = width;
+				canvas.height = height;
+				const ctx = canvas.getContext('2d');
+				ctx.drawImage(img, 0, 0, width, height);
+
+				const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+				resolve(compressedDataUrl);
+			};
+			img.onerror = () => reject(new Error('Failed to load image for compression.'));
+			img.src = typeof e.target?.result === 'string' ? e.target.result : String(e.target?.result || '');
+		};
+		reader.onerror = () => reject(new Error('Failed to read image file.'));
+		reader.readAsDataURL(file);
+	});
+}
+
+/**
+ * Format a text snippet for conversation list preview
+ * @param {string} content
+ * @returns {string}
+ */
+export function formatMessagePreview(content) {
+	if (!content) return 'No messages yet.';
+	if (isGpsMessage(content)) return '📍 Shared GPS Location';
+	if (isImageMessage(content)) return '📷 Sent a photo';
+	return content;
+}
+

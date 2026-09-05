@@ -1,12 +1,14 @@
 <script>
 	import { enhance } from "$app/forms";
 	import { invalidateAll } from "$app/navigation";
-	import { MessageSquare, Pin, RefreshCw, Star, ClipboardList, Check, User, ArrowLeft, Radio, Send, MapPin, Navigation, ExternalLink, Compass, Search, X, SlidersHorizontal, ChevronDown, ChevronUp } from 'lucide-svelte';
+	import { MessageSquare, Pin, RefreshCw, Star, ClipboardList, Check, User, ArrowLeft, Radio, Send, MapPin, Navigation, ExternalLink, Compass, Search, X, SlidersHorizontal, ChevronDown, ChevronUp, Plus, Image as ImageIcon, Trash2 } from 'lucide-svelte';
 	import ViewProfileModal from '$lib/ViewProfileModal.svelte';
 	import LocationPickerModal from '$lib/LocationPickerModal.svelte';
+	import ConfirmDeleteModal from '$lib/ConfirmDeleteModal.svelte';
+	import MobileChatHistory from '$lib/MobileChatHistory.svelte';
 	import { CITIES_MUNICIPALITIES } from '$lib/locations.js';
 	import { setupRealtimeChat, playNotificationSound } from '$lib/realtimeChat.js';
-	import { getCurrentCoordinates, formatGpsChatMessage, parseGpsMessage, getGoogleMapsUrl, getEmbedMapUrl, isGpsMessage } from '$lib/gpsUtils.js';
+	import { getCurrentCoordinates, formatGpsChatMessage, parseGpsMessage, getGoogleMapsUrl, getEmbedMapUrl, isGpsMessage, formatImageChatMessage, isImageMessage, parseImageMessage, compressImageFile, formatMessagePreview } from '$lib/gpsUtils.js';
 
 	import { onMount } from 'svelte';
 
@@ -252,6 +254,15 @@
 			null,
 	);
 
+	function closeActiveConversation() {
+		if (typeof window !== 'undefined' && history.state?.chatOpen) {
+			history.back();
+		} else {
+			activeConvId = '';
+			showGpsDropup = false;
+		}
+	}
+
 	function selectConversation(convId) {
 		activeConvId = convId;
 		showGpsDropup = false;
@@ -280,30 +291,59 @@
 		}
 	});
 
+	let fileInputRef = $state(null);
+	let uploadingImage = $state(false);
+	let previewImageModalUrl = $state(null);
+
+	function triggerImageUpload() {
+		if (fileInputRef) {
+			fileInputRef.click();
+		}
+	}
+
+	async function handleImageFileSelect(e) {
+		const file = e.target.files?.[0];
+		if (!file) return;
+
+		e.target.value = '';
+
+		if (!file.type.startsWith('image/')) {
+			alert('Please select a valid image file (JPG, PNG, WebP, etc.).');
+			return;
+		}
+
+		uploadingImage = true;
+		try {
+			const compressedDataUrl = await compressImageFile(file);
+			const imageMsgPayload = formatImageChatMessage(compressedDataUrl);
+			await sendChatMessagePayload(imageMsgPayload);
+		} catch (err) {
+			console.error('Failed to process image:', err);
+			alert('Could not process selected image. Please try again.');
+		} finally {
+			uploadingImage = false;
+		}
+	}
+
 	// Incoming message handler from Supabase Realtime WebSocket
 	function handleIncomingMessage(msg) {
-		if (!msg || !conversations) return;
+		if (!msg || !msg.job_id || !msg.sender_id || !msg.receiver_id || !conversations) return;
+		const otherUserId = msg.sender_id === data.user?.id ? msg.receiver_id : msg.sender_id;
+		const convKey = `${msg.job_id}_${otherUserId}`;
 
-		let matchedConv = conversations.find(c => 
-			c.job_id === msg.job_id && (c.other_user_id === msg.sender_id || c.other_user_id === msg.receiver_id)
-		);
+		let matchedConv = conversations.find(c => c.id === convKey);
 
 		if (matchedConv) {
 			conversations = conversations.map(c => {
 				if (c.id === matchedConv.id) {
-					let updatedMsgs = c.messages || [];
-					if (c.messagesLoaded) {
-						const existingIdx = (c.messages || []).findIndex(m => m.id === msg.id);
-						if (existingIdx !== -1) {
-							return c;
-						}
+					const existingMsgs = c.messages || [];
+					let updatedMsgs = existingMsgs;
 
-						const optimisticIdx = (c.messages || []).findIndex(m => 
-							m.id && String(m.id).startsWith('temp_') && m.content === msg.content && m.sender_id === msg.sender_id
-						);
-
+					const isAlreadyPresent = existingMsgs.some(m => m.id === msg.id);
+					if (!isAlreadyPresent) {
+						const optimisticIdx = existingMsgs.findIndex(m => m.id && String(m.id).startsWith('temp_') && m.sender_id === msg.sender_id && m.content === msg.content);
 						if (optimisticIdx !== -1) {
-							updatedMsgs = [...c.messages];
+							updatedMsgs = [...existingMsgs];
 							updatedMsgs[optimisticIdx] = msg;
 						} else {
 							updatedMsgs = [...(c.messages || []), msg];
@@ -312,7 +352,7 @@
 
 					return {
 						...c,
-						last_message: msg.content,
+						last_message: formatMessagePreview(msg.content),
 						last_message_at: msg.created_at,
 						messages: updatedMsgs
 					};
@@ -340,6 +380,61 @@
 		}
 	}
 
+	function handleIncomingMessageDelete(messageId) {
+		if (!messageId || !conversations) return;
+		conversations = conversations.map(c => {
+			const updatedMsgs = (c.messages || []).filter(m => m.id !== messageId);
+			const lastMsg = updatedMsgs[updatedMsgs.length - 1];
+			return {
+				...c,
+				last_message: formatMessagePreview(lastMsg?.content),
+				messages: updatedMsgs
+			};
+		});
+	}
+
+	let showDeleteConfirmModal = $state(false);
+	let pendingDeleteMsgId = $state('');
+	let deletingMessage = $state(false);
+
+	function promptDeleteMessage(messageId) {
+		if (!messageId) return;
+		pendingDeleteMsgId = messageId;
+		showDeleteConfirmModal = true;
+	}
+
+	async function confirmDeleteMessage() {
+		if (!pendingDeleteMsgId) return;
+		deletingMessage = true;
+		try {
+			await handleDeleteMessage(pendingDeleteMsgId);
+		} finally {
+			deletingMessage = false;
+			pendingDeleteMsgId = '';
+			showDeleteConfirmModal = false;
+		}
+	}
+
+	async function handleDeleteMessage(messageId) {
+		if (!messageId || !activeConversation) return;
+
+		handleIncomingMessageDelete(messageId);
+
+		if (realtimeControls) {
+			realtimeControls.sendBroadcastDelete(messageId);
+		}
+
+		try {
+			await fetch('/api/messages/delete', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ messageId })
+			});
+		} catch (err) {
+			console.error('Failed to delete message:', err);
+		}
+	}
+
 	// Realtime WebSocket Subscription Lifecycle Effect
 	$effect(() => {
 		if (!data.user?.id) return;
@@ -348,6 +443,9 @@
 			currentUserId: data.user.id,
 			onMessage: (msg) => {
 				handleIncomingMessage(msg);
+			},
+			onDelete: (messageId) => {
+				handleIncomingMessageDelete(messageId);
 			},
 			onTyping: ({ convId, isTyping }) => {
 				if (activeConversation && activeConversation.id === convId) {
@@ -410,7 +508,7 @@
 
 		conversations = conversations.map(c => {
 			if (c.id === targetConv.id) {
-				const previewText = isGpsMessage(trimmed) ? '📍 Shared GPS Location' : trimmed;
+				const previewText = formatMessagePreview(trimmed);
 				return {
 					...c,
 					last_message: previewText,
@@ -1221,13 +1319,12 @@
 						<button
 							type="button"
 							class="btn btn-outline mobile-back-btn"
-							style="padding: 0.3rem 0.5rem; display: none; align-items: center;"
-							onclick={() => {
-								activeConvId = "";
-								showGpsDropup = false;
-							}}
+							aria-label="Back to chat list"
+							style="display: none;"
+							onclick={closeActiveConversation}
 						>
-							<ArrowLeft size={16} />
+							<ArrowLeft size={22} />
+							<span>Back</span>
 						</button>
 						<div>
 							<h4
@@ -1282,49 +1379,72 @@
 						{/if}
 						{#each activeConversation.messages as msg (msg.id || msg.created_at)}
 							{@const gpsData = parseGpsMessage(msg.content)}
-							<div
-								class="chat-bubble {msg.sender_id ===
-								data.user?.id
-									? 'sent'
-									: 'received'}"
-							>
-								{#if gpsData}
-									<div class="chat-location-card">
-										<div class="chat-location-header">
-											<MapPin size={15} color="var(--accent-hover)" />
-											<span>{gpsData.label}</span>
-										</div>
-										<div class="chat-location-preview-box">
-											<iframe 
-												title="Shared GPS Location"
-												src={gpsData.embedUrl}
-												loading="lazy"
-											></iframe>
-										</div>
-										<div style="font-size: 0.72rem; opacity: 0.85;">
-											Coordinates: {gpsData.lat}, {gpsData.lng}
-										</div>
-										<div class="chat-location-actions">
-											<a 
-												href={gpsData.mapUrl} 
-												target="_blank" 
-												rel="noopener noreferrer" 
-												class="chat-location-btn"
-											>
-												<ExternalLink size={13} /> Open in Google Maps
-											</a>
-										</div>
-									</div>
-								{:else}
-									<div>{msg.content}</div>
+							{@const imgData = parseImageMessage(msg.content)}
+							<div class="chat-bubble-row {msg.sender_id === data.user?.id ? 'sent' : 'received'}">
+								{#if msg.sender_id === data.user?.id}
+									<button 
+										type="button" 
+										class="chat-msg-delete-btn" 
+										onclick={() => promptDeleteMessage(msg.id)} 
+										title="Delete message"
+										aria-label="Delete message"
+									>
+										<Trash2 size={13} />
+									</button>
 								{/if}
-								<div class="chat-time">
-									{new Date(
-										msg.created_at,
-									).toLocaleTimeString("en-PH", {
-										hour: "2-digit",
-										minute: "2-digit",
-									})}
+								<div class="chat-bubble {msg.sender_id === data.user?.id ? 'sent' : 'received'}">
+									{#if gpsData}
+										<div class="chat-location-card">
+											<div class="chat-location-header">
+												<MapPin size={15} color="var(--accent-hover)" />
+												<span>{gpsData.label}</span>
+											</div>
+											<div class="chat-location-preview-box">
+												<iframe 
+													title="Shared GPS Location"
+													src={gpsData.embedUrl}
+													loading="lazy"
+												></iframe>
+											</div>
+											<div style="font-size: 0.72rem; opacity: 0.85;">
+												Coordinates: {gpsData.lat}, {gpsData.lng}
+											</div>
+											<div class="chat-location-actions">
+												<a 
+													href={gpsData.mapUrl} 
+													target="_blank" 
+													rel="noopener noreferrer" 
+													class="chat-location-btn"
+												>
+													<ExternalLink size={13} /> Open in Google Maps
+												</a>
+											</div>
+										</div>
+									{:else if imgData}
+										<div class="chat-image-card">
+											<button 
+												type="button" 
+												class="chat-image-btn" 
+												onclick={() => previewImageModalUrl = imgData.url}
+												title="Click to view full photo"
+											>
+												<img src={imgData.url} alt="Shared attachment" class="chat-image-preview" loading="lazy" />
+											</button>
+											{#if imgData.caption}
+												<div class="chat-image-caption">{imgData.caption}</div>
+											{/if}
+										</div>
+									{:else}
+										<div>{msg.content}</div>
+									{/if}
+									<div class="chat-time">
+										{new Date(
+											msg.created_at,
+										).toLocaleTimeString("en-PH", {
+											hour: "2-digit",
+											minute: "2-digit",
+										})}
+									</div>
 								</div>
 							</div>
 						{/each}
@@ -1358,19 +1478,29 @@
 							value={activeConversation.other_user_id}
 						/>
 
-						<!-- Mobile GPS Icon with Dropup Menu -->
+						<!-- Hidden File Input for Image Upload -->
+						<input 
+							type="file" 
+							bind:this={fileInputRef} 
+							accept="image/*" 
+							style="display: none;" 
+							onchange={handleImageFileSelect} 
+						/>
+
+						<!-- Mobile Plus Trigger Button with Dropup Menu -->
 						<div class="chat-gps-mobile-container">
 							<button 
 								type="button" 
 								class="chat-gps-mobile-trigger {showGpsDropup ? 'active' : ''}" 
 								onclick={() => showGpsDropup = !showGpsDropup}
-								aria-label="Location options"
-								title="Share Location"
+								aria-label="Action options"
+								title="Add Attachment or Location"
+								disabled={sharingLocation || uploadingImage}
 							>
-								{#if sharingLocation}
+								{#if sharingLocation || uploadingImage}
 									<span class="spinner spinner-sm"></span>
 								{:else}
-									<MapPin size={18} />
+									<Plus size={20} class="dropup-plus-icon" />
 								{/if}
 							</button>
 
@@ -1379,11 +1509,29 @@
 									type="button" 
 									class="chat-dropup-backdrop" 
 									onclick={() => showGpsDropup = false}
-									aria-label="Close location menu"
+									aria-label="Close menu"
 									tabindex="-1"
 								></button>
 
 								<div class="chat-gps-dropup-menu" role="menu">
+									<!-- Custom Pin -->
+									<button 
+										type="button" 
+										class="chat-dropup-item" 
+										onclick={() => {
+											showGpsDropup = false;
+											showCustomLocationModal = true;
+										}}
+										disabled={sendingMessage || uploadingImage}
+									>
+										<Compass size={16} color="var(--accent-hover)" />
+										<div class="chat-dropup-item-info">
+											<span class="dropup-title">Custom Pin</span>
+											<span class="dropup-subtitle">Search & pin on map</span>
+										</div>
+									</button>
+
+									<!-- Auto GPS -->
 									<button 
 										type="button" 
 										class="chat-dropup-item" 
@@ -1391,7 +1539,7 @@
 											showGpsDropup = false;
 											handleShareLocation();
 										}}
-										disabled={sharingLocation || sendingMessage}
+										disabled={sharingLocation || sendingMessage || uploadingImage}
 									>
 										<Navigation size={16} color="var(--accent-hover)" />
 										<div class="chat-dropup-item-info">
@@ -1400,31 +1548,32 @@
 										</div>
 									</button>
 
+									<!-- Send Image -->
 									<button 
 										type="button" 
 										class="chat-dropup-item" 
 										onclick={() => {
 											showGpsDropup = false;
-											showCustomLocationModal = true;
+											triggerImageUpload();
 										}}
-										disabled={sendingMessage}
+										disabled={uploadingImage || sendingMessage}
 									>
-										<Compass size={16} color="var(--accent-hover)" />
+										<ImageIcon size={16} color="var(--accent-hover)" />
 										<div class="chat-dropup-item-info">
-											<span class="dropup-title">Custom Pin</span>
-											<span class="dropup-subtitle">Search & pin on map</span>
+											<span class="dropup-title">Send Image</span>
+											<span class="dropup-subtitle">Upload & send a photo</span>
 										</div>
 									</button>
 								</div>
 							{/if}
 						</div>
 
-						<!-- Desktop GPS Buttons -->
+						<!-- Desktop GPS & Image Buttons -->
 						<button 
 							type="button" 
 							class="chat-gps-btn chat-gps-desktop-btn" 
 							onclick={handleShareLocation}
-							disabled={sharingLocation || sendingMessage}
+							disabled={sharingLocation || sendingMessage || uploadingImage}
 							title="Share your current device GPS location"
 						>
 							{#if sharingLocation}
@@ -1439,12 +1588,28 @@
 							type="button" 
 							class="chat-gps-btn chat-gps-desktop-btn" 
 							onclick={() => showCustomLocationModal = true}
-							disabled={sendingMessage}
+							disabled={sendingMessage || uploadingImage}
 							title="Search & pin any custom location or landmark"
 							style="border-color: var(--accent); color: var(--accent-hover);"
 						>
 							<Compass size={14} />
 							<span style="font-size: 0.8rem;">Pin Map</span>
+						</button>
+
+						<button 
+							type="button" 
+							class="chat-gps-btn chat-gps-desktop-btn" 
+							onclick={triggerImageUpload}
+							disabled={uploadingImage || sendingMessage}
+							title="Upload and send a photo"
+							style="border-color: var(--border-color); color: var(--text-primary);"
+						>
+							{#if uploadingImage}
+								<span class="spinner spinner-sm"></span>
+							{:else}
+								<ImageIcon size={14} />
+							{/if}
+							<span style="font-size: 0.8rem;">Send Pic</span>
 						</button>
 
 						<input
@@ -1815,4 +1980,35 @@
 	bind:show={showCustomLocationModal}
 	title="Share Custom Pin / Landmark Location"
 	onSave={handleCustomChatLocationSaved}
+/>
+
+<MobileChatHistory bind:activeConvId bind:showGpsDropup {activeTab} />
+
+<!-- IMAGE PREVIEW LIGHTBOX MODAL -->
+{#if previewImageModalUrl}
+	<div 
+		class="image-preview-modal-backdrop" 
+		onclick={() => previewImageModalUrl = null} 
+		role="dialog" 
+		aria-modal="true"
+		tabindex="-1"
+	>
+		<div class="image-preview-modal-content" onclick={(e) => e.stopPropagation()} role="document">
+			<button 
+				type="button" 
+				class="image-preview-close-btn" 
+				onclick={() => previewImageModalUrl = null} 
+				aria-label="Close image preview"
+			>
+				<X size={20} />
+			</button>
+			<img src={previewImageModalUrl} alt="Enlarged photo preview" class="image-preview-full-img" />
+		</div>
+	</div>
+{/if}
+
+<ConfirmDeleteModal 
+	bind:show={showDeleteConfirmModal} 
+	loading={deletingMessage} 
+	onConfirm={confirmDeleteMessage} 
 />

@@ -352,6 +352,18 @@ export const db = {
 				.eq('id', id);
 			if (error) throw new Error(error.message);
 			return true;
+		},
+
+		async update(id, updates) {
+			const supabase = getSupabase();
+			const { data, error } = await supabase
+				.from('job_posts')
+				.update(updates)
+				.eq('id', id)
+				.select()
+				.single();
+			if (error) throw new Error(error.message);
+			return data;
 		}
 	},
 
@@ -498,6 +510,22 @@ export const db = {
 			}
 
 			return msg;
+		},
+
+		async delete(messageId, senderId) {
+			const supabase = getSupabase();
+			const { error } = await supabase
+				.from('messages')
+				.delete()
+				.eq('id', messageId)
+				.eq('sender_id', senderId);
+
+			if (error) {
+				console.error('Supabase message delete error:', error.message);
+			}
+
+			this.fallbackStore = this.fallbackStore.filter(m => !(m.id === messageId && m.sender_id === senderId));
+			return true;
 		},
 
 		async listForThread(jobId, userAId, userBId, limit = 20, before = null) {
@@ -692,12 +720,23 @@ export const db = {
 				const lastMsg = sortedMsgs[sortedMsgs.length - 1];
 				const defaultTime = job?.created_at || new Date().toISOString();
 
+				let lastMsgContent = 'Inquired on post. Send a message...';
+				if (lastMsg && lastMsg.content) {
+					if (lastMsg.content.startsWith('[GPS_LOCATION:') && lastMsg.content.endsWith(']')) {
+						lastMsgContent = '📍 Shared GPS Location';
+					} else if (lastMsg.content.startsWith('[IMAGE_MESSAGE:') && lastMsg.content.endsWith(']')) {
+						lastMsgContent = '📷 Sent a photo';
+					} else {
+						lastMsgContent = lastMsg.content;
+					}
+				}
+
 				conversations.push({
 					...conv,
 					job_title: job ? job.title : 'Job Inquiry',
 					other_user_name: otherUser ? otherUser.name : 'User',
 					other_user_role: otherUser ? otherUser.role : '',
-					last_message: lastMsg ? lastMsg.content : 'Inquired on post. Send a message...',
+					last_message: lastMsgContent,
 					last_message_at: lastMsg ? lastMsg.created_at : defaultTime,
 					messages: [],
 					messagesLoaded: false

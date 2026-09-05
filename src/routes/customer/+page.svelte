@@ -1,12 +1,14 @@
 <script>
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
-	import { MessageSquare, Pin, RefreshCw, Star, UserCheck, Plus, User, ClipboardList, CheckCircle2, Clock, ArrowLeft, Radio, Send, MapPin, Navigation, ExternalLink, Compass, Trash2, Search, X, SlidersHorizontal, ChevronDown, ChevronUp } from 'lucide-svelte';
+	import { MessageSquare, Pin, RefreshCw, Star, UserCheck, Plus, User, ClipboardList, CheckCircle2, Clock, ArrowLeft, Radio, Send, MapPin, Navigation, ExternalLink, Compass, Trash2, Search, X, SlidersHorizontal, ChevronDown, ChevronUp, Image as ImageIcon, Pencil } from 'lucide-svelte';
 	import ViewProfileModal from '$lib/ViewProfileModal.svelte';
 	import LocationPickerModal from '$lib/LocationPickerModal.svelte';
+	import ConfirmDeleteModal from '$lib/ConfirmDeleteModal.svelte';
+	import MobileChatHistory from '$lib/MobileChatHistory.svelte';
 	import { CITIES_MUNICIPALITIES } from '$lib/locations.js';
 	import { setupRealtimeChat, playNotificationSound } from '$lib/realtimeChat.js';
-	import { getCurrentCoordinates, formatGpsChatMessage, parseGpsMessage, getGoogleMapsUrl, getEmbedMapUrl, isGpsMessage } from '$lib/gpsUtils.js';
+	import { getCurrentCoordinates, formatGpsChatMessage, parseGpsMessage, getGoogleMapsUrl, getEmbedMapUrl, isGpsMessage, formatImageChatMessage, isImageMessage, parseImageMessage, compressImageFile, formatMessagePreview } from '$lib/gpsUtils.js';
 
 	import { onMount } from 'svelte';
 
@@ -250,6 +252,15 @@
 		conversations.find(c => c.id === activeConvId) || conversations[0] || null
 	);
 
+	function closeActiveConversation() {
+		if (typeof window !== 'undefined' && history.state?.chatOpen) {
+			history.back();
+		} else {
+			activeConvId = '';
+			showGpsDropup = false;
+		}
+	}
+
 	function selectConversation(convId) {
 		activeConvId = convId;
 		showGpsDropup = false;
@@ -278,30 +289,59 @@
 		}
 	});
 
+	let fileInputRef = $state(null);
+	let uploadingImage = $state(false);
+	let previewImageModalUrl = $state(null);
+
+	function triggerImageUpload() {
+		if (fileInputRef) {
+			fileInputRef.click();
+		}
+	}
+
+	async function handleImageFileSelect(e) {
+		const file = e.target.files?.[0];
+		if (!file) return;
+
+		e.target.value = '';
+
+		if (!file.type.startsWith('image/')) {
+			alert('Please select a valid image file (JPG, PNG, WebP, etc.).');
+			return;
+		}
+
+		uploadingImage = true;
+		try {
+			const compressedDataUrl = await compressImageFile(file);
+			const imageMsgPayload = formatImageChatMessage(compressedDataUrl);
+			await sendChatMessagePayload(imageMsgPayload);
+		} catch (err) {
+			console.error('Failed to process image:', err);
+			alert('Could not process selected image. Please try again.');
+		} finally {
+			uploadingImage = false;
+		}
+	}
+
 	// Incoming message handler from Supabase Realtime WebSocket
 	function handleIncomingMessage(msg) {
-		if (!msg || !conversations) return;
+		if (!msg || !msg.job_id || !msg.sender_id || !msg.receiver_id || !conversations) return;
+		const otherUserId = msg.sender_id === data.user?.id ? msg.receiver_id : msg.sender_id;
+		const convKey = `${msg.job_id}_${otherUserId}`;
 
-		let matchedConv = conversations.find(c => 
-			c.job_id === msg.job_id && (c.other_user_id === msg.sender_id || c.other_user_id === msg.receiver_id)
-		);
+		let matchedConv = conversations.find(c => c.id === convKey);
 
 		if (matchedConv) {
 			conversations = conversations.map(c => {
 				if (c.id === matchedConv.id) {
-					let updatedMsgs = c.messages || [];
-					if (c.messagesLoaded) {
-						const existingIdx = (c.messages || []).findIndex(m => m.id === msg.id);
-						if (existingIdx !== -1) {
-							return c;
-						}
+					const existingMsgs = c.messages || [];
+					let updatedMsgs = existingMsgs;
 
-						const optimisticIdx = (c.messages || []).findIndex(m => 
-							m.id && String(m.id).startsWith('temp_') && m.content === msg.content && m.sender_id === msg.sender_id
-						);
-
+					const isAlreadyPresent = existingMsgs.some(m => m.id === msg.id);
+					if (!isAlreadyPresent) {
+						const optimisticIdx = existingMsgs.findIndex(m => m.id && String(m.id).startsWith('temp_') && m.sender_id === msg.sender_id && m.content === msg.content);
 						if (optimisticIdx !== -1) {
-							updatedMsgs = [...c.messages];
+							updatedMsgs = [...existingMsgs];
 							updatedMsgs[optimisticIdx] = msg;
 						} else {
 							updatedMsgs = [...(c.messages || []), msg];
@@ -310,7 +350,7 @@
 
 					return {
 						...c,
-						last_message: msg.content,
+						last_message: formatMessagePreview(msg.content),
 						last_message_at: msg.created_at,
 						messages: updatedMsgs
 					};
@@ -338,6 +378,61 @@
 		}
 	}
 
+	function handleIncomingMessageDelete(messageId) {
+		if (!messageId || !conversations) return;
+		conversations = conversations.map(c => {
+			const updatedMsgs = (c.messages || []).filter(m => m.id !== messageId);
+			const lastMsg = updatedMsgs[updatedMsgs.length - 1];
+			return {
+				...c,
+				last_message: formatMessagePreview(lastMsg?.content),
+				messages: updatedMsgs
+			};
+		});
+	}
+
+	let showDeleteConfirmModal = $state(false);
+	let pendingDeleteMsgId = $state('');
+	let deletingMessage = $state(false);
+
+	function promptDeleteMessage(messageId) {
+		if (!messageId) return;
+		pendingDeleteMsgId = messageId;
+		showDeleteConfirmModal = true;
+	}
+
+	async function confirmDeleteMessage() {
+		if (!pendingDeleteMsgId) return;
+		deletingMessage = true;
+		try {
+			await handleDeleteMessage(pendingDeleteMsgId);
+		} finally {
+			deletingMessage = false;
+			pendingDeleteMsgId = '';
+			showDeleteConfirmModal = false;
+		}
+	}
+
+	async function handleDeleteMessage(messageId) {
+		if (!messageId || !activeConversation) return;
+
+		handleIncomingMessageDelete(messageId);
+
+		if (realtimeControls) {
+			realtimeControls.sendBroadcastDelete(messageId);
+		}
+
+		try {
+			await fetch('/api/messages/delete', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ messageId })
+			});
+		} catch (err) {
+			console.error('Failed to delete message:', err);
+		}
+	}
+
 	// Realtime WebSocket Subscription Lifecycle Effect
 	$effect(() => {
 		if (!data.user?.id) return;
@@ -346,6 +441,9 @@
 			currentUserId: data.user.id,
 			onMessage: (msg) => {
 				handleIncomingMessage(msg);
+			},
+			onDelete: (messageId) => {
+				handleIncomingMessageDelete(messageId);
 			},
 			onTyping: ({ convId, isTyping }) => {
 				if (activeConversation && activeConversation.id === convId) {
@@ -408,7 +506,7 @@
 
 		conversations = conversations.map(c => {
 			if (c.id === targetConv.id) {
-				const previewText = isGpsMessage(trimmed) ? '📍 Shared GPS Location' : trimmed;
+				const previewText = formatMessagePreview(trimmed);
 				return {
 					...c,
 					last_message: previewText,
@@ -532,6 +630,64 @@
 			title: '',
 			deleting: false
 		};
+	}
+
+	// Edit Job Modal State
+	let editJobModal = $state({
+		open: false,
+		id: null,
+		title: '',
+		category: '',
+		description: '',
+		location: '',
+		budget: 0,
+		target_date: '',
+		latitude: null,
+		longitude: null,
+		saving: false
+	});
+
+	let showEditJobLocationModal = $state(false);
+
+	function openEditJobModal(job) {
+		const formattedDate = job.target_date ? new Date(job.target_date).toISOString().slice(0, 16) : '';
+		editJobModal = {
+			open: true,
+			id: job.id,
+			title: job.title || '',
+			category: job.category || 'Plumbing / Tubero',
+			description: job.description || '',
+			location: job.location || '',
+			budget: job.budget || 0,
+			target_date: formattedDate,
+			latitude: job.latitude || null,
+			longitude: job.longitude || null,
+			saving: false
+		};
+	}
+
+	function closeEditJobModal() {
+		editJobModal = {
+			open: false,
+			id: null,
+			title: '',
+			category: '',
+			description: '',
+			location: '',
+			budget: 0,
+			target_date: '',
+			latitude: null,
+			longitude: null,
+			saving: false
+		};
+	}
+
+	function handleEditJobLocationSaved(loc) {
+		editJobModal.latitude = loc.latitude;
+		editJobModal.longitude = loc.longitude;
+		if (loc.address) {
+			editJobModal.location = loc.address;
+		}
 	}
 
 	// Category mapping for badge styling helper
@@ -883,16 +1039,28 @@
 
 							<div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem;">
 								<strong class="feed-job-budget" style="color: var(--accent); font-size: 1.25rem; display: block;">₱{job.budget.toLocaleString()}</strong>
-								<button
-									type="button"
-									class="btn btn-outline"
-									style="padding: 0.25rem 0.6rem; font-size: 0.75rem; border-color: #ef4444; color: #ef4444; display: inline-flex; align-items: center; gap: 0.3rem;"
-									onclick={() => openDeleteJobModal(job)}
-									title="Delete Job Post"
-								>
-									<Trash2 size={13} />
-									<span>Delete Post</span>
-								</button>
+								<div style="display: flex; gap: 0.35rem; align-items: center;">
+									<button
+										type="button"
+										class="btn btn-outline"
+										style="padding: 0.25rem 0.6rem; font-size: 0.75rem; border-color: var(--accent); color: var(--accent-hover); display: inline-flex; align-items: center; gap: 0.3rem;"
+										onclick={() => openEditJobModal(job)}
+										title="Edit Job Post"
+									>
+										<Pencil size={13} />
+										<span>Edit</span>
+									</button>
+									<button
+										type="button"
+										class="btn btn-outline"
+										style="padding: 0.25rem 0.6rem; font-size: 0.75rem; border-color: #ef4444; color: #ef4444; display: inline-flex; align-items: center; gap: 0.3rem;"
+										onclick={() => openDeleteJobModal(job)}
+										title="Delete Job Post"
+									>
+										<Trash2 size={13} />
+										<span>Delete</span>
+									</button>
+								</div>
 							</div>
 						</div>
 
@@ -1173,13 +1341,12 @@
 						<button
 							type="button"
 							class="btn btn-outline mobile-back-btn"
-							style="padding: 0.3rem 0.5rem; display: none; align-items: center;"
-							onclick={() => {
-								activeConvId = '';
-								showGpsDropup = false;
-							}}
+							aria-label="Back to chat list"
+							style="display: none;"
+							onclick={closeActiveConversation}
 						>
-							<ArrowLeft size={16} />
+							<ArrowLeft size={22} />
+							<span>Back</span>
 						</button>
 						<div>
 							<h4 style="margin: 0; font-size: 1.05rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
@@ -1228,39 +1395,67 @@
 						{/if}
 						{#each activeConversation.messages as msg (msg.id || msg.created_at)}
 							{@const gpsData = parseGpsMessage(msg.content)}
-							<div class="chat-bubble {msg.sender_id === data.user.id ? 'sent' : 'received'}">
-								{#if gpsData}
-									<div class="chat-location-card">
-										<div class="chat-location-header">
-											<MapPin size={15} color="var(--accent-hover)" />
-											<span>{gpsData.label}</span>
-										</div>
-										<div class="chat-location-preview-box">
-											<iframe 
-												title="Shared GPS Location"
-												src={gpsData.embedUrl}
-												loading="lazy"
-											></iframe>
-										</div>
-										<div style="font-size: 0.72rem; opacity: 0.85;">
-											Coordinates: {gpsData.lat}, {gpsData.lng}
-										</div>
-										<div class="chat-location-actions">
-											<a 
-												href={gpsData.mapUrl} 
-												target="_blank" 
-												rel="noopener noreferrer" 
-												class="chat-location-btn"
-											>
-												<ExternalLink size={13} /> Open in Google Maps
-											</a>
-										</div>
-									</div>
-								{:else}
-									<div>{msg.content}</div>
+							{@const imgData = parseImageMessage(msg.content)}
+							<div class="chat-bubble-row {msg.sender_id === data.user.id ? 'sent' : 'received'}">
+								{#if msg.sender_id === data.user.id}
+									<button 
+										type="button" 
+										class="chat-msg-delete-btn" 
+										onclick={() => promptDeleteMessage(msg.id)} 
+										title="Delete message"
+										aria-label="Delete message"
+									>
+										<Trash2 size={13} />
+									</button>
 								{/if}
-								<div class="chat-time">
-									{new Date(msg.created_at).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' })}
+								<div class="chat-bubble {msg.sender_id === data.user.id ? 'sent' : 'received'}">
+									{#if gpsData}
+										<div class="chat-location-card">
+											<div class="chat-location-header">
+												<MapPin size={15} color="var(--accent-hover)" />
+												<span>{gpsData.label}</span>
+											</div>
+											<div class="chat-location-preview-box">
+												<iframe 
+													title="Shared GPS Location"
+													src={gpsData.embedUrl}
+													loading="lazy"
+												></iframe>
+											</div>
+											<div style="font-size: 0.72rem; opacity: 0.85;">
+												Coordinates: {gpsData.lat}, {gpsData.lng}
+											</div>
+											<div class="chat-location-actions">
+												<a 
+													href={gpsData.mapUrl} 
+													target="_blank" 
+													rel="noopener noreferrer" 
+													class="chat-location-btn"
+												>
+													<ExternalLink size={13} /> Open in Google Maps
+												</a>
+											</div>
+										</div>
+									{:else if imgData}
+										<div class="chat-image-card">
+											<button 
+												type="button" 
+												class="chat-image-btn" 
+												onclick={() => previewImageModalUrl = imgData.url}
+												title="Click to view full photo"
+											>
+												<img src={imgData.url} alt="Shared attachment" class="chat-image-preview" loading="lazy" />
+											</button>
+											{#if imgData.caption}
+												<div class="chat-image-caption">{imgData.caption}</div>
+											{/if}
+										</div>
+									{:else}
+										<div>{msg.content}</div>
+									{/if}
+									<div class="chat-time">
+										{new Date(msg.created_at).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' })}
+									</div>
 								</div>
 							</div>
 						{/each}
@@ -1283,19 +1478,29 @@
 						<input type="hidden" name="jobId" value={activeConversation.job_id} />
 						<input type="hidden" name="receiverId" value={activeConversation.other_user_id} />
 						
-						<!-- Mobile GPS Icon with Dropup Menu -->
+						<!-- Hidden File Input for Image Upload -->
+						<input 
+							type="file" 
+							bind:this={fileInputRef} 
+							accept="image/*" 
+							style="display: none;" 
+							onchange={handleImageFileSelect} 
+						/>
+
+						<!-- Mobile Plus Trigger Button with Dropup Menu -->
 						<div class="chat-gps-mobile-container">
 							<button 
 								type="button" 
 								class="chat-gps-mobile-trigger {showGpsDropup ? 'active' : ''}" 
 								onclick={() => showGpsDropup = !showGpsDropup}
-								aria-label="Location options"
-								title="Share Location"
+								aria-label="Action options"
+								title="Add Attachment or Location"
+								disabled={sharingLocation || uploadingImage}
 							>
-								{#if sharingLocation}
+								{#if sharingLocation || uploadingImage}
 									<span class="spinner spinner-sm"></span>
 								{:else}
-									<MapPin size={18} />
+									<Plus size={20} class="dropup-plus-icon" />
 								{/if}
 							</button>
 
@@ -1304,11 +1509,29 @@
 									type="button" 
 									class="chat-dropup-backdrop" 
 									onclick={() => showGpsDropup = false}
-									aria-label="Close location menu"
+									aria-label="Close menu"
 									tabindex="-1"
 								></button>
 
 								<div class="chat-gps-dropup-menu" role="menu">
+									<!-- Custom Pin -->
+									<button 
+										type="button" 
+										class="chat-dropup-item" 
+										onclick={() => {
+											showGpsDropup = false;
+											showCustomLocationModal = true;
+										}}
+										disabled={sendingMessage || uploadingImage}
+									>
+										<Compass size={16} color="var(--accent-hover)" />
+										<div class="chat-dropup-item-info">
+											<span class="dropup-title">Custom Pin</span>
+											<span class="dropup-subtitle">Search & pin on map</span>
+										</div>
+									</button>
+
+									<!-- Auto GPS -->
 									<button 
 										type="button" 
 										class="chat-dropup-item" 
@@ -1316,7 +1539,7 @@
 											showGpsDropup = false;
 											handleShareLocation();
 										}}
-										disabled={sharingLocation || sendingMessage}
+										disabled={sharingLocation || sendingMessage || uploadingImage}
 									>
 										<Navigation size={16} color="var(--accent-hover)" />
 										<div class="chat-dropup-item-info">
@@ -1325,31 +1548,32 @@
 										</div>
 									</button>
 
+									<!-- Send Image -->
 									<button 
 										type="button" 
 										class="chat-dropup-item" 
 										onclick={() => {
 											showGpsDropup = false;
-											showCustomLocationModal = true;
+											triggerImageUpload();
 										}}
-										disabled={sendingMessage}
+										disabled={uploadingImage || sendingMessage}
 									>
-										<Compass size={16} color="var(--accent-hover)" />
+										<ImageIcon size={16} color="var(--accent-hover)" />
 										<div class="chat-dropup-item-info">
-											<span class="dropup-title">Custom Pin</span>
-											<span class="dropup-subtitle">Search & pin on map</span>
+											<span class="dropup-title">Send Image</span>
+											<span class="dropup-subtitle">Upload & send a photo</span>
 										</div>
 									</button>
 								</div>
 							{/if}
 						</div>
 
-						<!-- Desktop GPS Buttons -->
+						<!-- Desktop GPS & Image Buttons -->
 						<button 
 							type="button" 
 							class="chat-gps-btn chat-gps-desktop-btn" 
 							onclick={handleShareLocation}
-							disabled={sharingLocation || sendingMessage}
+							disabled={sharingLocation || sendingMessage || uploadingImage}
 							title="Share your current device GPS location"
 						>
 							{#if sharingLocation}
@@ -1364,12 +1588,28 @@
 							type="button" 
 							class="chat-gps-btn chat-gps-desktop-btn" 
 							onclick={() => showCustomLocationModal = true}
-							disabled={sendingMessage}
+							disabled={sendingMessage || uploadingImage}
 							title="Search & pin any custom location or friend's address"
 							style="border-color: var(--accent); color: var(--accent-hover);"
 						>
 							<Compass size={14} />
 							<span style="font-size: 0.8rem;">Pin Map</span>
+						</button>
+
+						<button 
+							type="button" 
+							class="chat-gps-btn chat-gps-desktop-btn" 
+							onclick={triggerImageUpload}
+							disabled={uploadingImage || sendingMessage}
+							title="Upload and send a photo"
+							style="border-color: var(--border-color); color: var(--text-primary);"
+						>
+							{#if uploadingImage}
+								<span class="spinner spinner-sm"></span>
+							{:else}
+								<ImageIcon size={14} />
+							{/if}
+							<span style="font-size: 0.8rem;">Send Pic</span>
 						</button>
 
 						<input 
@@ -1379,11 +1619,10 @@
 							bind:value={newMessageContent}
 							oninput={handleTypingInput}
 							autocomplete="off"
-							required 
 							class="chat-input-field"
 							style="flex: 1; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary);"
 						/>
-						<button type="submit" class="btn btn-primary chat-send-btn" style="display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;" disabled={sendingMessage || !newMessageContent.trim()}>
+						<button type="submit" class="btn btn-primary chat-send-btn" style="display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;" disabled={sendingMessage || uploadingImage || !newMessageContent.trim()}>
 							{#if sendingMessage}
 								<span class="spinner spinner-sm"></span>
 							{/if}
@@ -1761,4 +2000,140 @@
 	</div>
 {/if}
 
+<!-- EDIT JOB MODAL -->
+{#if editJobModal.open}
+	<div class="modal-backdrop" style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 1rem; overflow-y: auto;">
+		<div class="card" style="max-width: 550px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 1.5rem; border-radius: var(--radius-lg); background: var(--bg-card); border: 1px solid var(--border-color);">
+			<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+				<h3 style="font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+					<Pencil size={18} color="var(--accent)" /> Edit Job Post
+				</h3>
+				<button type="button" class="btn btn-outline" style="padding: 0.25rem; border: none; color: var(--text-muted);" onclick={closeEditJobModal}>
+					<X size={20} />
+				</button>
+			</div>
+
+			<form 
+				method="POST" 
+				action="?/updateJob" 
+				use:enhance={() => {
+					editJobModal.saving = true;
+					return async ({ update }) => {
+						editJobModal.saving = false;
+						closeEditJobModal();
+						await update();
+					};
+				}}
+			>
+				<input type="hidden" name="jobId" value={editJobModal.id} />
+				<input type="hidden" name="latitude" value={editJobModal.latitude || ''} />
+				<input type="hidden" name="longitude" value={editJobModal.longitude || ''} />
+
+				<div class="form-group" style="margin-bottom: 1rem;">
+					<label for="edit-title" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem;">Job Title / Service Needed</label>
+					<input type="text" id="edit-title" name="title" class="form-control" bind:value={editJobModal.title} required style="width: 100%; padding: 0.6rem 0.8rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-primary);" />
+				</div>
+
+				<div class="form-group" style="margin-bottom: 1rem;">
+					<label for="edit-category" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem;">Category</label>
+					<select id="edit-category" name="category" class="form-control" bind:value={editJobModal.category} required style="width: 100%; padding: 0.6rem 0.8rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-primary);">
+						<option value="Plumbing / Tubero">Plumbing / Tubero</option>
+						<option value="Roofing / Ayos Yero">Roofing / Ayos Yero</option>
+						<option value="Excavation / Hukay Lupa">Excavation / Hukay Lupa</option>
+						<option value="Gardening">Gardening</option>
+						<option value="Carpentry">Carpentry</option>
+						<option value="Electrical / Kuryente">Electrical / Kuryente</option>
+						<option value="General Handyman">General Handyman</option>
+					</select>
+				</div>
+
+				<div class="form-group" style="margin-bottom: 1rem;">
+					<label for="edit-description" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem;">Description & Requirements</label>
+					<textarea id="edit-description" name="description" rows="4" class="form-control" bind:value={editJobModal.description} required style="width: 100%; padding: 0.6rem 0.8rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-primary); resize: vertical;"></textarea>
+				</div>
+
+				<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
+					<div class="form-group">
+						<label for="edit-budget" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem;">Budget (₱)</label>
+						<input type="number" id="edit-budget" name="budget" min="1" step="any" class="form-control" bind:value={editJobModal.budget} required style="width: 100%; padding: 0.6rem 0.8rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-primary);" />
+					</div>
+
+					<div class="form-group">
+						<label for="edit-target_date" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem;">Target Date & Time</label>
+						<input type="datetime-local" id="edit-target_date" name="target_date" class="form-control" bind:value={editJobModal.target_date} required style="width: 100%; padding: 0.6rem 0.8rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-primary);" />
+					</div>
+				</div>
+
+				<div class="form-group" style="margin-bottom: 1.25rem;">
+					<label for="edit-location" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem;">Location / Address</label>
+					<div style="display: flex; gap: 0.5rem;">
+						<input type="text" id="edit-location" name="location" class="form-control" bind:value={editJobModal.location} required style="flex: 1; padding: 0.6rem 0.8rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-primary);" />
+						<button type="button" class="btn btn-outline" style="padding: 0.6rem 0.85rem; font-size: 0.8rem; display: flex; align-items: center; gap: 0.3rem; border-color: var(--accent); color: var(--accent-hover);" onclick={() => showEditJobLocationModal = true}>
+							<MapPin size={14} /> Pin GPS
+						</button>
+					</div>
+					{#if editJobModal.latitude && editJobModal.longitude}
+						<span style="font-size: 0.72rem; color: var(--accent-hover); display: block; margin-top: 0.25rem;">
+							📍 GPS Pinned: {editJobModal.latitude}, {editJobModal.longitude}
+						</span>
+					{/if}
+				</div>
+
+				<div style="display: flex; gap: 0.75rem; justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+					<button type="button" class="btn btn-secondary" style="padding: 0.5rem 1.25rem; font-size: 0.9rem;" onclick={closeEditJobModal} disabled={editJobModal.saving}>
+						Cancel
+					</button>
+					<button type="submit" class="btn btn-primary" style="padding: 0.5rem 1.25rem; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.4rem;" disabled={editJobModal.saving}>
+						{#if editJobModal.saving}
+							<span class="spinner spinner-sm"></span>
+							<span>Saving...</span>
+						{:else}
+							<span>Save Changes</span>
+						{/if}
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+{/if}
+
+<!-- EDIT JOB LOCATION PICKER MODAL -->
+<LocationPickerModal 
+	bind:show={showEditJobLocationModal}
+	title="Update Pinned Job Location"
+	initialLat={editJobModal.latitude}
+	initialLng={editJobModal.longitude}
+	onSave={handleEditJobLocationSaved}
+/>
+
+<MobileChatHistory bind:activeConvId bind:showGpsDropup {activeTab} />
+
+<!-- IMAGE PREVIEW LIGHTBOX MODAL -->
+{#if previewImageModalUrl}
+	<div 
+		class="image-preview-modal-backdrop" 
+		onclick={() => previewImageModalUrl = null} 
+		role="dialog" 
+		aria-modal="true"
+		tabindex="-1"
+	>
+		<div class="image-preview-modal-content" onclick={(e) => e.stopPropagation()} role="document">
+			<button 
+				type="button" 
+				class="image-preview-close-btn" 
+				onclick={() => previewImageModalUrl = null} 
+				aria-label="Close image preview"
+			>
+				<X size={20} />
+			</button>
+			<img src={previewImageModalUrl} alt="Enlarged photo preview" class="image-preview-full-img" />
+		</div>
+	</div>
+{/if}
+
+<ConfirmDeleteModal 
+	bind:show={showDeleteConfirmModal} 
+	loading={deletingMessage} 
+	onConfirm={confirmDeleteMessage} 
+/>
 

@@ -46,16 +46,18 @@ export function playNotificationSound() {
  * @param {Object} options
  * @param {string} options.currentUserId
  * @param {(message: any) => void} options.onMessage
+ * @param {(messageId: string) => void} [options.onDelete]
  * @param {(data: { convId: string, userId: string, isTyping: boolean }) => void} [options.onTyping]
  * @param {(status: string) => void} [options.onStatusChange]
- * @returns {{ channel: any, sendTypingSignal: Function, sendBroadcastMessage: Function, unsubscribe: Function }}
+ * @returns {{ channel: any, sendTypingSignal: Function, sendBroadcastMessage: Function, sendBroadcastDelete: Function, unsubscribe: Function }}
  */
-export function setupRealtimeChat({ currentUserId, onMessage, onTyping, onStatusChange }) {
+export function setupRealtimeChat({ currentUserId, onMessage, onDelete, onTyping, onStatusChange }) {
 	if (!currentUserId || !supabase) {
 		return {
 			channel: null,
 			sendTypingSignal: () => {},
 			sendBroadcastMessage: () => {},
+			sendBroadcastDelete: () => {},
 			unsubscribe: () => {}
 		};
 	}
@@ -83,14 +85,37 @@ export function setupRealtimeChat({ currentUserId, onMessage, onTyping, onStatus
 		}
 	);
 
-	// 2. Listen for Instant Broadcast Messages (0ms peer-to-peer WebSocket delivery)
+	// 2. Listen for Database DELETEs on messages table
+	channel.on(
+		'postgres_changes',
+		{
+			event: 'DELETE',
+			schema: 'public',
+			table: 'messages'
+		},
+		(payload) => {
+			const deletedId = payload.old?.id;
+			if (deletedId && onDelete) {
+				onDelete(deletedId);
+			}
+		}
+	);
+
+	// 3. Listen for Instant Broadcast Messages (0ms peer-to-peer WebSocket delivery)
 	channel.on('broadcast', { event: 'new_message' }, ({ payload }) => {
 		if (payload && (payload.sender_id === currentUserId || payload.receiver_id === currentUserId)) {
 			onMessage(payload);
 		}
 	});
 
-	// 3. Listen for Typing Indicators
+	// 4. Listen for Broadcast Message Deletion
+	channel.on('broadcast', { event: 'delete_message' }, ({ payload }) => {
+		if (payload && payload.messageId && onDelete) {
+			onDelete(payload.messageId);
+		}
+	});
+
+	// 5. Listen for Typing Indicators
 	channel.on('broadcast', { event: 'typing' }, ({ payload }) => {
 		if (payload && onTyping && payload.userId !== currentUserId) {
 			onTyping(payload);
@@ -131,6 +156,18 @@ export function setupRealtimeChat({ currentUserId, onMessage, onTyping, onStatus
 		}
 	};
 
+	const sendBroadcastDelete = (messageId) => {
+		try {
+			channel.send({
+				type: 'broadcast',
+				event: 'delete_message',
+				payload: { messageId }
+			});
+		} catch (err) {
+			console.warn('Failed to broadcast message delete:', err);
+		}
+	};
+
 	const unsubscribe = () => {
 		try {
 			supabase.removeChannel(channel);
@@ -143,6 +180,7 @@ export function setupRealtimeChat({ currentUserId, onMessage, onTyping, onStatus
 		channel,
 		sendTypingSignal,
 		sendBroadcastMessage,
+		sendBroadcastDelete,
 		unsubscribe
 	};
 }

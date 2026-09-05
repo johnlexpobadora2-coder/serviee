@@ -1,7 +1,7 @@
 <script>
 	import '../index.css';
 	import 'leaflet/dist/leaflet.css';
-	import { Menu, X, Settings, LogOut, LogIn, UserPlus, Loader2 } from 'lucide-svelte';
+	import { Menu, X, Settings, LogOut, LogIn, UserPlus, Loader2, Home, PlusCircle } from 'lucide-svelte';
 	import { navigating } from '$app/stores';
 
 	let { data, children } = $props();
@@ -34,6 +34,16 @@
 	<meta name="description" content="Connect local clients needing quick repairs or manual labor with available sideline workers and handymen in the Philippines." />
 </svelte:head>
 
+{#if menuOpen}
+	<!-- Backdrop overlay on mobile when burger menu is open -->
+	<button
+		type="button"
+		class="mobile-menu-backdrop"
+		onclick={closeMenu}
+		aria-label="Close menu backdrop"
+	></button>
+{/if}
+
 <div class="app-container">
 	<header>
 		<nav class="nav-container">
@@ -58,32 +68,42 @@
 			
 			<div class="nav-links" class:mobile-open={menuOpen}>
 				{#if data.user}
-					<!-- Mobile-only user header card -->
-					<div class="mobile-user-card">
-						<div class="mobile-user-avatar">
-							{data.user.name ? data.user.name.charAt(0).toUpperCase() : 'U'}
-						</div>
-						<div class="mobile-user-meta">
-							<span class="mobile-user-name">{data.user.name}</span>
-							<span class="mobile-user-role-badge">
-								{data.user.role === 'customer' ? 'Client' : data.user.role === 'admin' ? 'Admin' : 'Worker'}
-							</span>
-						</div>
+					<!-- Mobile-only user header -->
+					<div class="mobile-user-simple-header mobile-only">
+						<span>Signed in as <strong>{data.user.name}</strong> ({data.user.role === 'customer' ? 'Client' : data.user.role === 'admin' ? 'Admin' : 'Worker'})</span>
 					</div>
 
-					<div class="mobile-nav-divider"></div>
+					<!-- Mobile-only Dashboard Link -->
+					<a 
+						href={data.user.role === 'customer' ? '/customer' : data.user.role === 'worker' ? '/worker' : data.user.role === 'admin' ? '/admin05' : '/'} 
+						class="nav-link mobile-only" 
+						onclick={closeMenu}
+					>
+						<Home size={18} class="nav-item-icon" />
+						<span>Dashboard</span>
+					</a>
+
+					{#if data.user.role === 'customer'}
+						<!-- Mobile-only Post Job Link -->
+						<a 
+							href="/customer/post-job" 
+							class="nav-link mobile-only" 
+							onclick={closeMenu}
+						>
+							<PlusCircle size={18} class="nav-item-icon" />
+							<span>Post a New Job</span>
+						</a>
+					{/if}
 
 					<!-- Settings Link -->
 					<a 
 						href="/settings" 
-						class="nav-link mobile-nav-link" 
+						class="nav-link" 
 						onclick={closeMenu} 
 						id="nav-settings-link"
 					>
-						<span class="nav-icon-wrapper">
-							<Settings size={16} />
-						</span>
-						<span class="nav-link-text">Account Settings</span>
+						<Settings size={16} />
+						<span>Account Settings</span>
 					</a>
 					
 					<!-- Desktop user greeting -->
@@ -99,10 +119,8 @@
 						</button>
 					</form>
 				{:else}
-					<a href="/login" class="nav-link mobile-nav-link" onclick={closeMenu} id="nav-login-link">
-						<span class="nav-icon-wrapper">
-							<LogIn size={16} />
-						</span>
+					<a href="/login" class="nav-link" onclick={closeMenu} id="nav-login-link">
+						<LogIn size={16} />
 						<span>Log In</span>
 					</a>
 					<a href="/register" class="btn btn-primary nav-signup-btn" onclick={closeMenu} id="nav-register-btn">

@@ -234,6 +234,54 @@ export const actions = {
 		} catch (error) {
 			return fail(400, { error: error.message || 'Could not delete job post.' });
 		}
+	},
+
+	updateJob: async ({ request, locals }) => {
+		if (!locals.user || locals.user.role !== 'customer') {
+			return fail(401, { error: 'Unauthorized' });
+		}
+
+		const data = await request.formData();
+		const jobId = data.get('jobId')?.toString();
+		const title = data.get('title')?.toString()?.trim();
+		const category = data.get('category')?.toString();
+		const description = data.get('description')?.toString()?.trim();
+		const location = data.get('location')?.toString()?.trim();
+		const budget = data.get('budget')?.toString();
+		const target_date = data.get('target_date')?.toString();
+		const lat = parseFloat(data.get('latitude')?.toString() || '');
+		const lng = parseFloat(data.get('longitude')?.toString() || '');
+
+		if (!jobId || !title || !category || !description || !location || !budget || !target_date) {
+			return fail(400, { error: 'All required fields must be filled out.' });
+		}
+
+		try {
+			const job = await db.jobs.findById(jobId);
+			if (!job) {
+				return fail(404, { error: 'Job post not found.' });
+			}
+
+			if (job.customer_id !== locals.user.id) {
+				return fail(403, { error: 'You can only edit your own job posts.' });
+			}
+
+			const updates = {
+				title,
+				category,
+				description,
+				location,
+				budget: parseFloat(budget),
+				target_date,
+				latitude: isNaN(lat) ? job.latitude : lat,
+				longitude: isNaN(lng) ? job.longitude : lng
+			};
+
+			await db.jobs.update(jobId, updates);
+			return { success: 'Job post updated successfully!' };
+		} catch (error) {
+			return fail(400, { error: error.message || 'Could not update job post.' });
+		}
 	}
 };
 
