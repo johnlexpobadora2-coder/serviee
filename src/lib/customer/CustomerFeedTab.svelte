@@ -101,7 +101,19 @@
 			</div>
 
 			<div class="form-group form-group-full">
-				<label for="filter-budget-min">Budget Range (₱)</label>
+				<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem;">
+					<label for="filter-budget-min" style="margin-bottom: 0;">Budget Range (₱)</label>
+					{#if minBudget !== null || maxBudget !== null}
+						<button 
+							type="button" 
+							class="btn-text-clear" 
+							style="font-size: 0.72rem;" 
+							onclick={() => { minBudget = null; maxBudget = null; }}
+						>
+							Clear Price
+						</button>
+					{/if}
+				</div>
 				<div class="price-range-container">
 					<input 
 						type="number" 
@@ -140,6 +152,16 @@
 						class="price-pill {minBudget === 5000 && maxBudget === null ? 'active' : ''}" 
 						onclick={() => { minBudget = 5000; maxBudget = null; }}
 					>₱5k+</button>
+					{#if minBudget !== null || maxBudget !== null}
+						<button 
+							type="button" 
+							class="price-pill price-pill-clear" 
+							onclick={() => { minBudget = null; maxBudget = null; }}
+							title="Clear price filter"
+						>
+							<X size={12} /> Clear Price
+						</button>
+					{/if}
 				</div>
 			</div>
 		</div>

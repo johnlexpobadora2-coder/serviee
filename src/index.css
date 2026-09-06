@@ -755,6 +755,21 @@ html.light .feed-job-budget {
 	font-weight: 600;
 }
 
+.price-pill-clear {
+	background: rgba(239, 68, 68, 0.12);
+	border-color: rgba(239, 68, 68, 0.35);
+	color: #f87171;
+	display: inline-flex;
+	align-items: center;
+	gap: 0.2rem;
+}
+
+.price-pill-clear:hover {
+	background: rgba(239, 68, 68, 0.25);
+	border-color: #ef4444;
+	color: #ffffff;
+}
+
 .btn-text-clear {
 	background: none;
 	border: none;
