@@ -7,7 +7,8 @@ self.addEventListener('activate', (event) => {
 	event.waitUntil(self.clients.claim());
 });
 
-self.addEventListener('fetch', () => {
-	// Pass through all requests to Vite dev server
-	return;
+self.addEventListener('fetch', (event) => {
+	// Call event.respondWith so Chrome recognizes a functional fetch handler for PWA installability
+	if (event.request.method !== 'GET') return;
+	event.respondWith(fetch(event.request));
 });

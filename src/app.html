@@ -27,6 +27,11 @@
 					document.documentElement.setAttribute('data-theme', 'dark');
 				}
 			} catch (e) {}
+
+			window.addEventListener('beforeinstallprompt', (e) => {
+				e.preventDefault();
+				window.deferredPwaPrompt = e;
+			});
 		</script>
 		%sveltekit.head%
 	</head>
