@@ -107,7 +107,7 @@
 			<img src="/ServieeLogo.png" alt="Serviee App Icon" class="pwa-app-icon" />
 			<div class="pwa-app-info">
 				<h4 class="pwa-app-title">Install Serviee App</h4>
-				<p class="pwa-app-desc">I-install sa phone para sa mas mabilis at direktang access!</p>
+				<p class="pwa-app-desc">Install on your phone for faster and direct access!</p>
 			</div>
 		</div>
 		<div class="pwa-banner-actions">
@@ -128,7 +128,7 @@
 			<div class="ios-modal-header">
 				<div class="ios-modal-header-title">
 					<Smartphone class="ios-modal-icon" size={24} />
-					<h3 id="ios-modal-title">{isIos ? 'Install Serviee sa iPhone / iPad' : 'I-install ang Serviee App'}</h3>
+					<h3 id="ios-modal-title">{isIos ? 'Install Serviee on iPhone / iPad' : 'Install Serviee App'}</h3>
 				</div>
 				<button type="button" class="btn-modal-close" onclick={closeIosModal}>
 					<X size={20} />
@@ -136,14 +136,14 @@
 			</div>
 
 			<div class="ios-modal-body">
-				<p class="ios-intro-text">Sundin ang mga hakbang na ito para ma-add ang Serviee sa iyong Home Screen:</p>
+				<p class="ios-intro-text">Follow these steps to add Serviee to your Home Screen:</p>
 
 				<ol class="ios-steps-list">
 					{#if isIos}
 						<li class="ios-step-item">
 							<div class="step-num">1</div>
 							<div class="step-content">
-								<p>I-tap ang <strong>Share button</strong> sa ibaba ng Safari browser.</p>
+								<p>Tap the <strong>Share button</strong> at the bottom of Safari browser.</p>
 								<div class="step-icon-badge">
 									<Share size={20} class="text-blue-400" />
 									<span>Share Icon</span>
@@ -153,7 +153,7 @@
 						<li class="ios-step-item">
 							<div class="step-num">2</div>
 							<div class="step-content">
-								<p>Mag-scroll pababa at i-tap ang <strong>"Add to Home Screen"</strong>.</p>
+								<p>Scroll down and tap <strong>"Add to Home Screen"</strong>.</p>
 								<div class="step-icon-badge">
 									<PlusSquare size={20} class="text-emerald-400" />
 									<span>Add to Home Screen</span>
@@ -163,7 +163,7 @@
 						<li class="ios-step-item">
 							<div class="step-num">3</div>
 							<div class="step-content">
-								<p>I-tap ang <strong>"Add"</strong> sa kanang itaas ng screen. Handa na!</p>
+								<p>Tap <strong>"Add"</strong> at the top right corner. You're all set!</p>
 								<div class="step-icon-badge">
 									<CheckCircle size={20} class="text-amber-400" />
 									<span>Tap Add</span>
@@ -174,7 +174,7 @@
 						<li class="ios-step-item">
 							<div class="step-num">1</div>
 							<div class="step-content">
-								<p>I-tap ang browser <strong>Menu button (3 dots ⋮)</strong> sa itaas o ibaba ng screen.</p>
+								<p>Tap the browser <strong>Menu button (3 dots ⋮)</strong> at the top or bottom of the screen.</p>
 								<div class="step-icon-badge">
 									<Smartphone size={20} class="text-blue-400" />
 									<span>Browser Menu</span>
@@ -184,7 +184,7 @@
 						<li class="ios-step-item">
 							<div class="step-num">2</div>
 							<div class="step-content">
-								<p>Pumili ng <strong>"Install app"</strong> o <strong>"Add to Home screen"</strong>.</p>
+								<p>Select <strong>"Install app"</strong> or <strong>"Add to Home screen"</strong>.</p>
 								<div class="step-icon-badge">
 									<PlusSquare size={20} class="text-emerald-400" />
 									<span>Install App</span>
@@ -194,7 +194,7 @@
 						<li class="ios-step-item">
 							<div class="step-num">3</div>
 							<div class="step-content">
-								<p>I-confirm ang pag-install. Lalabas na ang Serviee app icon sa iyong phone!</p>
+								<p>Confirm installation. The Serviee app icon will appear on your phone!</p>
 								<div class="step-icon-badge">
 									<CheckCircle size={20} class="text-amber-400" />
 									<span>Installed</span>
@@ -207,7 +207,7 @@
 
 			<div class="ios-modal-footer">
 				<button type="button" class="btn-ios-done" onclick={closeIosModal}>
-					Naintindihan ko
+					Got it
 				</button>
 			</div>
 		</div>
