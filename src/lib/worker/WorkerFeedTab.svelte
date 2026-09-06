@@ -158,16 +158,6 @@
 						class="price-pill {minBudget === 5000 && maxBudget === null ? 'active' : ''}" 
 						onclick={() => { minBudget = 5000; maxBudget = null; }}
 					>₱5k+</button>
-					{#if minBudget !== null || maxBudget !== null}
-						<button 
-							type="button" 
-							class="price-pill price-pill-clear" 
-							onclick={() => { minBudget = null; maxBudget = null; }}
-							title="Clear price filter"
-						>
-							<X size={12} /> Clear Price
-						</button>
-					{/if}
 				</div>
 			</div>
 		</div>
