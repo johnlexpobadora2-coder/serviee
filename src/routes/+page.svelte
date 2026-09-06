@@ -91,13 +91,13 @@
 		Service Categories
 	</h2>
 	<p
-		style="color: var(--text-secondary); text-align: center; max-width: 550px; margin: 0 auto; font-size: 1.05rem; line-height: 1.6;"
+		style="color: var(--text-secondary); text-align: center; max-width: 550px; margin: 0 auto 2.5rem auto; font-size: 1.05rem; line-height: 1.6;"
 	>
 		Select a service category tailored for your home repairs, maintenance,
 		and project needs.
 	</p>
 
-	<div class="grid grid-cols-1 md:grid-cols-3 gap-y-20 gap-x-7 mt-24">
+	<div class="categories-grid grid grid-cols-1 md:grid-cols-3 gap-y-20 gap-x-7" style="margin-top: 3.5rem;">
 		<!-- Plumbing -->
 		<div class="category-card">
 			<div class="category-circle-badge">
