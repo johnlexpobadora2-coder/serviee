@@ -1,7 +1,7 @@
 <script>
 	import '../index.css';
 	import 'leaflet/dist/leaflet.css';
-	import { Menu, X, Settings, LogOut, LogIn, UserPlus, Loader2, Home, PlusCircle } from 'lucide-svelte';
+	import { Menu, X, Settings, LogOut, LogIn, UserPlus, Loader2, Home, PlusCircle, User, ShieldCheck } from 'lucide-svelte';
 	import ThemeToggle from '$lib/ThemeToggle.svelte';
 	import { navigating } from '$app/stores';
 	import { page } from '$app/state';
@@ -11,6 +11,7 @@
 	let menuOpen = $state(false);
 
 	let isAdminPage = $derived(page.url.pathname.startsWith('/admin'));
+	let currentPath = $derived(page.url.pathname);
 
 	function toggleMenu() {
 		menuOpen = !menuOpen;
@@ -19,7 +20,26 @@
 	function closeMenu() {
 		menuOpen = false;
 	}
+
+	function handleKeydown(e) {
+		if (e.key === 'Escape' && menuOpen) {
+			closeMenu();
+		}
+	}
+
+	$effect(() => {
+		if (menuOpen) {
+			document.body.style.overflow = 'hidden';
+		} else {
+			document.body.style.overflow = '';
+		}
+		return () => {
+			document.body.style.overflow = '';
+		};
+	});
 </script>
+
+<svelte:window onkeydown={handleKeydown} />
 
 {#if $navigating}
 	<div class="global-loading-indicator">
@@ -63,29 +83,35 @@
 				<button 
 					type="button" 
 					class="menu-toggle-btn" 
+					class:is-active={menuOpen}
 					onclick={toggleMenu} 
-					aria-label="Toggle menu"
+					aria-label="Toggle navigation menu"
 					aria-expanded={menuOpen}
 				>
 					{#if menuOpen}
-						<X size={20} />
+						<X size={20} class="menu-icon animate-icon-spin" />
 					{:else}
-						<Menu size={20} />
+						<Menu size={20} class="menu-icon" />
 					{/if}
 				</button>
 			</div>
 			
 			<div class="nav-links" class:mobile-open={menuOpen}>
 				{#if data.user}
-					<!-- Mobile-only user header -->
-					<div class="mobile-user-simple-header mobile-only">
-						<span>Signed in as <strong>{data.user.name}</strong> ({data.user.role === 'customer' ? 'Client' : data.user.role === 'admin' ? 'Admin' : 'Worker'})</span>
+					<!-- Minimal Mobile User Header -->
+					<div class="mobile-menu-user-header mobile-only">
+						<span class="mobile-menu-user-name">{data.user.name}</span>
+						<span class="mobile-menu-user-tag tag-{data.user.role}">
+							{data.user.role === 'customer' ? 'Client' : data.user.role === 'admin' ? 'Admin' : 'Worker'}
+						</span>
 					</div>
 
-					<!-- Mobile-only Dashboard Link -->
+					<!-- Dashboard Link -->
+					{@const dashboardHref = data.user.role === 'customer' ? '/customer' : data.user.role === 'worker' ? '/worker' : data.user.role === 'admin' ? '/admin05' : '/'}
 					<a 
-						href={data.user.role === 'customer' ? '/customer' : data.user.role === 'worker' ? '/worker' : data.user.role === 'admin' ? '/admin05' : '/'} 
+						href={dashboardHref} 
 						class="nav-link mobile-only" 
+						class:active={currentPath === dashboardHref}
 						onclick={closeMenu}
 					>
 						<Home size={18} class="nav-item-icon" />
@@ -93,10 +119,11 @@
 					</a>
 
 					{#if data.user.role === 'customer'}
-						<!-- Mobile-only Post Job Link -->
+						<!-- Post Job Link -->
 						<a 
 							href="/customer/post-job" 
 							class="nav-link mobile-only" 
+							class:active={currentPath === '/customer/post-job'}
 							onclick={closeMenu}
 						>
 							<PlusCircle size={18} class="nav-item-icon" />
@@ -108,10 +135,11 @@
 					<a 
 						href="/settings" 
 						class="nav-link" 
+						class:active={currentPath === '/settings'}
 						onclick={closeMenu} 
 						id="nav-settings-link"
 					>
-						<Settings size={16} />
+						<Settings size={18} class="nav-item-icon" />
 						<span>Account Settings</span>
 					</a>
 					
@@ -127,21 +155,33 @@
 
 					<!-- Logout Action Form -->
 					<form method="POST" action="/logout" class="nav-logout-form">
-						<button type="submit" class="btn btn-outline nav-logout-btn" onclick={closeMenu} id="nav-logout-btn">
-							<LogOut size={15} />
+						<button type="submit" class="nav-link nav-logout-btn" onclick={closeMenu} id="nav-logout-btn">
+							<LogOut size={18} class="nav-item-icon" />
 							<span>Log Out</span>
 						</button>
 					</form>
 				{:else}
-					<a href="/login" class="nav-link" onclick={closeMenu} id="nav-login-link">
-						<LogIn size={16} />
+					<a 
+						href="/login" 
+						class="nav-link" 
+						class:active={currentPath === '/login'}
+						onclick={closeMenu} 
+						id="nav-login-link"
+					>
+						<LogIn size={18} class="nav-item-icon" />
 						<span>Log In</span>
 					</a>
 					<div class="desktop-only">
 						<ThemeToggle />
 					</div>
-					<a href="/register" class="btn btn-primary nav-signup-btn" onclick={closeMenu} id="nav-register-btn">
-						<UserPlus size={15} />
+					<a 
+						href="/register" 
+						class="nav-link mobile-nav-signup" 
+						class:active={currentPath === '/register'}
+						onclick={closeMenu} 
+						id="nav-register-btn"
+					>
+						<UserPlus size={18} class="nav-item-icon" />
 						<span>Sign Up</span>
 					</a>
 				{/if}

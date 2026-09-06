@@ -38,11 +38,54 @@
 	onclick={toggleTheme}
 	aria-label="Toggle theme"
 	title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-	class="relative flex items-center justify-center p-2 rounded-xl transition-all duration-300 border bg-slate-100 hover:bg-slate-200/90 border-slate-300/90 text-slate-700 hover:text-indigo-600 dark:bg-slate-800/80 dark:hover:bg-slate-700/90 dark:border-slate-700/80 dark:text-slate-300 dark:hover:text-amber-400 shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-indigo-500/40 cursor-pointer"
+	class="theme-toggle-btn"
 >
 	{#if isDark}
-		<Sun class="w-4 h-4 transition-transform duration-300 rotate-0 hover:rotate-45 text-amber-400" />
+		<Sun size={18} class="theme-icon sun-icon" />
 	{:else}
-		<Moon class="w-4 h-4 transition-transform duration-300 rotate-0 hover:-rotate-12 text-indigo-600" />
+		<Moon size={18} class="theme-icon moon-icon" />
 	{/if}
 </button>
+
+<style>
+	.theme-toggle-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 38px;
+		height: 38px;
+		padding: 0;
+		border-radius: var(--radius-md, 8px);
+		border: 1px solid var(--border-color);
+		background-color: var(--bg-input);
+		color: var(--text-primary);
+		cursor: pointer;
+		transition: all var(--transition-fast, 0.15s ease);
+	}
+
+	.theme-toggle-btn:hover {
+		border-color: var(--accent);
+		background-color: var(--bg-card);
+		transform: translateY(-1px);
+	}
+
+	:global(.theme-icon) {
+		transition: transform 0.3s ease, color 0.3s ease;
+	}
+
+	:global(.sun-icon) {
+		color: #f59e0b;
+	}
+
+	.theme-toggle-btn:hover :global(.sun-icon) {
+		transform: rotate(45deg);
+	}
+
+	:global(.moon-icon) {
+		color: #6366f1;
+	}
+
+	.theme-toggle-btn:hover :global(.moon-icon) {
+		transform: rotate(-12deg);
+	}
+</style>

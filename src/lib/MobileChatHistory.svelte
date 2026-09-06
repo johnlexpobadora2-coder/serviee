@@ -1,5 +1,7 @@
 <script>
 	import { onMount, onDestroy } from 'svelte';
+	import { browser } from '$app/environment';
+	import { pushState, replaceState } from '$app/navigation';
 
 	let { 
 		activeConvId = $bindable(''), 
@@ -7,25 +9,22 @@
 		activeTab = 'chat'
 	} = $props();
 
+	let isMounted = $state(false);
 	let pushedState = $state(false);
 
 	$effect(() => {
-		if (typeof window === 'undefined') return;
+		if (!browser || !isMounted) return;
 
 		if (activeTab === 'chat' && activeConvId) {
 			if (!pushedState) {
 				pushedState = true;
 				try {
-					history.pushState({ chatOpen: true, convId: activeConvId }, '');
-				} catch (e) {
-					console.error('MobileChatHistory pushState error:', e);
-				}
+					pushState('', { chatOpen: true, convId: activeConvId });
+				} catch (e) {}
 			} else if (history.state?.convId !== activeConvId) {
 				try {
-					history.replaceState({ chatOpen: true, convId: activeConvId }, '');
-				} catch (e) {
-					console.error('MobileChatHistory replaceState error:', e);
-				}
+					replaceState('', { chatOpen: true, convId: activeConvId });
+				} catch (e) {}
 			}
 		} else if ((!activeConvId || activeTab !== 'chat') && pushedState) {
 			pushedState = false;
@@ -41,6 +40,7 @@
 	}
 
 	onMount(() => {
+		isMounted = true;
 		if (typeof window !== 'undefined') {
 			window.addEventListener('popstate', handlePopState);
 		}
