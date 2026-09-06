@@ -36,15 +36,15 @@
 		const isDismissedRecently = (now - dismissedTime) < (3 * 24 * 60 * 60 * 1000);
 
 		// Check if prompt was captured early
-		if (typeof window !== 'undefined' && window.deferredPwaPrompt) {
-			deferredPrompt = window.deferredPwaPrompt;
+		if (typeof window !== 'undefined' && window['deferredPwaPrompt']) {
+			deferredPrompt = window['deferredPwaPrompt'];
 		}
 
 		// Capture Android/Chrome beforeinstallprompt event
 		const handleBeforeInstallPrompt = (e) => {
 			e.preventDefault();
 			deferredPrompt = e;
-			window.deferredPwaPrompt = e;
+			window['deferredPwaPrompt'] = e;
 			if (!isDismissedRecently) {
 				showInstallBanner = true;
 			}
@@ -70,7 +70,7 @@
 	});
 
 	async function handleInstallClick() {
-		const promptToUse = deferredPrompt || (typeof window !== 'undefined' ? window.deferredPwaPrompt : null);
+		const promptToUse = deferredPrompt || (typeof window !== 'undefined' ? window['deferredPwaPrompt'] : null);
 		if (promptToUse) {
 			promptToUse.prompt();
 			const { outcome } = await promptToUse.userChoice;
@@ -78,14 +78,14 @@
 				showInstallBanner = false;
 			}
 			deferredPrompt = null;
-			if (typeof window !== 'undefined') window.deferredPwaPrompt = null;
+			if (typeof window !== 'undefined') window['deferredPwaPrompt'] = null;
 		} else {
 			showIosModal = true;
 		}
 	}
 
 	export function triggerInstall() {
-		const promptToUse = deferredPrompt || (typeof window !== 'undefined' ? window.deferredPwaPrompt : null);
+		const promptToUse = deferredPrompt || (typeof window !== 'undefined' ? window['deferredPwaPrompt'] : null);
 		if (promptToUse) {
 			handleInstallClick();
 		} else {
