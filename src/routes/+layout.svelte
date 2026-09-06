@@ -1,7 +1,7 @@
 <script>
 	import '../index.css';
 	import 'leaflet/dist/leaflet.css';
-	import { Menu, X, Settings, LogOut, LogIn, UserPlus, Loader2, Home, PlusCircle, User, ShieldCheck } from 'lucide-svelte';
+	import { Menu, X, Settings, LogOut, LogIn, UserPlus, Loader2, Home, PlusCircle, User, ShieldCheck, Download } from 'lucide-svelte';
 	import ThemeToggle from '$lib/ThemeToggle.svelte';
 	import PwaInstallBanner from '$lib/PwaInstallBanner.svelte';
 	import { navigating } from '$app/stores';
@@ -10,6 +10,7 @@
 	let { data, children } = $props();
 
 	let menuOpen = $state(false);
+	let pwaBannerRef = $state(null);
 
 	let isAdminPage = $derived(page.url.pathname.startsWith('/admin'));
 	let currentPath = $derived(page.url.pathname);
@@ -143,6 +144,22 @@
 						<Settings size={18} class="nav-item-icon" />
 						<span>Account Settings</span>
 					</a>
+
+					<!-- Mobile PWA Install Link -->
+					{#if !pwaBannerRef?.getIsStandalone()}
+						<button 
+							type="button" 
+							class="nav-link mobile-only mobile-pwa-nav-btn" 
+							onclick={() => {
+								closeMenu();
+								pwaBannerRef?.triggerInstall();
+							}}
+							id="nav-pwa-install-btn"
+						>
+							<Download size={18} class="nav-item-icon" />
+							<span>Install Serviee App</span>
+						</button>
+					{/if}
 					
 					<!-- Desktop user greeting -->
 					<span class="user-greeting desktop-only-greeting">
@@ -185,6 +202,22 @@
 						<UserPlus size={18} class="nav-item-icon" />
 						<span>Sign Up</span>
 					</a>
+
+					<!-- Mobile PWA Install Link for Guest -->
+					{#if !pwaBannerRef?.getIsStandalone()}
+						<button 
+							type="button" 
+							class="nav-link mobile-only mobile-pwa-nav-btn" 
+							onclick={() => {
+								closeMenu();
+								pwaBannerRef?.triggerInstall();
+							}}
+							id="nav-pwa-install-btn-guest"
+						>
+							<Download size={18} class="nav-item-icon" />
+							<span>Install Serviee App</span>
+						</button>
+					{/if}
 				{/if}
 			</div>
 		</nav>
@@ -204,5 +237,5 @@
 		</footer>
 	{/if}
 
-	<PwaInstallBanner />
+	<PwaInstallBanner bind:this={pwaBannerRef} />
 </div>

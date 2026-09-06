@@ -72,7 +72,21 @@
 			deferredPrompt = null;
 		} else if (isIos) {
 			showIosModal = true;
+		} else {
+			showIosModal = true;
 		}
+	}
+
+	export function triggerInstall() {
+		if (deferredPrompt) {
+			handleInstallClick();
+		} else {
+			showIosModal = true;
+		}
+	}
+
+	export function getIsStandalone() {
+		return isStandalone;
 	}
 
 	function dismissBanner() {
