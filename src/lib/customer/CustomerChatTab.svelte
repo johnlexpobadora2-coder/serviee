@@ -177,8 +177,6 @@
 										<div class="chat-location-actions">
 											<a 
 												href={gpsData.mapUrl} 
-												target="_blank" 
-												rel="noopener noreferrer" 
 												class="chat-location-btn"
 											>
 												<ExternalLink size={13} /> Open in Google Maps

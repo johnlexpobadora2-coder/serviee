@@ -218,8 +218,6 @@
 							</div>
 							<a 
 								href={getGoogleMapsUrl(latitude, longitude)} 
-								target="_blank" 
-								rel="noopener noreferrer" 
 								class="btn btn-outline" 
 								style="padding: 0.25rem 0.6rem; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 0.3rem; border-color: var(--accent); color: var(--accent-hover);"
 							>

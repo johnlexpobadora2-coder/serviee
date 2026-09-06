@@ -142,8 +142,6 @@
 						<div>
 							<a 
 								href={getGoogleMapsUrl(job.latitude, job.longitude, job.title)} 
-								target="_blank" 
-								rel="noopener noreferrer" 
 								class="gps-badge"
 							>
 								<MapPin size={12} /> Google Maps
@@ -160,8 +158,6 @@
 							</div>
 							<a 
 								href={getGoogleMapsUrl(job.latitude, job.longitude, job.title)} 
-								target="_blank" 
-								rel="noopener noreferrer" 
 								class="btn btn-outline"
 								style="padding: 0.15rem 0.5rem; font-size: 0.72rem; border-color: var(--accent); color: var(--accent-hover);"
 							>
