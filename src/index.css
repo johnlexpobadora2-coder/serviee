@@ -706,6 +706,69 @@ html.light .feed-job-budget {
 	color: var(--text-secondary);
 }
 
+/* Price / Budget Range Filter Styles */
+.price-range-container {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+}
+
+.price-range-container input {
+	flex: 1;
+	min-width: 0;
+}
+
+.price-range-separator {
+	color: var(--text-muted);
+	font-weight: 600;
+	font-size: 0.85rem;
+}
+
+.price-preset-pills {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.35rem;
+	margin-top: 0.5rem;
+}
+
+.price-pill {
+	padding: 0.25rem 0.55rem;
+	background: var(--bg-input);
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius-sm);
+	color: var(--text-secondary);
+	font-size: 0.73rem;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all var(--transition-fast);
+}
+
+.price-pill:hover {
+	border-color: var(--accent);
+	color: var(--text-primary);
+}
+
+.price-pill.active {
+	background: var(--accent);
+	border-color: var(--accent);
+	color: #ffffff;
+	font-weight: 600;
+}
+
+.btn-text-clear {
+	background: none;
+	border: none;
+	color: var(--accent);
+	font-size: 0.78rem;
+	font-weight: 600;
+	cursor: pointer;
+	padding: 0;
+}
+
+.btn-text-clear:hover {
+	text-decoration: underline;
+}
+
 /* Responsiveness Media Queries */
 .mobile-filter-toggle-btn {
 	display: none;

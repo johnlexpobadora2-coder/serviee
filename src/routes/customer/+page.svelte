@@ -569,11 +569,14 @@
 	let searchLocation = $state(data.user?.address || '');
 	/** @type {number | null} */
 	let minBudget = $state(null);
+	/** @type {number | null} */
+	let maxBudget = $state(null);
 
 	let hasActiveFilters = $derived(
 		!!searchCategory || 
 		(searchLocation !== '' && searchLocation !== (data.user?.address || '')) || 
-		!!minBudget
+		minBudget != null ||
+		maxBudget != null
 	);
 
 	let filteredJobs = $derived(
@@ -585,8 +588,9 @@
 				(job.description && job.description.toLowerCase().includes(q));
 			const matchesCategory = !searchCategory || job.category === searchCategory;
 			const matchesLocation = !searchLocation || job.location.toLowerCase().includes(searchLocation.toLowerCase());
-			const matchesBudget = !minBudget || job.budget >= minBudget;
-			return isNotCompleted && matchesSearch && matchesCategory && matchesLocation && matchesBudget;
+			const matchesMinBudget = minBudget == null || job.budget >= Number(minBudget);
+			const matchesMaxBudget = maxBudget == null || job.budget <= Number(maxBudget);
+			return isNotCompleted && matchesSearch && matchesCategory && matchesLocation && matchesMinBudget && matchesMaxBudget;
 		})
 	);
 
@@ -739,6 +743,7 @@
 		bind:searchCategory 
 		bind:searchLocation 
 		bind:minBudget 
+		bind:maxBudget 
 		bind:searchQuery 
 		bind:showMobileFilters 
 		{hasActiveFilters} 

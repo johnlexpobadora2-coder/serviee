@@ -564,11 +564,13 @@
 	// svelte-ignore state_referenced_locally
 	let searchLocation = $state(data.user?.address || "");
 	let minBudget = $state(null);
+	let maxBudget = $state(null);
 
 	let hasActiveFilters = $derived(
 		!!searchCategory || 
 		(searchLocation !== "" && searchLocation !== (data.user?.address || "")) || 
-		!!minBudget
+		minBudget != null ||
+		maxBudget != null
 	);
 
 	let applyingJobId = $state(null);
@@ -589,8 +591,9 @@
 				job.location
 					.toLowerCase()
 					.includes(searchLocation.toLowerCase());
-			const matchesBudget = !minBudget || job.budget >= minBudget;
-			return matchesSearch && matchesCategory && matchesLocation && matchesBudget;
+			const matchesMinBudget = minBudget == null || job.budget >= Number(minBudget);
+			const matchesMaxBudget = maxBudget == null || job.budget <= Number(maxBudget);
+			return matchesSearch && matchesCategory && matchesLocation && matchesMinBudget && matchesMaxBudget;
 		})
 	);
 
@@ -687,6 +690,7 @@
 		bind:searchCategory 
 		bind:searchLocation 
 		bind:minBudget 
+		bind:maxBudget 
 		bind:searchQuery 
 		bind:showMobileFilters 
 		{hasActiveFilters} 

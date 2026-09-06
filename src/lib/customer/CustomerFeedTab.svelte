@@ -8,6 +8,7 @@
 		searchCategory = $bindable(''), 
 		searchLocation = $bindable(''), 
 		minBudget = $bindable(null), 
+		maxBudget = $bindable(null), 
 		searchQuery = $bindable(''), 
 		showMobileFilters = $bindable(false), 
 		hasActiveFilters = false, 
@@ -15,6 +16,14 @@
 		onopenviewprofile, 
 		onopendeletejob 
 	} = $props();
+
+	function clearFilters() {
+		searchCategory = '';
+		searchLocation = '';
+		minBudget = null;
+		maxBudget = null;
+		searchQuery = '';
+	}
 
 	function getCategoryBadge(category) {
 		switch (category) {
@@ -55,7 +64,14 @@
 		class="card feed-filters-card feed-filters-aside {showMobileFilters ? 'mobile-open' : ''}" 
 		style="position: sticky; top: 90px; padding: 1.25rem; height: fit-content;"
 	>
-		<h4 style="font-size: 1.1rem; margin-bottom: 0.75rem;">Filter Jobs</h4>
+		<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+			<h4 style="font-size: 1.1rem; margin: 0;">Filter Jobs</h4>
+			{#if hasActiveFilters || searchQuery}
+				<button type="button" class="btn-text-clear" onclick={clearFilters}>
+					Clear all
+				</button>
+			{/if}
+		</div>
 		
 		<div class="feed-filters-grid">
 			<div class="form-group form-group-full">
@@ -84,14 +100,47 @@
 				</select>
 			</div>
 
-			<div class="form-group">
-				<label for="filter-budget">Min Budget (₱)</label>
-				<input 
-					type="number" 
-					id="filter-budget" 
-					placeholder="E.g. 500" 
-					bind:value={minBudget} 
-				/>
+			<div class="form-group form-group-full">
+				<label for="filter-budget-min">Budget Range (₱)</label>
+				<div class="price-range-container">
+					<input 
+						type="number" 
+						id="filter-budget-min" 
+						placeholder="Min ₱" 
+						min="0"
+						bind:value={minBudget} 
+					/>
+					<span class="price-range-separator">-</span>
+					<input 
+						type="number" 
+						id="filter-budget-max" 
+						placeholder="Max ₱" 
+						min="0"
+						bind:value={maxBudget} 
+					/>
+				</div>
+				<div class="price-preset-pills">
+					<button 
+						type="button" 
+						class="price-pill {minBudget === null && maxBudget === 500 ? 'active' : ''}" 
+						onclick={() => { minBudget = null; maxBudget = 500; }}
+					>&lt; ₱500</button>
+					<button 
+						type="button" 
+						class="price-pill {minBudget === 500 && maxBudget === 1000 ? 'active' : ''}" 
+						onclick={() => { minBudget = 500; maxBudget = 1000; }}
+					>₱500 - 1k</button>
+					<button 
+						type="button" 
+						class="price-pill {minBudget === 1000 && maxBudget === 5000 ? 'active' : ''}" 
+						onclick={() => { minBudget = 1000; maxBudget = 5000; }}
+					>₱1k - 5k</button>
+					<button 
+						type="button" 
+						class="price-pill {minBudget === 5000 && maxBudget === null ? 'active' : ''}" 
+						onclick={() => { minBudget = 5000; maxBudget = null; }}
+					>₱5k+</button>
+				</div>
 			</div>
 		</div>
 	</aside>
