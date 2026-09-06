@@ -51,10 +51,11 @@
 			showInstallBanner = true;
 		}
 
-		// Register Service Worker in production if supported (skipped in Vite dev mode to prevent unbundled $service-worker import errors)
-		if (!dev && 'serviceWorker' in navigator) {
-			navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
-				.catch((err) => console.log('Service Worker registration skipped or failed:', err));
+		// Register Service Worker (dev-sw.js in Vite dev mode, service-worker.js in production)
+		if ('serviceWorker' in navigator) {
+			const swScript = dev ? '/dev-sw.js' : '/service-worker.js';
+			navigator.serviceWorker.register(swScript, { scope: '/' })
+				.catch((err) => console.log('Service Worker registration:', err));
 		}
 
 		return () => {
