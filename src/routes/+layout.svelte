@@ -3,6 +3,7 @@
 	import 'leaflet/dist/leaflet.css';
 	import { Menu, X, Settings, LogOut, LogIn, UserPlus, Loader2, Home, PlusCircle, User, ShieldCheck } from 'lucide-svelte';
 	import ThemeToggle from '$lib/ThemeToggle.svelte';
+	import PwaInstallBanner from '$lib/PwaInstallBanner.svelte';
 	import { navigating } from '$app/stores';
 	import { page } from '$app/state';
 
@@ -202,4 +203,6 @@
 			</div>
 		</footer>
 	{/if}
+
+	<PwaInstallBanner />
 </div>
