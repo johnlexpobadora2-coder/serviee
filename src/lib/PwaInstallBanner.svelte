@@ -78,6 +78,7 @@
 	}
 
 	export function triggerInstall() {
+		showInstallBanner = true;
 		if (deferredPrompt) {
 			handleInstallClick();
 		} else {
@@ -126,7 +127,7 @@
 			<div class="ios-modal-header">
 				<div class="ios-modal-header-title">
 					<Smartphone class="ios-modal-icon" size={24} />
-					<h3 id="ios-modal-title">Install Serviee sa iPhone / iPad</h3>
+					<h3 id="ios-modal-title">{isIos ? 'Install Serviee sa iPhone / iPad' : 'I-install ang Serviee App'}</h3>
 				</div>
 				<button type="button" class="btn-modal-close" onclick={closeIosModal}>
 					<X size={20} />
@@ -134,39 +135,72 @@
 			</div>
 
 			<div class="ios-modal-body">
-				<p class="ios-intro-text">Sundin ang 3 madaling hakbang para ma-add ang Serviee sa iyong Home Screen:</p>
+				<p class="ios-intro-text">Sundin ang mga hakbang na ito para ma-add ang Serviee sa iyong Home Screen:</p>
 
 				<ol class="ios-steps-list">
-					<li class="ios-step-item">
-						<div class="step-num">1</div>
-						<div class="step-content">
-							<p>I-tap ang <strong>Share button</strong> sa ibaba ng Safari browser.</p>
-							<div class="step-icon-badge">
-								<Share size={20} class="text-blue-400" />
-								<span>Share Icon</span>
+					{#if isIos}
+						<li class="ios-step-item">
+							<div class="step-num">1</div>
+							<div class="step-content">
+								<p>I-tap ang <strong>Share button</strong> sa ibaba ng Safari browser.</p>
+								<div class="step-icon-badge">
+									<Share size={20} class="text-blue-400" />
+									<span>Share Icon</span>
+								</div>
 							</div>
-						</div>
-					</li>
-					<li class="ios-step-item">
-						<div class="step-num">2</div>
-						<div class="step-content">
-							<p>Mag-scroll pababa at i-tap ang <strong>"Add to Home Screen"</strong>.</p>
-							<div class="step-icon-badge">
-								<PlusSquare size={20} class="text-emerald-400" />
-								<span>Add to Home Screen</span>
+						</li>
+						<li class="ios-step-item">
+							<div class="step-num">2</div>
+							<div class="step-content">
+								<p>Mag-scroll pababa at i-tap ang <strong>"Add to Home Screen"</strong>.</p>
+								<div class="step-icon-badge">
+									<PlusSquare size={20} class="text-emerald-400" />
+									<span>Add to Home Screen</span>
+								</div>
 							</div>
-						</div>
-					</li>
-					<li class="ios-step-item">
-						<div class="step-num">3</div>
-						<div class="step-content">
-							<p>I-tap ang <strong>"Add"</strong> sa kanang itaas ng screen. Handa na!</p>
-							<div class="step-icon-badge">
-								<CheckCircle size={20} class="text-amber-400" />
-								<span>Tap Add</span>
+						</li>
+						<li class="ios-step-item">
+							<div class="step-num">3</div>
+							<div class="step-content">
+								<p>I-tap ang <strong>"Add"</strong> sa kanang itaas ng screen. Handa na!</p>
+								<div class="step-icon-badge">
+									<CheckCircle size={20} class="text-amber-400" />
+									<span>Tap Add</span>
+								</div>
 							</div>
-						</div>
-					</li>
+						</li>
+					{:else}
+						<li class="ios-step-item">
+							<div class="step-num">1</div>
+							<div class="step-content">
+								<p>I-tap ang browser <strong>Menu button (3 dots ⋮)</strong> sa itaas o ibaba ng screen.</p>
+								<div class="step-icon-badge">
+									<Smartphone size={20} class="text-blue-400" />
+									<span>Browser Menu</span>
+								</div>
+							</div>
+						</li>
+						<li class="ios-step-item">
+							<div class="step-num">2</div>
+							<div class="step-content">
+								<p>Pumili ng <strong>"Install app"</strong> o <strong>"Add to Home screen"</strong>.</p>
+								<div class="step-icon-badge">
+									<PlusSquare size={20} class="text-emerald-400" />
+									<span>Install App</span>
+								</div>
+							</div>
+						</li>
+						<li class="ios-step-item">
+							<div class="step-num">3</div>
+							<div class="step-content">
+								<p>I-confirm ang pag-install. Lalabas na ang Serviee app icon sa iyong phone!</p>
+								<div class="step-icon-badge">
+									<CheckCircle size={20} class="text-amber-400" />
+									<span>Installed</span>
+								</div>
+							</div>
+						</li>
+					{/if}
 				</ol>
 			</div>
 
