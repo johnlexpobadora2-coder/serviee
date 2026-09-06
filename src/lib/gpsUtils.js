@@ -65,7 +65,7 @@ export async function reverseGeocode(lat, lng) {
 		const data = await res.json();
 		const addr = data.address || {};
 
-		const city = addr.city || addr.town || addr.municipality || addr.city_district || addr.suburb || '';
+		const city = addr.city || addr.town || addr.municipality || addr.city_district || addr.suburb || addr.village || addr.county || '';
 		const province = addr.province || addr.state || addr.region || '';
 		const displayName = data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
 

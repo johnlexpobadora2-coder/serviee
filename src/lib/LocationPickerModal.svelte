@@ -203,7 +203,9 @@
 					c.toLowerCase().includes(geo.city.toLowerCase()) || 
 					geo.city.toLowerCase().includes(c.toLowerCase().replace(' city', ''))
 				);
-				if (match) selectedCity = match;
+				selectedCity = match || geo.city;
+			} else {
+				selectedCity = '';
 			}
 		} catch (e) {
 			console.warn('Geocoding error:', e);
@@ -291,11 +293,20 @@
 			return;
 		}
 
+		let cityToSave = selectedCity;
+		if (!cityToSave && addressLabel) {
+			const match = CITIES_MUNICIPALITIES.find(c => 
+				addressLabel.toLowerCase().includes(c.toLowerCase()) || 
+				addressLabel.toLowerCase().includes(c.toLowerCase().replace(' city', ''))
+			);
+			if (match) cityToSave = match;
+		}
+
 		const payload = {
 			latitude: lat,
 			longitude: lng,
 			address: addressLabel || `${lat}, ${lng}`,
-			city: selectedCity || ''
+			city: cityToSave || ''
 		};
 
 		if (onSave) {

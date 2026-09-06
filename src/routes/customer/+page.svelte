@@ -5,6 +5,7 @@
 	import ConfirmDeleteModal from '$lib/ConfirmDeleteModal.svelte';
 	import MobileChatHistory from '$lib/MobileChatHistory.svelte';
 	import { setupRealtimeChat, playNotificationSound } from '$lib/realtimeChat.js';
+	import { CITIES_MUNICIPALITIES } from '$lib/locations.js';
 	import { getCurrentCoordinates, formatGpsChatMessage, formatImageChatMessage, compressImageFile, formatMessagePreview } from '$lib/gpsUtils.js';
 
 	import CustomerTabsNav from '$lib/customer/CustomerTabsNav.svelte';
@@ -679,8 +680,18 @@
 	function handleEditJobLocationSaved(loc) {
 		editJobModal.latitude = loc.latitude;
 		editJobModal.longitude = loc.longitude;
-		if (loc.address) {
-			editJobModal.location = loc.address;
+		if (loc.city) {
+			editJobModal.location = loc.city;
+		} else if (loc.address) {
+			const match = CITIES_MUNICIPALITIES.find(c => 
+				loc.address.toLowerCase().includes(c.toLowerCase()) || 
+				loc.address.toLowerCase().includes(c.toLowerCase().replace(' city', ''))
+			);
+			if (match) {
+				editJobModal.location = match;
+			} else {
+				editJobModal.location = loc.address;
+			}
 		}
 	}
 

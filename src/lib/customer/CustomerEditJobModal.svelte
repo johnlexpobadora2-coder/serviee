@@ -51,7 +51,7 @@
 						<option value="Gardening">Gardening</option>
 						<option value="Carpentry">Carpentry</option>
 						<option value="Electrical / Kuryente">Electrical / Kuryente</option>
-						<option value="General Handyman">General Handyman</option>
+						<option value="General Manual Labor">General Manual Labor</option>
 					</select>
 				</div>
 
