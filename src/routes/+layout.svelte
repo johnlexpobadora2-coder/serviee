@@ -179,6 +179,9 @@
 						</button>
 					</form>
 				{:else}
+					<div class="desktop-only">
+						<ThemeToggle />
+					</div>
 					<a 
 						href="/login" 
 						class="nav-link" 
@@ -189,9 +192,6 @@
 						<LogIn size={18} class="nav-item-icon" />
 						<span>Log In</span>
 					</a>
-					<div class="desktop-only">
-						<ThemeToggle />
-					</div>
 					<a 
 						href="/register" 
 						class="nav-link mobile-nav-signup" 
