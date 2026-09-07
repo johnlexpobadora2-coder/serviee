@@ -1,5 +1,5 @@
 <script>
-	import { Trash2 } from 'lucide-svelte';
+	import { fade, scale } from 'svelte/transition';
 
 	let {
 		show = $bindable(false),
@@ -37,12 +37,14 @@
 		role="dialog" 
 		aria-modal="true"
 		tabindex="-1"
+		transition:fade={{ duration: 75 }}
 	>
-		<div class="confirm-modal-card card" onclick={(e) => e.stopPropagation()} role="document">
-			<div class="confirm-modal-icon-wrapper">
-				<Trash2 size={24} />
-			</div>
-			
+		<div 
+			class="confirm-modal-card card" 
+			onclick={(e) => e.stopPropagation()} 
+			role="document"
+			transition:scale={{ duration: 75, start: 0.98 }}
+		>
 			<h3 class="confirm-modal-title">{title}</h3>
 			<p class="confirm-modal-message">{message}</p>
 
@@ -66,7 +68,6 @@
 						<span class="spinner spinner-sm"></span>
 						<span>Deleting...</span>
 					{:else}
-						<Trash2 size={15} />
 						<span>Delete Message</span>
 					{/if}
 				</button>
@@ -86,42 +87,17 @@
 		align-items: center;
 		justify-content: center;
 		padding: 1rem;
-		animation: confirmModalFade 0.15s ease-out;
-	}
-
-	@keyframes confirmModalFade {
-		from {
-			opacity: 0;
-			transform: scale(0.96);
-		}
-		to {
-			opacity: 1;
-			transform: scale(1);
-		}
 	}
 
 	.confirm-modal-card {
 		max-width: 420px;
 		width: 100%;
-		border: 1px solid rgba(239, 68, 68, 0.3);
-		box-shadow: 0 20px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(239, 68, 68, 0.15);
+		border: 1px solid var(--border-color);
+		box-shadow: var(--shadow-lg);
 		padding: 1.75rem;
 		text-align: center;
 		border-radius: var(--radius-lg);
 		background: var(--bg-card);
-	}
-
-	.confirm-modal-icon-wrapper {
-		width: 52px;
-		height: 52px;
-		border-radius: var(--radius-full);
-		background: rgba(239, 68, 68, 0.15);
-		color: #ef4444;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		margin: 0 auto 1rem auto;
-		border: 1px solid rgba(239, 68, 68, 0.25);
 	}
 
 	.confirm-modal-title {
@@ -145,18 +121,18 @@
 	}
 
 	.confirm-delete-btn {
-		background-color: #ef4444 !important;
-		border-color: #ef4444 !important;
+		background-color: var(--accent) !important;
+		border-color: var(--accent) !important;
 		color: #ffffff !important;
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
 		gap: 0.4rem;
-		box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+		box-shadow: 0 4px 14px hsla(252, 78%, 62%, 0.35);
 	}
 
 	.confirm-delete-btn:hover:not(:disabled) {
-		background-color: #dc2626 !important;
-		border-color: #dc2626 !important;
+		background-color: var(--accent-hover) !important;
+		border-color: var(--accent-hover) !important;
 	}
 </style>

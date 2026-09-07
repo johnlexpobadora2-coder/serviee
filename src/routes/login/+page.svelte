@@ -12,9 +12,7 @@
 </svelte:head>
 
 <div style="max-width: 520px; margin: 3.5rem auto; width: 100%; padding: 0 1rem;">
-	<div class="card" style="position: relative; overflow: hidden; padding: 2.5rem 2rem;">
-		<div style="position: absolute; top: 0; left: 0; right: 0; height: 5px; background: linear-gradient(90deg, var(--accent), var(--accent-hover));"></div>
-
+	<div class="card" style="padding: 2.5rem 2rem;">
 		<h2 style="font-size: 2.25rem; margin-bottom: 0.6rem; text-align: center;">Log In</h2>
 		<p style="color: var(--text-secondary); text-align: center; margin-bottom: 2.25rem; font-size: 1.05rem;">
 			Enter your email and password to continue to Serviee.

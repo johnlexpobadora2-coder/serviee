@@ -301,10 +301,6 @@
 		border-right: none;
 	}
 
-	.stat-item:hover {
-		transform: translateY(-3px);
-	}
-
 	.stat-icon-wrapper {
 		margin-bottom: 0.5rem;
 		display: flex;
@@ -387,13 +383,11 @@
 		text-align: center;
 		box-shadow: var(--shadow-sm);
 		transition:
-			transform var(--transition-smooth, 0.3s ease),
 			border-color var(--transition-fast, 0.15s ease),
 			box-shadow var(--transition-smooth, 0.3s ease);
 	}
 
 	.category-card:hover {
-		transform: translateY(-6px);
 		border-color: var(--accent);
 		box-shadow: var(--shadow-md), var(--glow);
 	}

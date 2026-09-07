@@ -86,10 +86,7 @@
 		</a>
 	</div>
 
-	<div class="card post-job-card" style="position: relative; overflow: hidden; padding: 1.5rem;">
-		<!-- Top accent line -->
-		<div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--accent), var(--accent-hover));"></div>
-
+	<div class="card post-job-card" style="padding: 1.5rem;">
 		<h2 class="post-job-heading" style="font-size: 1.45rem; margin-bottom: 0.25rem;">Post a New Job</h2>
 		<p class="post-job-subtext" style="color: var(--text-secondary); margin-bottom: 1.25rem; font-size: 0.85rem;">
 			Describe the service you need with accurate location & GPS coordinates so nearby workers can locate you easily.

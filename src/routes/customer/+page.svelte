@@ -571,28 +571,48 @@
 	let minBudget = $state(null);
 	/** @type {number | null} */
 	let maxBudget = $state(null);
+	let sortBy = $state('newest');
 
 	let hasActiveFilters = $derived(
 		!!searchCategory || 
-		(searchLocation !== '' && searchLocation !== (data.user?.address || '')) || 
+		!!searchLocation || 
 		minBudget != null ||
-		maxBudget != null
+		maxBudget != null ||
+		!!searchQuery ||
+		sortBy !== 'newest'
 	);
 
-	let filteredJobs = $derived(
-		(data.allJobs || []).filter(job => {
+	let filteredJobs = $derived.by(() => {
+		const q = searchQuery.trim().toLowerCase();
+		const list = (data.allJobs || []).filter(job => {
 			const isNotCompleted = job.status !== 'completed';
-			const q = searchQuery.trim().toLowerCase();
 			const matchesSearch = !q || 
 				(job.title && job.title.toLowerCase().includes(q)) || 
 				(job.description && job.description.toLowerCase().includes(q));
 			const matchesCategory = !searchCategory || job.category === searchCategory;
-			const matchesLocation = !searchLocation || job.location.toLowerCase().includes(searchLocation.toLowerCase());
+			const matchesLocation = !searchLocation || (job.location && job.location.toLowerCase().includes(searchLocation.toLowerCase()));
 			const matchesMinBudget = minBudget == null || job.budget >= Number(minBudget);
 			const matchesMaxBudget = maxBudget == null || job.budget <= Number(maxBudget);
 			return isNotCompleted && matchesSearch && matchesCategory && matchesLocation && matchesMinBudget && matchesMaxBudget;
-		})
-	);
+		});
+
+		return [...list].sort((a, b) => {
+			if (sortBy === 'highest_cost') {
+				return (Number(b.budget) || 0) - (Number(a.budget) || 0);
+			} else if (sortBy === 'lowest_cost') {
+				return (Number(a.budget) || 0) - (Number(b.budget) || 0);
+			} else if (sortBy === 'nearest_date') {
+				const timeA = new Date(a.target_date || a.created_at).getTime() || 0;
+				const timeB = new Date(b.target_date || b.created_at).getTime() || 0;
+				return timeA - timeB;
+			} else {
+				// 'newest' (default)
+				const timeA = new Date(a.created_at).getTime() || 0;
+				const timeB = new Date(b.created_at).getTime() || 0;
+				return timeB - timeA;
+			}
+		});
+	});
 
 	let activeJobs = $derived(data.posts.filter(job => job.status !== 'completed'));
 	let completedJobs = $derived(data.posts.filter(job => job.status === 'completed'));
@@ -745,6 +765,7 @@
 		bind:minBudget 
 		bind:maxBudget 
 		bind:searchQuery 
+		bind:sortBy
 		bind:showMobileFilters 
 		{hasActiveFilters} 
 		currentUserId={data.user?.id} 

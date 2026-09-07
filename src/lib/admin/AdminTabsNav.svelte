@@ -11,45 +11,55 @@
 
 <div class="tabs-header">
 	<button 
-		type="button"
+		type="button" 
+		class="tab-btn {activeTab === 'overview' ? 'active' : ''}" 
 		onclick={() => activeTab = 'overview'}
-		class="tab-btn flex items-center gap-2 {activeTab === 'overview' ? 'active' : ''}"
+		id="tab-overview-btn"
+		style="display: inline-flex; align-items: center; gap: 0.45rem;"
 	>
 		<Activity size={16} />
 		<span>Overview</span>
 	</button>
 
 	<button 
-		type="button"
+		type="button" 
+		class="tab-btn {activeTab === 'users' ? 'active' : ''}" 
 		onclick={() => activeTab = 'users'}
-		class="tab-btn flex items-center gap-2 {activeTab === 'users' ? 'active' : ''}"
+		id="tab-users-btn"
+		style="display: inline-flex; align-items: center; gap: 0.45rem;"
 	>
 		<Users size={16} />
 		<span>Users Directory ({userCount})</span>
 	</button>
 
 	<button 
-		type="button"
+		type="button" 
+		class="tab-btn {activeTab === 'jobs' ? 'active' : ''}" 
 		onclick={() => activeTab = 'jobs'}
-		class="tab-btn flex items-center gap-2 {activeTab === 'jobs' ? 'active' : ''}"
+		id="tab-jobs-btn"
+		style="display: inline-flex; align-items: center; gap: 0.45rem;"
 	>
 		<Briefcase size={16} />
 		<span>Job Listings ({jobCount})</span>
 	</button>
 
 	<button 
-		type="button"
+		type="button" 
+		class="tab-btn {activeTab === 'reviews' ? 'active' : ''}" 
 		onclick={() => activeTab = 'reviews'}
-		class="tab-btn flex items-center gap-2 {activeTab === 'reviews' ? 'active' : ''}"
+		id="tab-reviews-btn"
+		style="display: inline-flex; align-items: center; gap: 0.45rem;"
 	>
 		<Star size={16} />
 		<span>Reviews ({reviewCount})</span>
 	</button>
 
 	<button 
-		type="button"
+		type="button" 
+		class="tab-btn {activeTab === 'system' ? 'active' : ''}" 
 		onclick={() => activeTab = 'system'}
-		class="tab-btn flex items-center gap-2 {activeTab === 'system' ? 'active' : ''}"
+		id="tab-system-btn"
+		style="display: inline-flex; align-items: center; gap: 0.45rem;"
 	>
 		<Settings size={16} />
 		<span>System Status</span>

@@ -13,6 +13,7 @@
 	import AdminSystemTab from '$lib/admin/AdminSystemTab.svelte';
 	import AdminDeleteModal from '$lib/admin/AdminDeleteModal.svelte';
 	import AdminEditAddressModal from '$lib/admin/AdminEditAddressModal.svelte';
+	import AdminResetPasswordModal from '$lib/admin/AdminResetPasswordModal.svelte';
 
 	let { data, form } = $props();
 
@@ -101,6 +102,27 @@
 		editAddressModal = { open: false, userId: null, name: '', address: '' };
 	}
 
+	// Reset Password Modal State
+	let resetPasswordModal = $state({
+		open: false,
+		userId: null,
+		name: '',
+		email: ''
+	});
+
+	function openResetPasswordModal(user) {
+		resetPasswordModal = {
+			open: true,
+			userId: user.id,
+			name: user.name,
+			email: user.email || ''
+		};
+	}
+
+	function closeResetPasswordModal() {
+		resetPasswordModal = { open: false, userId: null, name: '', email: '' };
+	}
+
 	// Svelte 5 Derived Reactive Filters
 	let filteredUsers = $derived(
 		(data.users || []).filter(u => {
@@ -140,7 +162,7 @@
 	<title>Admin Panel - Serviee [Admin05]</title>
 </svelte:head>
 
-<div class="text-slate-100 font-sans selection:bg-[#7261ef]/30 selection:text-white">
+<div class="w-full flex-1 flex flex-col text-[var(--text-primary)] font-sans selection:bg-[#7261ef]/30 selection:text-white">
 	{#if !isAuthenticated}
 		<AdminPasscodeLock 
 			bind:passcode 
@@ -148,7 +170,7 @@
 			onsubmit={handlePasscodeSubmit} 
 		/>
 	{:else}
-		<div class="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 py-3 sm:py-6 space-y-3.5 sm:space-y-6" transition:fade={{ duration: 150 }}>
+		<div class="max-w-[1400px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6 flex-1 flex flex-col justify-start" transition:fade={{ duration: 150 }}>
 			<AdminHeader onlock={lockAdmin} />
 
 			{#if form?.message}
@@ -174,7 +196,7 @@
 				reviewCount={data.reviews?.length || 0} 
 			/>
 
-			<main class="space-y-4 sm:space-y-6">
+			<div class="space-y-4 sm:space-y-6">
 				{#if activeTab === 'overview'}
 					<AdminOverviewTab 
 						stats={data.stats} 
@@ -192,6 +214,7 @@
 						customerCount={data.stats?.totalCustomers || 0} 
 						workerCount={data.stats?.totalWorkers || 0} 
 						onopeneditaddress={openEditAddressModal} 
+						onopenresetpassword={openResetPasswordModal}
 						onopendelete={openDeleteModal} 
 					/>
 				{:else if activeTab === 'jobs'}
@@ -211,7 +234,7 @@
 				{:else if activeTab === 'system'}
 					<AdminSystemTab onlock={lockAdmin} />
 				{/if}
-			</main>
+			</div>
 		</div>
 	{/if}
 
@@ -223,5 +246,10 @@
 	<AdminEditAddressModal 
 		bind:editAddressModal 
 		onclose={closeEditAddressModal} 
+	/>
+
+	<AdminResetPasswordModal 
+		bind:resetPasswordModal 
+		onclose={closeResetPasswordModal} 
 	/>
 </div>

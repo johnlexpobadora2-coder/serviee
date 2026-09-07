@@ -114,6 +114,28 @@ export const actions = {
 		}
 	},
 
+	resetUserPassword: async ({ request }) => {
+		const data = await request.formData();
+		const userId = data.get('userId');
+		const newPassword = data.get('newPassword');
+
+		if (!userId || typeof userId !== 'string') {
+			return fail(400, { message: 'User ID is required' });
+		}
+
+		if (!newPassword || typeof newPassword !== 'string' || newPassword.trim().length < 6) {
+			return fail(400, { message: 'New password must be at least 6 characters.' });
+		}
+
+		try {
+			await db.users.adminResetPassword(userId, newPassword.trim());
+			return { success: true, message: 'User password successfully reset/changed.' };
+		} catch (err) {
+			console.error('Failed to reset user password:', err);
+			return fail(500, { message: err.message || 'Failed to reset password' });
+		}
+	},
+
 	deleteUser: async ({ request }) => {
 		const data = await request.formData();
 		const userId = data.get('userId');

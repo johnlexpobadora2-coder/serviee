@@ -197,6 +197,20 @@ export const db = {
 			return true;
 		},
 
+		async adminResetPassword(id, newPassword) {
+			const user = await this.findById(id);
+			if (!user) throw new Error('User not found.');
+
+			const supabase = getSupabase();
+			const { error } = await supabase
+				.from('users')
+				.update({ password_hash: hashPassword(newPassword) })
+				.eq('id', id);
+			if (error) throw new Error(error.message);
+			invalidateUserCache(id);
+			return true;
+		},
+
 		async listAll() {
 			const supabase = getSupabase();
 			const { data, error } = await supabase

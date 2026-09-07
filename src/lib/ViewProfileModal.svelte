@@ -122,7 +122,7 @@
 					style="padding: 4rem 2rem; text-align: center; color: var(--text-secondary);"
 				>
 					<div
-						class="spinner"
+						class="spinner spinner-accent spinner-lg"
 						style="margin: 0 auto 1rem auto;"
 					></div>
 					<p style="font-size: 0.95rem;">
@@ -1072,18 +1072,5 @@
 		border-color: rgba(255, 255, 255, 0.6);
 		transform: scale(1.08);
 		color: #ffffff;
-	}
-	.spinner {
-		width: 32px;
-		height: 32px;
-		border: 3px solid var(--border-color);
-		border-top-color: var(--accent);
-		border-radius: 50%;
-		animation: spin 0.8s linear infinite;
-	}
-	@keyframes spin {
-		to {
-			transform: rotate(360deg);
-		}
 	}
 </style>

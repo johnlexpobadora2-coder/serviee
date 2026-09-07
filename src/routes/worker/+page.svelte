@@ -565,21 +565,24 @@
 	let searchLocation = $state(data.user?.address || "");
 	let minBudget = $state(null);
 	let maxBudget = $state(null);
+	let sortBy = $state("newest");
 
 	let hasActiveFilters = $derived(
 		!!searchCategory || 
-		(searchLocation !== "" && searchLocation !== (data.user?.address || "")) || 
+		!!searchLocation || 
 		minBudget != null ||
-		maxBudget != null
+		maxBudget != null ||
+		!!searchQuery ||
+		sortBy !== 'newest'
 	);
 
 	let applyingJobId = $state(null);
 
 	let visibleFeedJobsLimit = $state(40);
 
-	let filteredJobs = $derived(
-		data.availableJobs.filter((job) => {
-			const q = searchQuery.trim().toLowerCase();
+	let filteredJobs = $derived.by(() => {
+		const q = searchQuery.trim().toLowerCase();
+		const list = (data.availableJobs || []).filter((job) => {
 			const matchesSearch =
 				!q ||
 				(job.title && job.title.toLowerCase().includes(q)) ||
@@ -588,14 +591,31 @@
 				!searchCategory || job.category === searchCategory;
 			const matchesLocation =
 				!searchLocation ||
-				job.location
+				(job.location && job.location
 					.toLowerCase()
-					.includes(searchLocation.toLowerCase());
+					.includes(searchLocation.toLowerCase()));
 			const matchesMinBudget = minBudget == null || job.budget >= Number(minBudget);
 			const matchesMaxBudget = maxBudget == null || job.budget <= Number(maxBudget);
 			return matchesSearch && matchesCategory && matchesLocation && matchesMinBudget && matchesMaxBudget;
-		})
-	);
+		});
+
+		return [...list].sort((a, b) => {
+			if (sortBy === 'highest_cost') {
+				return (Number(b.budget) || 0) - (Number(a.budget) || 0);
+			} else if (sortBy === 'lowest_cost') {
+				return (Number(a.budget) || 0) - (Number(b.budget) || 0);
+			} else if (sortBy === 'nearest_date') {
+				const timeA = new Date(a.target_date || a.created_at).getTime() || 0;
+				const timeB = new Date(b.target_date || b.created_at).getTime() || 0;
+				return timeA - timeB;
+			} else {
+				// 'newest' (default)
+				const timeA = new Date(a.created_at).getTime() || 0;
+				const timeB = new Date(b.created_at).getTime() || 0;
+				return timeB - timeA;
+			}
+		});
+	});
 
 	let visibleFeedJobs = $derived(
 		filteredJobs.slice(0, visibleFeedJobsLimit)
@@ -692,6 +712,7 @@
 		bind:minBudget 
 		bind:maxBudget 
 		bind:searchQuery 
+		bind:sortBy
 		bind:showMobileFilters 
 		{hasActiveFilters} 
 		bind:applyingJobId 

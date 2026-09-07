@@ -1,5 +1,5 @@
 <script>
-	import { SlidersHorizontal, ChevronUp, ChevronDown, Search, X, Trash2, MapPin, ExternalLink, User, Calendar, Clock } from 'lucide-svelte';
+	import { SlidersHorizontal, ChevronUp, ChevronDown, Search, X, Trash2, MapPin, ExternalLink, User, Calendar, Clock, RotateCcw } from 'lucide-svelte';
 	import { CITIES_MUNICIPALITIES } from '$lib/locations.js';
 	import { getGoogleMapsUrl, getEmbedMapUrl } from '$lib/gpsUtils.js';
 
@@ -10,6 +10,7 @@
 		minBudget = $bindable(null), 
 		maxBudget = $bindable(null), 
 		searchQuery = $bindable(''), 
+		sortBy = $bindable('newest'), 
 		showMobileFilters = $bindable(false), 
 		hasActiveFilters = false, 
 		currentUserId = null, 
@@ -23,6 +24,7 @@
 		minBudget = null;
 		maxBudget = null;
 		searchQuery = '';
+		sortBy = 'newest';
 	}
 
 	function getCategoryBadge(category) {
@@ -65,15 +67,28 @@
 		style="position: sticky; top: 90px; padding: 1.25rem; height: fit-content;"
 	>
 		<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
-			<h4 style="font-size: 1.1rem; margin: 0;">Filter Jobs</h4>
-			{#if hasActiveFilters || searchQuery}
-				<button type="button" class="btn-text-clear" onclick={clearFilters}>
-					Clear all
+			<h4 style="font-size: 1.1rem; margin: 0; display: flex; align-items: center; gap: 0.4rem;">
+				<SlidersHorizontal size={17} style="color: var(--accent);" />
+				Filter Jobs
+			</h4>
+			{#if hasActiveFilters || searchLocation || searchCategory || minBudget !== null || maxBudget !== null || searchQuery || sortBy !== 'newest'}
+				<button type="button" class="btn-text-clear" onclick={clearFilters} style="display: inline-flex; align-items: center; gap: 0.25rem;">
+					<RotateCcw size={13} /> Clear all
 				</button>
 			{/if}
 		</div>
 		
 		<div class="feed-filters-grid">
+			<div class="form-group form-group-full">
+				<label for="filter-sort">Sort By</label>
+				<select id="filter-sort" bind:value={sortBy}>
+					<option value="newest">Newest First (Default)</option>
+					<option value="highest_cost">Highest Budget (₱ High to Low)</option>
+					<option value="lowest_cost">Lowest Budget (₱ Low to High)</option>
+					<option value="nearest_date">Target Date (Soonest Schedule)</option>
+				</select>
+			</div>
+
 			<div class="form-group form-group-full">
 				<label for="filter-category">Category</label>
 				<select id="filter-category" bind:value={searchCategory}>
@@ -87,7 +102,7 @@
 				</select>
 			</div>
 
-			<div class="form-group">
+			<div class="form-group form-group-full">
 				<label for="filter-location">City/Municipality</label>
 				<select 
 					id="filter-location" 
