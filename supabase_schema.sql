@@ -2,12 +2,13 @@
 CREATE TABLE IF NOT EXISTS public.users (
     id UUID PRIMARY KEY,
     name TEXT NOT NULL,
-    email TEXT UNIQUE NOT NULL,
+    email TEXT NOT NULL,
     phone TEXT NOT NULL,
     role TEXT NOT NULL, -- 'customer' or 'worker'
     address TEXT NOT NULL,
     password_hash TEXT NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    CONSTRAINT users_email_role_key UNIQUE (email, role)
 );
 
 -- Create job_posts table
@@ -53,15 +54,31 @@ CREATE TABLE IF NOT EXISTS public.messages (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
+-- Create otps table for email verifications
+CREATE TABLE IF NOT EXISTS public.otps (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email TEXT NOT NULL,
+    otp_code TEXT NOT NULL,
+    otp_type TEXT NOT NULL, -- 'registration' or 'forgot_password'
+    metadata JSONB,
+    attempts INTEGER DEFAULT 0 NOT NULL,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
 -- Disable Row Level Security (RLS) for testing and ease of use with the anon key
 ALTER TABLE public.users DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.job_posts DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ratings_reviews DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.otps DISABLE ROW LEVEL SECURITY;
 
 -- Fallback permissive RLS policies in case RLS is enabled on Supabase Dashboard
 DROP POLICY IF EXISTS "Allow anon all on users" ON public.users;
 CREATE POLICY "Allow anon all on users" ON public.users FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow anon all on otps" ON public.otps;
+CREATE POLICY "Allow anon all on otps" ON public.otps FOR ALL USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Allow anon all on job_posts" ON public.job_posts;
 CREATE POLICY "Allow anon all on job_posts" ON public.job_posts FOR ALL USING (true) WITH CHECK (true);

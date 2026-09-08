@@ -46,8 +46,9 @@
 			</div>
 
 			<div class="form-group" style="margin-bottom: 2.25rem;">
-				<div style="display: flex; justify-content: space-between; align-items: center;">
-					<label for="password" style="font-size: 0.95rem; margin-bottom: 0.4rem;">Password</label>
+				<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+					<label for="password" style="font-size: 0.95rem; margin-bottom: 0;">Password</label>
+					<a href="/forgot-password" style="font-size: 0.85rem; color: var(--accent); text-decoration: none; font-weight: 500;" id="login-forgot-password-link">Forgot password?</a>
 				</div>
 				<input 
 					type="password" 

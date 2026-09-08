@@ -28,24 +28,27 @@ export const actions = {
 		}
 
 		try {
-			console.log('Calling db.users.findByEmail...');
-			const user = await db.users.findByEmail(email);
+			console.log('Calling db.users.findAllByEmail...');
+			const users = await db.users.findAllByEmail(email);
 
-			if (!user) {
+			if (!users || users.length === 0) {
 				console.warn('⚠️ User not found in database:', email);
 				return fail(400, { error: 'Incorrect email or password. Please try again.', email });
 			}
 
-			console.log('User found. Comparing password hashes...');
-			if (user.password_hash !== hashPassword(password)) {
-				console.warn('⚠️ Password hash mismatch for user:', email);
+			console.log('Users found for email:', users.length, 'Comparing password hashes...');
+			const inputHash = hashPassword(password);
+			const matchingUser = users.find(u => u.password_hash === inputHash);
+
+			if (!matchingUser) {
+				console.warn('⚠️ Password hash mismatch for user accounts under email:', email);
 				return fail(400, { error: 'Incorrect email or password. Please try again.', email });
 			}
 
-			console.log('✅ Authentication successful! User ID:', user.id);
+			console.log('✅ Authentication successful! User ID:', matchingUser.id, 'Role:', matchingUser.role);
 
 			// Set session cookie (expires in 7 days)
-			cookies.set('session_id', user.id, {
+			cookies.set('session_id', matchingUser.id, {
 				path: '/',
 				httpOnly: true,
 				sameSite: 'strict',
@@ -54,7 +57,7 @@ export const actions = {
 
 			console.log('Session cookie set. Redirecting to dashboard...');
 			// Redirect based on role
-			if (user.role === 'customer') {
+			if (matchingUser.role === 'customer') {
 				throw redirect(303, '/customer');
 			} else {
 				throw redirect(303, '/worker');

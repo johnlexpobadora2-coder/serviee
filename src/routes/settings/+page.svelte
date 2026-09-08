@@ -1,7 +1,9 @@
 <script>
-	import { User, Lock, Shield, CheckCircle2, AlertCircle, Phone, MapPin, Mail, ArrowLeft, KeyRound } from 'lucide-svelte';
-	import { CITIES_MUNICIPALITIES } from '$lib/locations.js';
+	import { User, Lock, Shield, CheckCircle2, AlertCircle, Phone, MapPin, Mail, ArrowLeft, KeyRound, Navigation, Check } from 'lucide-svelte';
 	import { enhance } from '$app/forms';
+	import { getCurrentCoordinates, reverseGeocode } from '$lib/gpsUtils.js';
+	import LocationPickerModal from '$lib/LocationPickerModal.svelte';
+	import CityAutocomplete from '$lib/CityAutocomplete.svelte';
 
 	let { data, form } = $props();
 
@@ -16,15 +18,70 @@
 	});
 
 	// Local form states initialized from loaded user data
-	let name = $state('');
-	let phone = $state('');
-	let address = $state('');
+	// svelte-ignore state_referenced_locally
+	let name = $state(data.user?.name || '');
+	// svelte-ignore state_referenced_locally
+	let phone = $state(data.user?.phone || '');
+	// svelte-ignore state_referenced_locally
+	let address = $state(data.user?.address || '');
+	// svelte-ignore state_referenced_locally
+	let isAddressValid = $state(!!(data.user?.address));
+	let clientProfileError = $state('');
+
+	// GPS States
+	let detectingGps = $state(false);
+	let gpsStatus = $state(null); // { type: 'success' | 'error', message: string }
+	let showPickerModal = $state(false);
 
 	$effect(() => {
-		name = data.user?.name || '';
-		phone = data.user?.phone || '';
-		address = data.user?.address || '';
+		if (form?.profileSuccess) {
+			const u = form.user || data.user;
+			if (u) {
+				name = u.name || '';
+				phone = u.phone || '';
+				address = u.address || '';
+				isAddressValid = !!(u.address);
+			}
+		}
 	});
+
+	async function handleAutoGps() {
+		detectingGps = true;
+		gpsStatus = null;
+		clientProfileError = '';
+		try {
+			const coords = await getCurrentCoordinates();
+			const geo = await reverseGeocode(coords.latitude, coords.longitude);
+			
+			const detectedCity = geo.city || geo.displayName || '';
+			
+			if (detectedCity) {
+				address = detectedCity;
+				isAddressValid = true;
+				gpsStatus = { type: 'success', message: `Location verified & detected: ${detectedCity}` };
+			} else {
+				gpsStatus = { type: 'error', message: 'Could not auto-detect city name. Please search and tap your municipality.' };
+			}
+		} catch (err) {
+			gpsStatus = { type: 'error', message: err.message || 'Unable to access your location. Please check browser permissions.' };
+		} finally {
+			detectingGps = false;
+		}
+	}
+
+	function handleCustomLocationSaved(result) {
+		gpsStatus = null;
+		clientProfileError = '';
+		const candidate = result.city || result.address || '';
+		if (candidate) {
+			address = candidate;
+			isAddressValid = true;
+			gpsStatus = { type: 'success', message: `Pinned location verified: ${candidate}` };
+		} else {
+			gpsStatus = { type: 'error', message: 'Could not identify city from the pinned location. Please search and select from suggestions.' };
+		}
+		showPickerModal = false;
+	}
 
 	let currentPassword = $state('');
 	let newPassword = $state('');
@@ -113,10 +170,10 @@
 					</div>
 				{/if}
 
-				{#if form?.profileError}
+				{#if form?.profileError || clientProfileError}
 					<div class="alert alert-error">
 						<AlertCircle size={18} />
-						<span>{form.profileError}</span>
+						<span>{form?.profileError || clientProfileError}</span>
 					</div>
 				{/if}
 
@@ -124,7 +181,13 @@
 					method="POST"
 					action="?/updateProfile"
 					class="settings-form"
-					use:enhance={() => {
+					use:enhance={({ cancel }) => {
+						clientProfileError = '';
+						if (!address || !isAddressValid) {
+							clientProfileError = 'Please search and select a valid City or Municipality from the suggestions.';
+							cancel();
+							return;
+						}
 						profileSubmitting = true;
 						return async ({ update }) => {
 							profileSubmitting = false;
@@ -175,21 +238,61 @@
 						</div>
 					</div>
 
-					<div class="form-group">
-						<label for="address">City/Municipality</label>
-						<div class="input-wrapper">
-							<MapPin size={18} class="input-icon" />
-							<select
-								id="address"
-								name="address"
-								bind:value={address}
-							>
-								<option value="" disabled selected={!address}>Select City / Municipality...</option>
-								{#each CITIES_MUNICIPALITIES as city}
-									<option value={city}>{city}</option>
-								{/each}
-							</select>
+					<div class="form-group" style="margin-bottom: 1.25rem;">
+						<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; flex-wrap: wrap; gap: 0.5rem;">
+							<label for="address" style="margin-bottom: 0;">City/Municipality</label>
+							<div style="display: flex; gap: 0.4rem; align-items: center;">
+								<button 
+									type="button" 
+									class="btn btn-outline" 
+									style="padding: 0.25rem 0.6rem; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.3rem; border-color: var(--accent); color: var(--accent-hover); border-radius: var(--radius-sm);"
+									onclick={() => showPickerModal = true}
+									id="settings-btn-custom-gps"
+									title="Pin custom location on map"
+								>
+									<MapPin size={13} /> Custom GPS
+								</button>
+								<button 
+									type="button" 
+									class="btn btn-primary" 
+									style="padding: 0.25rem 0.7rem; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.3rem; border-radius: var(--radius-sm);"
+									onclick={handleAutoGps}
+									disabled={detectingGps}
+									id="settings-btn-auto-gps"
+									title="Auto-detect location from GPS"
+								>
+									{#if detectingGps}
+										<span class="spinner spinner-sm" style="width: 12px; height: 12px; border-width: 2px;"></span>
+										<span>Detecting...</span>
+									{:else}
+										<Navigation size={13} /> Auto GPS
+									{/if}
+								</button>
+							</div>
 						</div>
+
+						<CityAutocomplete 
+							bind:value={address}
+							bind:isValid={isAddressValid}
+							name="address"
+							id="address"
+							placeholder="Search city/municipality (e.g. Davao City, Cebu City, Makati)..."
+							required={true}
+							onselect={(item) => {
+								gpsStatus = { type: 'success', message: `Selected: ${item.displayName}` };
+							}}
+						/>
+
+						{#if gpsStatus}
+							<div style="margin-top: 0.45rem; font-size: 0.82rem; display: flex; align-items: center; gap: 0.35rem; {gpsStatus.type === 'success' ? 'color: var(--success);' : 'color: var(--error);'}">
+								{#if gpsStatus.type === 'success'}
+									<Check size={14} style="flex-shrink: 0;" />
+								{:else}
+									<AlertCircle size={14} style="flex-shrink: 0;" />
+								{/if}
+								<span>{gpsStatus.message}</span>
+							</div>
+						{/if}
 					</div>
 
 					<div class="form-actions">
@@ -302,6 +405,12 @@
 		{/if}
 	</div>
 </div>
+
+<LocationPickerModal 
+	bind:show={showPickerModal}
+	title="Pin Location / Select City"
+	onSave={handleCustomLocationSaved}
+/>
 
 <style>
 	.settings-page {
@@ -505,8 +614,7 @@
 		pointer-events: none;
 	}
 
-	.input-wrapper input,
-	.input-wrapper select {
+	.input-wrapper input {
 		width: 100%;
 		padding: 0.7rem 0.85rem 0.7rem 2.6rem;
 		background-color: var(--bg-input);
@@ -518,13 +626,7 @@
 		transition: border-color var(--transition-fast);
 	}
 
-	.input-wrapper select {
-		cursor: pointer;
-		appearance: auto;
-	}
-
-	.input-wrapper input:focus,
-	.input-wrapper select:focus {
+	.input-wrapper input:focus {
 		outline: none;
 		border-color: var(--border-focus);
 		box-shadow: 0 0 0 2px var(--accent-light);

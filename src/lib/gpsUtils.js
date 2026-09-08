@@ -45,11 +45,14 @@ export function getCurrentCoordinates() {
 	});
 }
 
+import { resolvePhilippineCity } from '$lib/philippinesLocations.js';
+
 /**
  * Perform reverse geocoding to retrieve city / municipality / road using OpenStreetMap Nominatim
+ * and automatically resolve to official Philippine City/Municipality naming (e.g. Davao City, Antipolo City).
  * @param {number} lat
  * @param {number} lng
- * @returns {Promise<{ displayName: string, city: string, province: string }>}
+ * @returns {Promise<{ displayName: string, city: string, province: string, region: string }>}
  */
 export async function reverseGeocode(lat, lng) {
 	try {
@@ -65,21 +68,27 @@ export async function reverseGeocode(lat, lng) {
 		const data = await res.json();
 		const addr = data.address || {};
 
-		const city = addr.city || addr.town || addr.municipality || addr.city_district || addr.suburb || addr.village || addr.county || '';
-		const province = addr.province || addr.state || addr.region || '';
+		// Intelligently resolve to official Philippine City / Municipality (e.g. "Davao" -> "Davao City")
+		const resolved = resolvePhilippineCity(data);
+
+		const city = resolved.city || addr.city || addr.town || addr.municipality || addr.city_district || addr.suburb || addr.village || addr.county || '';
+		const province = resolved.province || addr.province || addr.state || addr.region || '';
+		const region = resolved.region || addr.region || '';
 		const displayName = data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
 
 		return {
 			displayName,
 			city,
-			province
+			province,
+			region
 		};
 	} catch (err) {
 		console.warn('Reverse geocoding error:', err);
 		return {
 			displayName: `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
 			city: '',
-			province: ''
+			province: '',
+			region: ''
 		};
 	}
 }
@@ -105,7 +114,8 @@ export async function forwardGeocode(query) {
 		const data = await res.json();
 		return (data || []).map(item => {
 			const addr = item.address || {};
-			const city = addr.city || addr.town || addr.municipality || addr.city_district || addr.suburb || '';
+			const resolved = resolvePhilippineCity(item);
+			const city = resolved.city || addr.city || addr.town || addr.municipality || addr.city_district || addr.suburb || '';
 			return {
 				displayName: item.display_name,
 				lat: parseFloat(item.lat),

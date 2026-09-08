@@ -64,19 +64,30 @@ export function invalidateWorkerStatsCache(workerId) {
 export const db = {
 	users: {
 		async create({ name, email, phone, role, address, password }) {
-			const existing = await this.findByEmail(email);
-			if (existing) {
-				throw new Error('Email is already registered.');
+			const normalizedEmail = (email || '').toLowerCase().trim();
+			const existingUsers = await this.findAllByEmail(normalizedEmail);
+
+			// Check if an account already exists with the same role
+			const sameRoleUser = existingUsers.find(u => u.role === role);
+			if (sameRoleUser) {
+				throw new Error(`This email is already registered as a ${role}.`);
+			}
+
+			// Check password against other role accounts for the same email (must not share the same password)
+			const passwordHash = hashPassword(password);
+			const samePasswordUser = existingUsers.find(u => u.password_hash === passwordHash);
+			if (samePasswordUser) {
+				throw new Error('For security, you cannot use the same password as your other account with this email.');
 			}
 
 			const newUser = {
 				id: crypto.randomUUID(),
 				name,
-				email: email.toLowerCase(),
+				email: normalizedEmail,
 				phone,
 				role, // 'customer' or 'worker'
 				address,
-				password_hash: hashPassword(password),
+				password_hash: passwordHash,
 				created_at: new Date().toISOString()
 			};
 
@@ -86,15 +97,33 @@ export const db = {
 			return newUser;
 		},
 
-		async findByEmail(email) {
+		async findAllByEmail(email) {
+			if (!email) return [];
 			const supabase = getSupabase();
 			const { data, error } = await supabase
 				.from('users')
 				.select('*')
-				.eq('email', email.toLowerCase())
+				.eq('email', email.toLowerCase().trim());
+			if (error) throw new Error(error.message);
+			return data || [];
+		},
+
+		async findByEmailAndRole(email, role) {
+			if (!email || !role) return null;
+			const supabase = getSupabase();
+			const { data, error } = await supabase
+				.from('users')
+				.select('*')
+				.eq('email', email.toLowerCase().trim())
+				.eq('role', role)
 				.maybeSingle();
 			if (error) throw new Error(error.message);
 			return data || null;
+		},
+
+		async findByEmail(email) {
+			const users = await this.findAllByEmail(email);
+			return users[0] || null;
 		},
 
 		async findById(id) {
@@ -187,10 +216,21 @@ export const db = {
 				throw new Error('Incorrect current password.');
 			}
 
+			const newHash = hashPassword(newPassword);
+
+			// Check other accounts with the same email to ensure they don't share the same password
+			const accounts = await this.findAllByEmail(user.email);
+			const otherAccountWithSamePass = accounts.find(
+				a => a.id !== user.id && a.password_hash === newHash
+			);
+			if (otherAccountWithSamePass) {
+				throw new Error('For security, you cannot use the same password as your other account with this email.');
+			}
+
 			const supabase = getSupabase();
 			const { error } = await supabase
 				.from('users')
-				.update({ password_hash: hashPassword(newPassword) })
+				.update({ password_hash: newHash })
 				.eq('id', id);
 			if (error) throw new Error(error.message);
 			invalidateUserCache(id);
@@ -201,14 +241,92 @@ export const db = {
 			const user = await this.findById(id);
 			if (!user) throw new Error('User not found.');
 
+			const newHash = hashPassword(newPassword);
+			const accounts = await this.findAllByEmail(user.email);
+			const otherAccountWithSamePass = accounts.find(
+				a => a.id !== user.id && a.password_hash === newHash
+			);
+			if (otherAccountWithSamePass) {
+				throw new Error('For security, you cannot use the same password as the other account with this email.');
+			}
+
 			const supabase = getSupabase();
 			const { error } = await supabase
 				.from('users')
-				.update({ password_hash: hashPassword(newPassword) })
+				.update({ password_hash: newHash })
 				.eq('id', id);
 			if (error) throw new Error(error.message);
 			invalidateUserCache(id);
 			return true;
+		},
+
+		async resetPasswordsByEmail(email, { customerPassword = '', workerPassword = '' }) {
+			const normalizedEmail = (email || '').toLowerCase().trim();
+			const accounts = await this.findAllByEmail(normalizedEmail);
+			if (!accounts || accounts.length === 0) {
+				throw new Error('No user found with this email.');
+			}
+
+			const customerUser = accounts.find(a => a.role === 'customer');
+			const workerUser = accounts.find(a => a.role === 'worker');
+
+			const hasCustomerPass = Boolean(customerPassword && customerPassword.trim());
+			const hasWorkerPass = Boolean(workerPassword && workerPassword.trim());
+
+			if (!hasCustomerPass && !hasWorkerPass) {
+				throw new Error('Please enter a new password for at least one account role.');
+			}
+
+			// If both accounts exist and both passwords are provided
+			if (hasCustomerPass && hasWorkerPass && customerUser && workerUser) {
+				if (customerPassword.length < 6 || workerPassword.length < 6) {
+					throw new Error('Passwords must be at least 6 characters.');
+				}
+				if (customerPassword === workerPassword) {
+					throw new Error('For security, Client and Worker accounts under the same email cannot use the same password.');
+				}
+			}
+
+			const supabase = getSupabase();
+			const updatedRoles = [];
+
+			// Handle customer password update
+			if (hasCustomerPass && customerUser) {
+				if (customerPassword.length < 6) {
+					throw new Error('Client account password must be at least 6 characters.');
+				}
+				const newCustomerHash = hashPassword(customerPassword);
+				if (workerUser && !hasWorkerPass && workerUser.password_hash === newCustomerHash) {
+					throw new Error('Client password cannot match the existing Worker password for this email.');
+				}
+				const { error } = await supabase
+					.from('users')
+					.update({ password_hash: newCustomerHash })
+					.eq('id', customerUser.id);
+				if (error) throw new Error(error.message);
+				invalidateUserCache(customerUser.id);
+				updatedRoles.push('customer');
+			}
+
+			// Handle worker password update
+			if (hasWorkerPass && workerUser) {
+				if (workerPassword.length < 6) {
+					throw new Error('Worker account password must be at least 6 characters.');
+				}
+				const newWorkerHash = hashPassword(workerPassword);
+				if (customerUser && !hasCustomerPass && customerUser.password_hash === newWorkerHash) {
+					throw new Error('Worker password cannot match the existing Client password for this email.');
+				}
+				const { error } = await supabase
+					.from('users')
+					.update({ password_hash: newWorkerHash })
+					.eq('id', workerUser.id);
+				if (error) throw new Error(error.message);
+				invalidateUserCache(workerUser.id);
+				updatedRoles.push('worker');
+			}
+
+			return { success: true, updatedRoles };
 		},
 
 		async listAll() {

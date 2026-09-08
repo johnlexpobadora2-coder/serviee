@@ -5,7 +5,6 @@
 	import ConfirmDeleteModal from '$lib/ConfirmDeleteModal.svelte';
 	import MobileChatHistory from '$lib/MobileChatHistory.svelte';
 	import { setupRealtimeChat, playNotificationSound } from '$lib/realtimeChat.js';
-	import { CITIES_MUNICIPALITIES } from '$lib/locations.js';
 	import { getCurrentCoordinates, formatGpsChatMessage, formatImageChatMessage, compressImageFile, formatMessagePreview } from '$lib/gpsUtils.js';
 
 	import CustomerTabsNav from '$lib/customer/CustomerTabsNav.svelte';
@@ -614,6 +613,16 @@
 		});
 	});
 
+	let availableLocations = $derived(
+		Array.from(
+			new Set(
+				(data.allJobs || [])
+					.map((j) => j.location?.trim())
+					.filter(Boolean)
+			)
+		).sort((a, b) => a.localeCompare(b))
+	);
+
 	let activeJobs = $derived(data.posts.filter(job => job.status !== 'completed'));
 	let completedJobs = $derived(data.posts.filter(job => job.status === 'completed'));
 
@@ -669,12 +678,20 @@
 	let showEditJobLocationModal = $state(false);
 
 	function openEditJobModal(job) {
-		const formattedDate = job.target_date ? new Date(job.target_date).toISOString().slice(0, 16) : '';
+		let formattedDate = '';
+		if (job.target_date) {
+			const d = new Date(job.target_date);
+			if (!isNaN(d.getTime())) {
+				const pad = (n) => String(n).padStart(2, '0');
+				formattedDate = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+			}
+		}
+
 		editJobModal = {
 			open: true,
 			id: job.id,
-			title: job.title || '',
-			category: job.category || 'Plumbing / Tubero',
+			title: job.title,
+			category: job.category,
 			description: job.description || '',
 			location: job.location || '',
 			budget: job.budget || 0,
@@ -707,15 +724,7 @@
 		if (loc.city) {
 			editJobModal.location = loc.city;
 		} else if (loc.address) {
-			const match = CITIES_MUNICIPALITIES.find(c => 
-				loc.address.toLowerCase().includes(c.toLowerCase()) || 
-				loc.address.toLowerCase().includes(c.toLowerCase().replace(' city', ''))
-			);
-			if (match) {
-				editJobModal.location = match;
-			} else {
-				editJobModal.location = loc.address;
-			}
+			editJobModal.location = loc.address;
 		}
 	}
 
@@ -760,6 +769,7 @@
 {#if activeTab === 'feed'}
 	<CustomerFeedTab 
 		{filteredJobs} 
+		{availableLocations}
 		bind:searchCategory 
 		bind:searchLocation 
 		bind:minBudget 

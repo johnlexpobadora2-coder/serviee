@@ -2,7 +2,7 @@
 	import { onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
 	import { getCurrentCoordinates, reverseGeocode, forwardGeocode, getGoogleMapsUrl } from '$lib/gpsUtils.js';
-	import { CITIES_MUNICIPALITIES } from '$lib/locations.js';
+	import { resolvePhilippineCity } from '$lib/philippinesLocations.js';
 	import { MapPin, Search, Navigation, Check, X, ExternalLink, AlertCircle, Crosshair } from 'lucide-svelte';
 
 	/**
@@ -198,15 +198,7 @@
 		try {
 			const geo = await reverseGeocode(parseFloat(lat), parseFloat(lng));
 			if (geo.displayName) addressLabel = geo.displayName;
-			if (geo.city) {
-				const match = CITIES_MUNICIPALITIES.find(c => 
-					c.toLowerCase().includes(geo.city.toLowerCase()) || 
-					geo.city.toLowerCase().includes(c.toLowerCase().replace(' city', ''))
-				);
-				selectedCity = match || geo.city;
-			} else {
-				selectedCity = '';
-			}
+			selectedCity = geo.city || '';
 		} catch (e) {
 			console.warn('Geocoding error:', e);
 		}
@@ -245,11 +237,7 @@
 		searchQuery = '';
 		updatePosition(result.lat, result.lng, true);
 		if (result.city) {
-			const match = CITIES_MUNICIPALITIES.find(c => 
-				c.toLowerCase().includes(result.city.toLowerCase()) || 
-				result.city.toLowerCase().includes(c.toLowerCase().replace(' city', ''))
-			);
-			if (match) selectedCity = match;
+			selectedCity = result.city;
 		}
 	}
 
@@ -293,14 +281,9 @@
 			return;
 		}
 
-		let cityToSave = selectedCity;
-		if (!cityToSave && addressLabel) {
-			const match = CITIES_MUNICIPALITIES.find(c => 
-				addressLabel.toLowerCase().includes(c.toLowerCase()) || 
-				addressLabel.toLowerCase().includes(c.toLowerCase().replace(' city', ''))
-			);
-			if (match) cityToSave = match;
-		}
+		let rawCityCandidate = selectedCity || addressLabel || '';
+		let resolved = resolvePhilippineCity(rawCityCandidate);
+		let cityToSave = resolved.isOfficial ? resolved.city : (selectedCity || addressLabel || '');
 
 		const payload = {
 			latitude: lat,

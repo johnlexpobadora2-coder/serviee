@@ -1,9 +1,14 @@
 import { db } from '$lib/server/db.js';
 import { redirect, fail } from '@sveltejs/kit';
 
-export function load({ locals }) {
+export async function load({ locals }) {
 	if (!locals.user) {
 		throw redirect(303, '/login');
+	}
+	const freshUser = await db.users.findById(locals.user.id);
+	if (freshUser) {
+		const { password_hash, ...safeUser } = freshUser;
+		locals.user = safeUser;
 	}
 	return {
 		user: locals.user
@@ -29,15 +34,21 @@ export const actions = {
 		}
 
 		try {
-			await db.users.updateProfile(locals.user.id, {
+			const updated = await db.users.updateProfile(locals.user.id, {
 				name,
 				phone: phone || '',
 				address: address || ''
 			});
 
+			if (updated) {
+				const { password_hash, ...safeUser } = updated;
+				locals.user = safeUser;
+			}
+
 			return {
 				profileSuccess: 'Profile updated successfully!',
-				profileError: null
+				profileError: null,
+				user: locals.user
 			};
 		} catch (error) {
 			console.error('Error updating profile:', error);

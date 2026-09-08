@@ -1,10 +1,10 @@
 <script>
 	import { SlidersHorizontal, ChevronUp, ChevronDown, Search, X, Trash2, MapPin, ExternalLink, User, Calendar, Clock, RotateCcw } from 'lucide-svelte';
-	import { CITIES_MUNICIPALITIES } from '$lib/locations.js';
 	import { getGoogleMapsUrl, getEmbedMapUrl } from '$lib/gpsUtils.js';
 
 	let { 
 		filteredJobs = [], 
+		availableLocations = [],
 		searchCategory = $bindable(''), 
 		searchLocation = $bindable(''), 
 		minBudget = $bindable(null), 
@@ -103,13 +103,25 @@
 			</div>
 
 			<div class="form-group form-group-full">
-				<label for="filter-location">City/Municipality</label>
+				<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem;">
+					<label for="filter-location" style="margin-bottom: 0;">City/Municipality</label>
+					{#if searchLocation}
+						<button 
+							type="button" 
+							class="btn-text-clear" 
+							style="font-size: 0.72rem;" 
+							onclick={() => { searchLocation = ''; }}
+						>
+							Clear Location
+						</button>
+					{/if}
+				</div>
 				<select 
 					id="filter-location" 
 					bind:value={searchLocation} 
 				>
-					<option value="">All Locations</option>
-					{#each CITIES_MUNICIPALITIES as city}
+					<option value="">All Locations {availableLocations.length > 0 ? `(${availableLocations.length} active)` : ''}</option>
+					{#each availableLocations as city}
 						<option value={city}>{city}</option>
 					{/each}
 				</select>

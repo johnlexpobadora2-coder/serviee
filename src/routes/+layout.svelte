@@ -1,7 +1,7 @@
 <script>
 	import '../index.css';
 	import 'leaflet/dist/leaflet.css';
-	import { Menu, X, Settings, LogOut, LogIn, UserPlus, Loader2, Home, PlusCircle, User, ShieldCheck, Download } from 'lucide-svelte';
+	import { Menu, X, Settings, LogOut, LogIn, UserPlus, Home, PlusCircle, User, ShieldCheck, Download } from 'lucide-svelte';
 	import ThemeToggle from '$lib/ThemeToggle.svelte';
 	import PwaInstallBanner from '$lib/PwaInstallBanner.svelte';
 	import { navigating } from '$app/stores';
@@ -45,12 +45,7 @@
 
 {#if $navigating}
 	<div class="global-loading-indicator">
-		<div class="brand-loading-pulse">
-			<div class="brand-pulse-ring"></div>
-			<div class="brand-pulse-core">
-				<Loader2 size={30} class="animate-spin text-[var(--accent)]" />
-			</div>
-		</div>
+		<div class="spinner spinner-accent spinner-lg"></div>
 	</div>
 {/if}
 

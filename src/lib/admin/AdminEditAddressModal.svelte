@@ -1,13 +1,21 @@
 <script>
 	import { fade, scale } from 'svelte/transition';
 	import { enhance } from '$app/forms';
-	import { CITIES_MUNICIPALITIES } from '$lib/locations.js';
 	import { MapPin, CheckCircle } from 'lucide-svelte';
+	import CityAutocomplete from '$lib/CityAutocomplete.svelte';
 
 	let { 
 		editAddressModal = $bindable({ open: false, userId: null, name: '', address: '' }), 
 		onclose 
 	} = $props();
+
+	let isAddressValid = $state(true);
+
+	$effect(() => {
+		if (editAddressModal.open && editAddressModal.address) {
+			isAddressValid = true;
+		}
+	});
 </script>
 
 {#if editAddressModal.open}
@@ -22,7 +30,7 @@
 				</h3>
 				<button 
 					type="button" 
-					onclick={onclose}
+					onclick={onclose} 
 					class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-xs p-1 cursor-pointer font-bold"
 				>
 					✕
@@ -33,23 +41,19 @@
 				Updating address for <strong class="text-slate-900 dark:text-white font-bold">{editAddressModal.name}</strong>
 			</p>
 
-			<form method="POST" action="?/updateUserAddress" use:enhance={() => { onclose(); }} class="space-y-4">
+			<form method="POST" action="?/updateUserAddress" use:enhance={({ cancel }) => { if (!editAddressModal.address || !isAddressValid) { cancel(); return; } onclose(); }} class="space-y-4">
 				<input type="hidden" name="userId" value={editAddressModal.userId} />
 				
 				<div class="space-y-1.5">
 					<label for="addressInput" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">City / Municipality</label>
-					<select 
-						id="addressInput"
-						name="address" 
+					<CityAutocomplete 
 						bind:value={editAddressModal.address}
-						class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white text-xs focus:outline-none focus:border-[#7261ef] focus:ring-2 focus:ring-[#7261ef]/20 transition-all cursor-pointer font-medium"
-						required
-					>
-						<option value="" disabled selected={!editAddressModal.address}>Select City / Municipality...</option>
-						{#each CITIES_MUNICIPALITIES as city}
-							<option value={city}>{city}</option>
-						{/each}
-					</select>
+						bind:isValid={isAddressValid}
+						name="address"
+						id="addressInput"
+						placeholder="Search city/municipality (e.g. Davao City, Cebu City, Makati)..."
+						required={true}
+					/>
 				</div>
 
 				<div class="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100 dark:border-slate-800">

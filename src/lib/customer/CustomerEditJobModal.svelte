@@ -1,12 +1,23 @@
 <script>
 	import { enhance } from '$app/forms';
-	import { Pencil, X, MapPin } from 'lucide-svelte';
+	import { Pencil, X, MapPin, AlertCircle } from 'lucide-svelte';
+	import CityAutocomplete from '$lib/CityAutocomplete.svelte';
 
 	let { 
 		editJobModal = $bindable({ open: false, id: null, title: '', category: '', description: '', location: '', budget: 0, target_date: '', latitude: null, longitude: null, saving: false }), 
 		showEditJobLocationModal = $bindable(false), 
 		onclose 
 	} = $props();
+
+	let isLocationValid = $state(true);
+	let editError = $state('');
+
+	$effect(() => {
+		if (editJobModal.open && editJobModal.location) {
+			isLocationValid = true;
+			editError = '';
+		}
+	});
 </script>
 
 {#if editJobModal.open}
@@ -21,10 +32,23 @@
 				</button>
 			</div>
 
+			{#if editError}
+				<div style="background-color: var(--error-light); border: 1px solid var(--error); color: var(--text-primary); padding: 0.6rem 0.8rem; border-radius: var(--radius-md); margin-bottom: 1rem; font-size: 0.85rem; display: flex; align-items: center; gap: 0.4rem;">
+					<AlertCircle size={16} style="color: var(--error); flex-shrink: 0;" />
+					<span>{editError}</span>
+				</div>
+			{/if}
+
 			<form 
 				method="POST" 
 				action="?/updateJob" 
-				use:enhance={() => {
+				use:enhance={({ cancel }) => {
+					editError = '';
+					if (!editJobModal.location || !isLocationValid) {
+						editError = 'Please search and select a valid City or Municipality from the suggestions.';
+						cancel();
+						return;
+					}
 					editJobModal.saving = true;
 					return async ({ update }) => {
 						editJobModal.saving = false;
@@ -73,15 +97,24 @@
 				</div>
 
 				<div class="form-group" style="margin-bottom: 1.25rem;">
-					<label for="edit-location" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem;">Location / Address</label>
-					<div style="display: flex; gap: 0.5rem;">
-						<input type="text" id="edit-location" name="location" class="form-control" bind:value={editJobModal.location} required style="flex: 1; padding: 0.6rem 0.8rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-primary);" />
-						<button type="button" class="btn btn-outline" style="padding: 0.6rem 0.85rem; font-size: 0.8rem; display: flex; align-items: center; gap: 0.3rem; border-color: var(--accent); color: var(--accent-hover);" onclick={() => showEditJobLocationModal = true}>
-							<MapPin size={14} /> Pin GPS
+					<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+						<label for="edit-location" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0;">City / Municipality</label>
+						<button type="button" class="btn btn-outline" style="padding: 0.25rem 0.6rem; font-size: 0.78rem; display: flex; align-items: center; gap: 0.3rem; border-color: var(--accent); color: var(--accent-hover);" onclick={() => showEditJobLocationModal = true}>
+							<MapPin size={13} /> Pin GPS
 						</button>
 					</div>
+
+					<CityAutocomplete 
+						bind:value={editJobModal.location}
+						bind:isValid={isLocationValid}
+						name="location"
+						id="edit-location"
+						placeholder="Search city/municipality (e.g. Davao City, Cebu City, Makati)..."
+						required={true}
+					/>
+
 					{#if editJobModal.latitude && editJobModal.longitude}
-						<span style="font-size: 0.72rem; color: var(--accent-hover); display: block; margin-top: 0.25rem;">
+						<span style="font-size: 0.72rem; color: var(--accent-hover); display: block; margin-top: 0.35rem;">
 							📍 GPS Pinned: {editJobModal.latitude}, {editJobModal.longitude}
 						</span>
 					{/if}

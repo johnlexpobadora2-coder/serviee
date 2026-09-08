@@ -617,6 +617,16 @@
 		});
 	});
 
+	let availableLocations = $derived(
+		Array.from(
+			new Set(
+				(data.availableJobs || [])
+					.map((j) => j.location?.trim())
+					.filter(Boolean)
+			)
+		).sort((a, b) => a.localeCompare(b))
+	);
+
 	let visibleFeedJobs = $derived(
 		filteredJobs.slice(0, visibleFeedJobsLimit)
 	);
@@ -707,6 +717,7 @@
 		{filteredJobs} 
 		{visibleFeedJobs} 
 		bind:visibleFeedJobsLimit 
+		{availableLocations}
 		bind:searchCategory 
 		bind:searchLocation 
 		bind:minBudget 

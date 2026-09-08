@@ -1,5 +1,5 @@
 <script>
-	import { ClipboardList, CheckCircle2, Trash2, Star } from 'lucide-svelte';
+	import { ClipboardList, CheckCircle2, Trash2, Star, Mail, Phone, MapPin, ShieldCheck, User as UserIcon } from 'lucide-svelte';
 
 	let { 
 		user = {}, 
@@ -33,8 +33,18 @@
 						{user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
 					</div>
 					<div class="profile-user-text">
-						<h2 style="font-size: 1.6rem; margin-bottom: 0.25rem;">{user?.name}</h2>
-						<span class="badge badge-general" style="font-size: 0.75rem;">Customer Account</span>
+						<h2>{user?.name}</h2>
+						<div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+							<span class="badge badge-roofing" style="font-size: 0.75rem; display: inline-flex; align-items: center; gap: 0.3rem;">
+								<ShieldCheck size={13} /> Customer Account
+							</span>
+							{#if user?.address}
+								<span style="font-size: 0.8rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 0.25rem;">
+									<MapPin size={13} style="color: var(--accent);" />
+									{user.address}
+								</span>
+							{/if}
+						</div>
 					</div>
 				</div>
 
@@ -57,19 +67,31 @@
 	<div class="profile-main-grid">
 		<!-- Left Column: Introduction / Details -->
 		<aside class="card" style="padding: 1.5rem;">
-			<h4 style="font-size: 1.25rem; margin-bottom: 1.25rem; color: var(--text-primary);">Introduction</h4>
-			<div style="display: flex; flex-direction: column; gap: 1rem; font-size: 0.9rem;">
-				<div>
-					<span style="color: var(--text-muted); font-size: 0.8rem; display: block; text-transform: uppercase;">Email Address</span>
-					<strong style="color: var(--text-primary);">{user?.email}</strong>
+			<h4 style="font-size: 1.15rem; margin-bottom: 1.25rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+				<UserIcon size={18} style="color: var(--accent);" />
+				Account Details
+			</h4>
+			<div style="display: flex; flex-direction: column; gap: 1.1rem; font-size: 0.9rem;">
+				<div style="display: flex; align-items: flex-start; gap: 0.65rem;">
+					<Mail size={16} style="color: var(--text-muted); margin-top: 0.2rem; flex-shrink: 0;" />
+					<div style="min-width: 0; word-break: break-all;">
+						<span style="color: var(--text-muted); font-size: 0.75rem; display: block; text-transform: uppercase; font-weight: 600; letter-spacing: 0.04em;">Email Address</span>
+						<strong style="color: var(--text-primary); font-size: 0.88rem;">{user?.email || '—'}</strong>
+					</div>
 				</div>
-				<div>
-					<span style="color: var(--text-muted); font-size: 0.8rem; display: block; text-transform: uppercase;">Phone Number</span>
-					<strong style="color: var(--text-primary);">{user?.phone}</strong>
+				<div style="display: flex; align-items: flex-start; gap: 0.65rem;">
+					<Phone size={16} style="color: var(--text-muted); margin-top: 0.2rem; flex-shrink: 0;" />
+					<div>
+						<span style="color: var(--text-muted); font-size: 0.75rem; display: block; text-transform: uppercase; font-weight: 600; letter-spacing: 0.04em;">Phone Number</span>
+						<strong style="color: var(--text-primary); font-size: 0.88rem;">{user?.phone || '—'}</strong>
+					</div>
 				</div>
-				<div>
-					<span style="color: var(--text-muted); font-size: 0.8rem; display: block; text-transform: uppercase;">Address / City</span>
-					<strong style="color: var(--text-primary);">{user?.address}</strong>
+				<div style="display: flex; align-items: flex-start; gap: 0.65rem;">
+					<MapPin size={16} style="color: var(--text-muted); margin-top: 0.2rem; flex-shrink: 0;" />
+					<div>
+						<span style="color: var(--text-muted); font-size: 0.75rem; display: block; text-transform: uppercase; font-weight: 600; letter-spacing: 0.04em;">City / Municipality</span>
+						<strong style="color: var(--text-primary); font-size: 0.88rem;">{user?.address || '—'}</strong>
+					</div>
 				</div>
 			</div>
 		</aside>

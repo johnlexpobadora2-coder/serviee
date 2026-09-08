@@ -1,18 +1,20 @@
 <script>
 	import { enhance } from '$app/forms';
-	import { CITIES_MUNICIPALITIES } from '$lib/locations.js';
 	import { getCurrentCoordinates, reverseGeocode, getGoogleMapsUrl, getEmbedMapUrl } from '$lib/gpsUtils.js';
 	import LocationPickerModal from '$lib/LocationPickerModal.svelte';
+	import CityAutocomplete from '$lib/CityAutocomplete.svelte';
 	import { MapPin, Navigation, ExternalLink, Check, AlertCircle, RefreshCw, Compass } from 'lucide-svelte';
 
 	let { form } = $props();
 	let loading = $state(false);
+	let clientError = $state('');
 
 	// GPS States
 	let detectingGps = $state(false);
 	let gpsError = $state('');
 	// svelte-ignore state_referenced_locally
 	let selectedLocation = $state(form?.location ?? '');
+	let isLocationValid = $state(false);
 	// svelte-ignore state_referenced_locally
 	let latitude = $state(form?.latitude ?? '');
 	// svelte-ignore state_referenced_locally
@@ -22,9 +24,17 @@
 	let showMapPreview = $state(false);
 	let showPickerModal = $state(false);
 
+	$effect(() => {
+		if (form?.location) {
+			selectedLocation = form.location;
+			isLocationValid = true;
+		}
+	});
+
 	async function handleDetectGps() {
 		detectingGps = true;
 		gpsError = '';
+		clientError = '';
 		try {
 			const coords = await getCurrentCoordinates();
 			latitude = coords.latitude.toFixed(6);
@@ -37,15 +47,9 @@
 				detectedAddressLabel = geo.displayName;
 			}
 
-			// Try to match detected city with our CITIES_MUNICIPALITIES list
 			if (geo.city) {
-				const match = CITIES_MUNICIPALITIES.find(c => 
-					c.toLowerCase().includes(geo.city.toLowerCase()) || 
-					geo.city.toLowerCase().includes(c.toLowerCase().replace(' city', ''))
-				);
-				if (match) {
-					selectedLocation = match;
-				}
+				selectedLocation = geo.city;
+				isLocationValid = true;
 			}
 			showMapPreview = true;
 		} catch (err) {
@@ -60,8 +64,10 @@
 		longitude = result.longitude;
 		detectedAddressLabel = result.address || `${result.latitude}, ${result.longitude}`;
 		gpsAccuracy = null;
+		clientError = '';
 		if (result.city) {
 			selectedLocation = result.city;
+			isLocationValid = true;
 		}
 		showMapPreview = true;
 	}
@@ -92,13 +98,19 @@
 			Describe the service you need with accurate location & GPS coordinates so nearby workers can locate you easily.
 		</p>
 
-		{#if form?.error}
+		{#if form?.error || clientError}
 			<div style="background-color: var(--error-light); border: 1px solid var(--error); color: var(--text-primary); padding: 0.75rem 1rem; border-radius: var(--radius-md); margin-bottom: 1rem; font-size: 0.85rem;">
-				{form.error}
+				{form?.error || clientError}
 			</div>
 		{/if}
 
-		<form method="POST" use:enhance={() => {
+		<form method="POST" use:enhance={({ cancel }) => {
+			clientError = '';
+			if (!selectedLocation || !isLocationValid) {
+				clientError = 'Please search and select a valid City or Municipality from the suggestions, or use Auto GPS / Pin Location.';
+				cancel();
+				return;
+			}
 			loading = true;
 			return async ({ update }) => {
 				loading = false;
@@ -116,7 +128,7 @@
 					id="title" 
 					name="title" 
 					placeholder="E.g. Leaking Bathroom Pipe Repair" 
-					value={form?.title ?? ''}
+					value={form?.title ?? ''} 
 					required 
 				/>
 			</div>
@@ -137,17 +149,14 @@
 
 				<div class="form-group">
 					<label for="location">City / Municipality</label>
-					<select 
-						id="location" 
-						name="location" 
-						required 
+					<CityAutocomplete 
 						bind:value={selectedLocation}
-					>
-						<option value="" disabled selected={!selectedLocation}>Select City / Municipality...</option>
-						{#each CITIES_MUNICIPALITIES as city}
-							<option value={city}>{city}</option>
-						{/each}
-					</select>
+						bind:isValid={isLocationValid}
+						name="location"
+						id="location"
+						placeholder="Search city/municipality (e.g. Davao City, Cebu City, Makati)..."
+						required={true}
+					/>
 				</div>
 			</div>
 
