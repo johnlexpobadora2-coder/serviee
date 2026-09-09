@@ -128,7 +128,6 @@
 		align-items: center;
 		justify-content: center;
 		gap: 0.4rem;
-		box-shadow: 0 4px 14px hsla(252, 78%, 62%, 0.35);
 	}
 
 	.confirm-delete-btn:hover:not(:disabled) {

@@ -66,7 +66,6 @@
 	.theme-toggle-btn:hover {
 		border-color: var(--accent);
 		background-color: var(--bg-card);
-		transform: translateY(-1px);
 	}
 
 	:global(.theme-icon) {

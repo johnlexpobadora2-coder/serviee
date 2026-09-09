@@ -1,5 +1,5 @@
 <script>
-	import { ClipboardList, CheckCircle2, Trash2, Star, Mail, Phone, MapPin, ShieldCheck, User as UserIcon } from 'lucide-svelte';
+	import { ClipboardList, CheckCircle2, Trash2, Star, Mail, Phone, MapPin, ShieldCheck, User as UserIcon, Clock } from 'lucide-svelte';
 
 	let { 
 		user = {}, 
@@ -35,7 +35,7 @@
 					<div class="profile-user-text">
 						<h2>{user?.name}</h2>
 						<div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-							<span class="badge badge-roofing" style="font-size: 0.75rem; display: inline-flex; align-items: center; gap: 0.3rem;">
+							<span class="badge badge-roofing" style="font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.35rem;">
 								<ShieldCheck size={13} /> Customer Account
 							</span>
 							{#if user?.address}
@@ -132,8 +132,8 @@
 					{#each posts as job (job.id)}
 						<div class="card feed-job-card">
 							<div class="feed-job-header">
-								<div>
-									<div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.35rem;">
+								<div class="feed-job-top-bar">
+									<div class="feed-job-badges">
 										<span class="badge {getCategoryBadge(job.category)}">{job.category}</span>
 										{#if job.status === 'completed'}
 											<span class="status status-completed">Completed</span>
@@ -142,24 +142,14 @@
 										{:else}
 											<span class="status status-open">Open</span>
 										{/if}
-										<span style="font-size: 0.75rem; color: var(--text-muted);">
-											Posted: {new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
-										</span>
 									</div>
-									<h3 class="feed-job-title">{job.title}</h3>
 								</div>
-								<div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem;">
-									<strong class="feed-job-budget" style="color: var(--accent); font-size: 1.25rem; display: block;">₱{job.budget.toLocaleString()}</strong>
-									<button
-										type="button"
-										class="btn btn-outline"
-										style="padding: 0.25rem 0.6rem; font-size: 0.75rem; border-color: #ef4444; color: #ef4444; display: inline-flex; align-items: center; gap: 0.3rem;"
-										onclick={() => onopendeletejob(job)}
-										title="Delete Job Post"
-									>
-										<Trash2 size={13} />
-										<span>Delete</span>
-									</button>
+								<h3 class="feed-job-title">{job.title}</h3>
+								<div class="feed-job-posted-by">
+									<span class="feed-job-date">
+										<Clock size={12} />
+										Posted: {new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+									</span>
 								</div>
 							</div>
 
@@ -172,6 +162,22 @@
 									<span>Assigned Worker: <strong style="color: var(--text-primary);">{job.assignedWorker.name}</strong></span>
 								</div>
 							{/if}
+
+							<div class="feed-job-footer">
+								<div class="feed-job-budget-wrap">
+									<span class="feed-job-budget-label">Budget</span>
+									<strong class="feed-job-budget">₱{job.budget.toLocaleString()}</strong>
+								</div>
+								<button
+									type="button"
+									class="btn btn-outline feed-job-delete-btn"
+									onclick={() => onopendeletejob(job)}
+									title="Delete Job Post"
+								>
+									<Trash2 size={13} />
+									<span>Delete</span>
+								</button>
+							</div>
 						</div>
 					{/each}
 				{/if}
@@ -189,23 +195,30 @@
 					{#each completedJobs as job (job.id)}
 						<div class="card feed-job-card">
 							<div class="feed-job-header">
-								<div>
-									<div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.35rem;">
+								<div class="feed-job-top-bar">
+									<div class="feed-job-badges">
 										<span class="badge {getCategoryBadge(job.category)}">{job.category}</span>
 										<span class="status status-completed">Completed</span>
-										<span style="font-size: 0.75rem; color: var(--text-muted);">
-											Posted: {new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
-										</span>
 									</div>
-									<h3 class="feed-job-title">{job.title}</h3>
 								</div>
-								<div style="text-align: right;">
-									<strong class="feed-job-budget" style="color: var(--accent); font-size: 1.25rem; display: block;">₱{job.budget.toLocaleString()}</strong>
+								<h3 class="feed-job-title">{job.title}</h3>
+								<div class="feed-job-posted-by">
+									<span class="feed-job-date">
+										<Clock size={12} />
+										Posted: {new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+									</span>
 								</div>
 							</div>
 
 							<div style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; border-left: 2px solid var(--border-color); padding-left: 1rem;">
 								<p>{job.description}</p>
+							</div>
+
+							<div class="feed-job-footer">
+								<div class="feed-job-budget-wrap">
+									<span class="feed-job-budget-label">Budget</span>
+									<strong class="feed-job-budget">₱{job.budget.toLocaleString()}</strong>
+								</div>
 							</div>
 
 							<!-- Worker & Rating details given -->

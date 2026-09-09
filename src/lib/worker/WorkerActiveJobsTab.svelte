@@ -1,5 +1,5 @@
 <script>
-	import { User, MessageSquare, MapPin, ExternalLink } from 'lucide-svelte';
+	import { User, MessageSquare, MapPin, ExternalLink, Clock } from 'lucide-svelte';
 	import { getGoogleMapsUrl, getEmbedMapUrl } from '$lib/gpsUtils.js';
 
 	let { 
@@ -46,48 +46,40 @@
 		</div>
 	{:else}
 		{#each visibleMyJobs as job (job.id)}
-			<div
-				class="card active-job-card"
-				style="padding: 1.25rem; display: flex; flex-direction: column; gap: 0.85rem;"
-			>
-				<div class="active-job-header">
-					<div>
-						<div
-							style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.35rem;"
-						>
+			<div class="card feed-job-card">
+				<div class="feed-job-header">
+					<!-- Top Row: Badges on left -->
+					<div class="feed-job-top-bar">
+						<div class="feed-job-badges">
 							<span class="badge {getCategoryBadge(job.category)}">{job.category}</span>
 							<span class="status status-{job.status}">
 								{job.status === "assigned" ? "Assigned" : "In Progress"}
 							</span>
-							{#if job.created_at}
-								<span style="font-size: 0.75rem; color: var(--text-muted);">
-									Posted: {new Date(job.created_at).toLocaleDateString("en-PH", {
-										month: "short",
-										day: "numeric",
-										year: "numeric",
-										hour: "numeric",
-										minute: "2-digit",
-									})}
-								</span>
-							{/if}
 						</div>
-						<h3
-							class="active-job-title"
-							style="font-size: 1.25rem; color: var(--text-primary);"
-						>
-							{job.title}
-						</h3>
 					</div>
-					<strong
-						class="active-job-budget"
-						style="color: var(--success); font-size: 1.25rem;"
-					>₱{job.budget.toLocaleString()}</strong>
+
+					<!-- Title Row -->
+					<h3 class="feed-job-title">{job.title}</h3>
+
+					{#if job.created_at}
+						<div class="feed-job-posted-by">
+							<span class="feed-job-date">
+								<Clock size={12} />
+								{new Date(job.created_at).toLocaleDateString("en-PH", {
+									month: "short",
+									day: "numeric",
+									year: "numeric",
+									hour: "numeric",
+									minute: "2-digit",
+								})}
+							</span>
+						</div>
+					{/if}
 				</div>
 
-				<p
-					class="active-job-desc"
-					style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;"
-				>
+				<div class="feed-job-divider"></div>
+
+				<p class="feed-job-desc">
 					{job.description}
 				</p>
 
@@ -173,6 +165,13 @@
 						</div>
 					</div>
 				{/if}
+
+				<div class="feed-job-footer">
+					<div class="feed-job-budget-wrap">
+						<span class="feed-job-budget-label">Budget</span>
+						<strong class="feed-job-budget">₱{job.budget.toLocaleString()}</strong>
+					</div>
+				</div>
 			</div>
 		{/each}
 

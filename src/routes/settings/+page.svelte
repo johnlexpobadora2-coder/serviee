@@ -489,24 +489,33 @@
 	}
 
 	.role-badge {
-		padding: 0.25rem 0.6rem;
+		padding: 0.3rem 0.85rem;
 		border-radius: var(--radius-full);
-		font-size: 0.75rem;
-		font-weight: 600;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
+		font-size: 0.8rem;
+		font-weight: 500;
+		text-transform: capitalize;
+		border: none !important;
+		line-height: 1.25;
 	}
 
 	.role-badge.customer {
-		background: hsla(215, 80%, 55%, 0.15);
-		color: hsl(215, 80%, 65%);
-		border: 1px solid hsla(215, 80%, 55%, 0.3);
+		background: hsla(330, 85%, 65%, 0.2);
+		color: #f472b6;
 	}
 
 	.role-badge.worker {
-		background: hsla(142, 70%, 45%, 0.15);
-		color: hsl(142, 70%, 55%);
-		border: 1px solid hsla(142, 70%, 45%, 0.3);
+		background: hsla(142, 70%, 50%, 0.2);
+		color: #4ade80;
+	}
+
+	:global(html.light) .role-badge.customer {
+		background: #fce7f3;
+		color: #be185d;
+	}
+
+	:global(html.light) .role-badge.worker {
+		background: #bbf7d0;
+		color: #15803d;
 	}
 
 	.user-email {

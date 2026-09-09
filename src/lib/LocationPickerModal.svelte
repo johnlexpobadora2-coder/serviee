@@ -3,7 +3,7 @@
 	import { browser } from '$app/environment';
 	import { getCurrentCoordinates, reverseGeocode, forwardGeocode, getGoogleMapsUrl } from '$lib/gpsUtils.js';
 	import { resolvePhilippineCity } from '$lib/philippinesLocations.js';
-	import { MapPin, Search, Navigation, Check, X, ExternalLink, AlertCircle, Crosshair } from 'lucide-svelte';
+	import { MapPin, Search, Navigation, Check, X, ExternalLink, AlertCircle } from 'lucide-svelte';
 
 	/**
 	 * @type {{
@@ -20,8 +20,8 @@
 		show = $bindable(false), 
 		initialLat = '', 
 		initialLng = '', 
-		initialAddress = '',
-		title = 'Pin Custom Location',
+		initialAddress = '', 
+		title = 'Pin Custom Location', 
 		onSave = () => {}, 
 		onClose = () => {} 
 	} = $props();
@@ -204,12 +204,6 @@
 		}
 	}
 
-	function handlePinCenterOfMap() {
-		if (!mapInstance) return;
-		const center = mapInstance.getCenter();
-		updatePosition(center.lat, center.lng, false);
-	}
-
 	async function handleSearch(e) {
 		if (e) e.preventDefault();
 		const trimmed = searchQuery.trim();
@@ -260,12 +254,6 @@
 		if (!isNaN(parsedLat) && !isNaN(parsedLng)) {
 			updatePosition(parsedLat, parsedLng, true);
 		}
-	}
-
-	function handleNudge(dLat, dLng) {
-		const currLat = parseFloat(lat) || 14.599512;
-		const currLng = parseFloat(lng) || 120.984222;
-		updatePosition(currLat + dLat, currLng + dLng, true);
 	}
 
 	function saveLocation(e) {
@@ -348,7 +336,7 @@
 				</button>
 			</div>
 
-			<!-- Search & Fast Geolocation Bar -->
+			<!-- Search Bar -->
 			<div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem;">
 				<form onsubmit={handleSearch} style="display: flex; gap: 0.5rem;">
 					<div style="position: relative; flex: 1;">
@@ -372,45 +360,7 @@
 							Search
 						{/if}
 					</button>
-					<button 
-						type="button" 
-						class="btn btn-outline" 
-						style="padding: 0.65rem 0.85rem; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.35rem;"
-						onclick={handleDetectCurrentGps}
-						disabled={detectingGps}
-						title="Use my current device GPS as starting point"
-					>
-						{#if detectingGps}
-							<span class="spinner spinner-sm"></span>
-						{:else}
-							<Navigation size={14} /> My GPS
-						{/if}
-					</button>
 				</form>
-
-				<!-- Quick Location Jump Presets -->
-				<div style="display: flex; gap: 0.35rem; align-items: center; overflow-x: auto; padding-bottom: 0.25rem;">
-					<span style="font-size: 0.7rem; color: var(--text-muted); flex-shrink: 0;">Quick Jump:</span>
-					{#each [
-						{ name: 'Manila', lat: 14.5995, lng: 120.9842 },
-						{ name: 'Quezon City', lat: 14.6760, lng: 121.0437 },
-						{ name: 'Makati', lat: 14.5547, lng: 121.0244 },
-						{ name: 'Pasig', lat: 14.5764, lng: 121.0851 },
-						{ name: 'Taguig / BGC', lat: 14.5378, lng: 121.0509 },
-						{ name: 'Caloocan', lat: 14.6488, lng: 120.9839 },
-						{ name: 'Antipolo', lat: 14.5842, lng: 121.1763 },
-						{ name: 'Bulacan', lat: 14.7943, lng: 120.8799 }
-					] as city}
-						<button
-							type="button"
-							class="btn btn-outline"
-							style="padding: 0.15rem 0.45rem; font-size: 0.7rem; white-space: nowrap; border-radius: var(--radius-full);"
-							onclick={() => updatePosition(city.lat, city.lng, true)}
-						>
-							{city.name}
-						</button>
-					{/each}
-				</div>
 
 				{#if searchError}
 					<div style="display: flex; align-items: center; gap: 0.4rem; color: var(--error); font-size: 0.8rem; background: var(--error-light); padding: 0.4rem 0.75rem; border-radius: var(--radius-sm);">
@@ -469,32 +419,28 @@
 
 					<!-- Floating Interaction Instruction Pill -->
 					<div class="map-floating-hint">
-						<MapPin size={13} color="#10b981" />
-						<span>Click map or drag the green pin to move location</span>
+						<MapPin size={13} color="#10b981" style="flex-shrink: 0;" />
+						<span>Click map or drag green pin to move location</span>
 					</div>
 
-					<!-- Floating "Pin Center of Map" button -->
+					<!-- Floating "Detect My Location" button -->
 					<div style="position: absolute; bottom: 12px; right: 12px; z-index: 999;">
 						<button 
 							type="button" 
 							class="btn btn-secondary" 
-							style="padding: 0.35rem 0.75rem; font-size: 0.75rem; font-weight: 600; background: rgba(15, 23, 42, 0.9); color: #fff; border: 1px solid rgba(255, 255, 255, 0.2); backdrop-filter: blur(4px); box-shadow: 0 4px 12px rgba(0,0,0,0.4); display: inline-flex; align-items: center; gap: 0.35rem; border-radius: var(--radius-full);"
-							onclick={handlePinCenterOfMap}
-							title="Move the green pin to the center of your view"
+							style="padding: 0.4rem 0.85rem; font-size: 0.78rem; font-weight: 600; background: rgba(15, 23, 42, 0.9); color: #fff; border: 1px solid rgba(255, 255, 255, 0.2); backdrop-filter: blur(4px); box-shadow: 0 4px 12px rgba(0,0,0,0.4); display: inline-flex; align-items: center; gap: 0.4rem; border-radius: var(--radius-full);"
+							onclick={handleDetectCurrentGps}
+							disabled={detectingGps}
+							title="Detect my current location"
 						>
-							<Crosshair size={13} color="#10b981" /> Center Pin Here
+							{#if detectingGps}
+								<span class="spinner spinner-sm"></span>
+								<span>Detecting...</span>
+							{:else}
+								<Navigation size={13} color="var(--accent, #6366f1)" />
+								<span>Detect my location</span>
+							{/if}
 						</button>
-					</div>
-				</div>
-
-				<!-- Pan & Move Directions Bar -->
-				<div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0.75rem; background: var(--bg-card); border-top: 1px solid var(--border-color); font-size: 0.75rem; color: var(--text-muted); flex-wrap: wrap; gap: 0.4rem;">
-					<span style="font-weight: 500; color: var(--text-secondary);">Fine Nudge:</span>
-					<div style="display: flex; gap: 0.35rem; align-items: center;">
-						<button type="button" class="btn btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.72rem; font-weight: 600;" onclick={() => handleNudge(0.0015, 0)}>▲ North</button>
-						<button type="button" class="btn btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.72rem; font-weight: 600;" onclick={() => handleNudge(-0.0015, 0)}>▼ South</button>
-						<button type="button" class="btn btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.72rem; font-weight: 600;" onclick={() => handleNudge(0, -0.0015)}>◄ West</button>
-						<button type="button" class="btn btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.72rem; font-weight: 600;" onclick={() => handleNudge(0, 0.0015)}>► East</button>
 					</div>
 				</div>
 			</div>
@@ -545,9 +491,9 @@
 					type="button" 
 					class="btn btn-primary" 
 					onclick={saveLocation} 
-					style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: 1px solid #10b981; padding: 0.55rem 1.5rem; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.4rem; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);"
+					style="padding: 0.55rem 1.25rem; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.4rem;"
 				>
-					<Check size={16} /> Confirm & Use This Location
+					<Check size={16} /> Confirm
 				</button>
 			</div>
 		</div>

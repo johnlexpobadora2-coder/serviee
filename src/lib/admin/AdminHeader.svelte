@@ -11,11 +11,11 @@
 		<a href="/" class="logo" style="font-size: 1.35rem; text-decoration: none;">
 			Serviee <span class="logo-dot"></span>
 		</a>
-		<span class="badge" style="background: var(--accent-light); color: var(--accent); border-color: rgba(114, 97, 239, 0.3); font-weight: 700; font-size: 0.75rem; text-transform: uppercase; display: inline-flex; align-items: center; gap: 0.3rem;">
+		<span class="badge badge-carpentry" style="font-weight: 600; font-size: 0.78rem; text-transform: capitalize; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.75rem;">
 			<ShieldCheck size={14} /> Admin05
 		</span>
-		<div style="display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.25rem 0.75rem; background: var(--success-light); border: 1px solid var(--success); color: var(--success); border-radius: var(--radius-full); font-size: 0.75rem; font-weight: 600;">
-			<span style="width: 6px; height: 6px; border-radius: 50%; background: var(--success); display: inline-block;"></span>
+		<div class="badge badge-gardening" style="font-weight: 500; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.25rem 0.75rem;">
+			<span style="width: 6px; height: 6px; border-radius: 50%; background: currentColor; display: inline-block;"></span>
 			<span>Live System Connected</span>
 		</div>
 	</div>

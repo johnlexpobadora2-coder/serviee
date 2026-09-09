@@ -57,7 +57,7 @@
 	<!-- Reviews Cards Grid -->
 	<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
 		{#each filteredReviews as r}
-			<div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-xs dark:shadow-xl flex flex-col justify-between space-y-3.5 hover:border-purple-300 dark:hover:border-purple-500/40 hover:shadow-md transition-all h-full">
+			<div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-xs dark:shadow-xl flex flex-col justify-between space-y-3.5 hover:border-purple-300 dark:hover:border-purple-500/40 transition-all h-full">
 				<div class="space-y-2.5">
 					<div class="flex items-center justify-between">
 						<div class="flex items-center gap-1 text-xs sm:text-sm {r.rating < 0 ? 'text-red-500' : 'text-amber-500 dark:text-amber-400'}">

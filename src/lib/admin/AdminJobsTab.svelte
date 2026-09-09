@@ -83,14 +83,14 @@
 								<div class="text-xs text-slate-500 dark:text-slate-400 font-medium max-w-xs truncate mt-0.5">{j.description || 'No description.'}</div>
 							</td>
 							<td class="py-3.5 px-4 whitespace-nowrap">
-								<span class="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-[11px] font-bold">
+								<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300 capitalize">
 									{j.category || 'General'}
 								</span>
 							</td>
 							<td class="py-3.5 px-4 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">{j.location || 'N/A'}</td>
 							<td class="py-3.5 px-4 font-extrabold text-emerald-600 dark:text-emerald-400 text-sm whitespace-nowrap">{formatCurrency(j.budget)}</td>
 							<td class="py-3.5 px-4 whitespace-nowrap">
-								<span class="px-2.5 py-1 bg-purple-50 dark:bg-purple-500/15 text-[#7261ef] dark:text-purple-300 font-bold rounded-lg text-xs border border-purple-200/60 dark:border-purple-500/20">
+								<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300">
 									{j.applicants?.length || 0}
 								</span>
 							</td>
@@ -139,7 +139,7 @@
 					<div class="min-w-0 flex-1">
 						<div class="font-bold text-slate-900 dark:text-white text-xs truncate">{j.title}</div>
 						<div class="text-[10px] text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5 mt-0.5 flex-wrap">
-							<span class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded text-[9px] font-bold">{j.category || 'General'}</span>
+							<span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300 capitalize">{j.category || 'General'}</span>
 							<span>•</span>
 							<span class="text-slate-500 dark:text-slate-400">{j.location || 'N/A'}</span>
 							<span>•</span>

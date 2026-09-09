@@ -213,19 +213,12 @@
 		align-items: center;
 		justify-content: center;
 		gap: 0.5rem;
-		box-shadow: 0 4px 14px rgba(114, 97, 239, 0.35);
-		transition: all var(--transition-fast);
+		transition: background var(--transition-fast);
 		box-sizing: border-box;
 	}
 
 	.admin-lock-submit-btn:hover {
 		background: linear-gradient(135deg, #6351e6 0%, #7c3aed 100%);
-		transform: translateY(-1px);
-		box-shadow: 0 6px 20px rgba(114, 97, 239, 0.45);
-	}
-
-	.admin-lock-submit-btn:active {
-		transform: translateY(0);
 	}
 
 	.admin-lock-footer {

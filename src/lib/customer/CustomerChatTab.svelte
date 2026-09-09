@@ -86,7 +86,7 @@
 	<div class="chat-window">
 		{#if activeConversation}
 			<div class="chat-header">
-				<div style="display: flex; align-items: center; gap: 0.5rem;">
+				<div style="display: flex; align-items: center; gap: 0.5rem; min-width: 0; flex: 1;">
 					<button
 						type="button"
 						class="btn btn-outline mobile-back-btn"
@@ -97,23 +97,24 @@
 						<ArrowLeft size={22} />
 						<span>Back</span>
 					</button>
-					<div>
-						<h4 style="margin: 0; font-size: 1.05rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+					<div style="min-width: 0;">
+						<h4 style="margin: 0; font-size: 1.05rem; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
 							{activeConversation.other_user_name}
-							<button 
-								type="button" 
-								class="btn btn-outline" 
-								style="padding: 0.15rem 0.5rem; font-size: 0.72rem; border-color: var(--accent); color: var(--accent-hover);"
-								onclick={() => onopenviewprofile(activeConversation.other_user_id)}
-							>
-								<User size={11} /> Profile
-							</button>
 						</h4>
-						<span style="font-size: 0.78rem; color: var(--accent-hover); display: block;">
+						<span style="font-size: 0.78rem; color: var(--accent-hover); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
 							Job: {activeConversation.job_title}
 						</span>
 					</div>
 				</div>
+
+				<button
+					type="button"
+					class="btn btn-outline"
+					style="padding: 0.25rem 0.65rem; font-size: 0.78rem; border-color: var(--accent); color: var(--accent-hover); display: inline-flex; align-items: center; gap: 0.35rem; flex-shrink: 0; margin-left: 0.5rem;"
+					onclick={() => onopenviewprofile(activeConversation.other_user_id)}
+				>
+					<User size={13} /> Profile
+				</button>
 			</div>
 
 			<div class="chat-messages-body" id="chat-messages-customer-body" onscroll={onchatscroll}>

@@ -318,11 +318,9 @@
 		border: none;
 		cursor: pointer;
 		transition: all 0.2s ease;
-		box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 	}
 
 	.btn-pwa-install:hover {
-		transform: translateY(-1px);
 		filter: brightness(1.1);
 	}
 

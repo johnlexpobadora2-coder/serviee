@@ -86,7 +86,7 @@
 								</div>
 							</td>
 							<td class="py-3.5 px-4 whitespace-nowrap">
-								<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider {u.role === 'customer' ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20' : 'bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-200/60 dark:border-purple-500/20'}">
+								<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize {u.role === 'customer' ? 'bg-pink-100 text-pink-700 dark:bg-pink-500/20 dark:text-pink-300' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'}">
 									{u.role === 'customer' ? 'Client' : 'Worker'}
 								</span>
 							</td>
@@ -142,7 +142,7 @@
 							<div class="text-[11px] text-slate-500 dark:text-slate-400 truncate">{u.email}</div>
 						</div>
 					</div>
-					<span class="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider {u.role === 'customer' ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20' : 'bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-200/60 dark:border-purple-500/20'}">
+					<span class="shrink-0 px-2.5 py-0.5 rounded-full text-[11px] font-semibold capitalize {u.role === 'customer' ? 'bg-pink-100 text-pink-700 dark:bg-pink-500/20 dark:text-pink-300' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'}">
 						{u.role === 'customer' ? 'Client' : 'Worker'}
 					</span>
 				</div>

@@ -228,8 +228,9 @@
 			{#each filteredJobs as job (job.id)}
 				<div class="card feed-job-card">
 					<div class="feed-job-header">
-						<div>
-							<div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+						<!-- Top Row: Badges on left -->
+						<div class="feed-job-top-bar">
+							<div class="feed-job-badges">
 								<span class="badge {getCategoryBadge(job.category)}">{job.category}</span>
 								<span class="status status-{job.status}">
 									{#if job.status === 'open'} Open
@@ -238,44 +239,37 @@
 									{:else} Completed
 									{/if}
 								</span>
-								<span style="font-size: 0.78rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 0.25rem;">
-									<Clock size={12} />
-									{new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
-								</span>
 							</div>
-							<h3 class="feed-job-title">{job.title}</h3>
-							<div style="font-size: 0.82rem; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 0.35rem; margin-top: 0.15rem;">
-								<User size={13} style="color: var(--accent);" />
+						</div>
+
+						<!-- Title Row -->
+						<h3 class="feed-job-title">{job.title}</h3>
+
+						<!-- Posted By Row -->
+						<div class="feed-job-posted-by">
+							<div style="display: inline-flex; align-items: center; gap: 0.35rem; min-width: 0;">
+								<User size={13} style="color: var(--accent); flex-shrink: 0;" />
 								<span>Posted by:</span>
 								{#if job.customer_id !== currentUserId}
 									<button 
 										type="button" 
-										style="background: none; border: none; color: var(--accent-hover); font-weight: 600; cursor: pointer; text-decoration: underline; padding: 0; font-size: inherit;"
+										class="posted-by-link"
 										onclick={() => onopenviewprofile(job.customer_id)}
 									>
 										{job.customerName}
 									</button>
 								{:else}
-									<strong style="color: var(--text-primary);">{job.customerName} (You)</strong>
+									<strong class="posted-by-self">{job.customerName} (You)</strong>
 								{/if}
 							</div>
-						</div>
-						<div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
-							<strong class="feed-job-budget">₱{job.budget.toLocaleString()}</strong>
-							{#if job.customer_id === currentUserId}
-								<button
-									type="button"
-									class="btn btn-outline"
-									style="padding: 0.3rem 0.75rem; font-size: 0.75rem; border-color: rgba(239, 68, 68, 0.4); color: #f87171; background: rgba(239, 68, 68, 0.1); border-radius: 8px; display: inline-flex; align-items: center; gap: 0.35rem; transition: all 0.2s;"
-									onclick={() => onopendeletejob(job)}
-									title="Delete Your Job Post"
-								>
-									<Trash2 size={13} />
-									<span>Delete</span>
-								</button>
-							{/if}
+							<span class="feed-job-date">
+								<Clock size={12} />
+								{new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+							</span>
 						</div>
 					</div>
+
+					<div class="feed-job-divider"></div>
 
 					<p class="feed-job-desc">
 						{job.description}
@@ -315,6 +309,25 @@
 							</div>
 						</div>
 					{/if}
+
+					<!-- Bottom Price & Action Footer -->
+					<div class="feed-job-footer">
+						<div class="feed-job-budget-wrap">
+							<span class="feed-job-budget-label">Budget</span>
+							<strong class="feed-job-budget">₱{job.budget.toLocaleString()}</strong>
+						</div>
+						{#if job.customer_id === currentUserId}
+							<button
+								type="button"
+								class="btn btn-outline feed-job-delete-btn"
+								onclick={() => onopendeletejob(job)}
+								title="Delete Your Job Post"
+							>
+								<Trash2 size={13} />
+								<span>Delete</span>
+							</button>
+						{/if}
+					</div>
 				</div>
 			{/each}
 		{/if}

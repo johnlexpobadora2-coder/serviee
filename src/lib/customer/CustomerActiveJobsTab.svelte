@@ -1,6 +1,6 @@
 <script>
 	import { enhance } from '$app/forms';
-	import { Star, User, MessageSquare, UserCheck, Pencil, Trash2, MapPin, ExternalLink } from 'lucide-svelte';
+	import { Star, User, MessageSquare, UserCheck, Pencil, Trash2, MapPin, ExternalLink, Clock } from 'lucide-svelte';
 	import { getGoogleMapsUrl, getEmbedMapUrl } from '$lib/gpsUtils.js';
 
 	let { 
@@ -25,18 +25,13 @@
 	}
 </script>
 
-<div style="max-width: 900px; margin: 0 auto; width: 100%;">
-	<!-- Dashboard Header -->
-	<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
-		<h2 style="font-size: 1.75rem; margin: 0;">My Active Jobs ({activeJobs.length})</h2>
-		<a href="/customer/post-job" class="btn btn-primary" style="width: auto; padding: 0.6rem 1.5rem;" id="post-new-job-btn">
-			+ Post a New Job
-		</a>
-	</div>
-
-	<div style="display: flex; flex-direction: column; gap: 1.5rem;">
+<div class="space-y-4">
+	<div class="active-jobs-list" style="display: flex; flex-direction: column; gap: 1rem;">
 		{#if activeJobs.length === 0}
-			<div class="card" style="text-align: center; padding: 5rem 2rem; border-style: dashed;">
+			<div class="card" style="text-align: center; padding: 3rem 1.5rem; color: var(--text-muted);">
+				<div style="width: 56px; height: 56px; margin: 0 auto 1rem auto; background-color: var(--bg-input); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--text-secondary);">
+					<UserCheck size={28} />
+				</div>
 				<h4 style="font-size: 1.25rem; margin-bottom: 0.5rem;">You have no active jobs right now.</h4>
 				<p style="color: var(--text-secondary); font-size: 0.9rem; max-width: 450px; margin: 0 auto 1.5rem auto;">
 					Post a job describing what you need to connect with local sideline workers and handymen in your area.
@@ -51,8 +46,9 @@
 					
 					<!-- Job Header -->
 					<div class="feed-job-header">
-						<div>
-							<div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.35rem;">
+						<!-- Top Row: Badges on left -->
+						<div class="feed-job-top-bar">
+							<div class="feed-job-badges">
 								<span class="badge {getCategoryBadge(job.category)}">{job.category}</span>
 								<span class="status status-{job.status}">
 									{#if job.status === 'open'} Naghahanap
@@ -61,44 +57,26 @@
 									{:else} Completed
 									{/if}
 								</span>
-								<span style="font-size: 0.75rem; color: var(--text-muted);">
-									Posted: {new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
-								</span>
 							</div>
-							<h3 class="feed-job-title">{job.title}</h3>
 						</div>
 
-						<div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem;">
-							<strong class="feed-job-budget" style="color: var(--accent); font-size: 1.25rem; display: block;">₱{job.budget.toLocaleString()}</strong>
-							<div style="display: flex; gap: 0.35rem; align-items: center;">
-								<button
-									type="button"
-									class="btn btn-outline"
-									style="padding: 0.25rem 0.6rem; font-size: 0.75rem; border-color: var(--accent); color: var(--accent-hover); display: inline-flex; align-items: center; gap: 0.3rem;"
-									onclick={() => onopeneditjob(job)}
-									title="Edit Job Post"
-								>
-									<Pencil size={13} />
-									<span>Edit</span>
-								</button>
-								<button
-									type="button"
-									class="btn btn-outline"
-									style="padding: 0.25rem 0.6rem; font-size: 0.75rem; border-color: #ef4444; color: #ef4444; display: inline-flex; align-items: center; gap: 0.3rem;"
-									onclick={() => onopendeletejob(job)}
-									title="Delete Job Post"
-								>
-									<Trash2 size={13} />
-									<span>Delete</span>
-								</button>
-							</div>
+						<!-- Title Row -->
+						<h3 class="feed-job-title">{job.title}</h3>
+
+						<!-- Date Sub-row -->
+						<div class="feed-job-posted-by">
+							<span class="feed-job-date">
+								<Clock size={12} />
+								{new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+							</span>
 						</div>
 					</div>
+
+					<!-- Divider -->
+					<div class="feed-job-divider"></div>
 
 					<!-- Details Info -->
-					<div style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; border-left: 2px solid var(--border-color); padding-left: 1rem;">
-						<p>{job.description}</p>
-					</div>
+					<p class="feed-job-desc">{job.description}</p>
 
 					<!-- Metadata details bar -->
 					<div class="metadata-bar">
@@ -139,6 +117,34 @@
 							</div>
 						</div>
 					{/if}
+
+					<!-- Bottom Price & Edit/Delete Actions Bar -->
+					<div class="feed-job-footer">
+						<div class="feed-job-budget-wrap">
+							<span class="feed-job-budget-label">Budget</span>
+							<strong class="feed-job-budget">₱{job.budget.toLocaleString()}</strong>
+						</div>
+						<div class="feed-job-actions-group">
+							<button
+								type="button"
+								class="btn btn-outline feed-job-edit-btn"
+								onclick={() => onopeneditjob(job)}
+								title="Edit Job Post"
+							>
+								<Pencil size={13} />
+								<span>Edit</span>
+							</button>
+							<button
+								type="button"
+								class="btn btn-outline feed-job-delete-btn"
+								onclick={() => onopendeletejob(job)}
+								title="Delete Job Post"
+							>
+								<Trash2 size={13} />
+								<span>Delete</span>
+							</button>
+						</div>
+					</div>
 
 					<!-- WORKER ASSIGNMENT & STATUS ACTIONS -->
 					<div style="border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 0.5rem;">

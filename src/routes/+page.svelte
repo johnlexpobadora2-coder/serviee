@@ -389,7 +389,6 @@
 
 	.category-card:hover {
 		border-color: var(--accent);
-		box-shadow: var(--shadow-md), var(--glow);
 	}
 
 	.category-circle-badge {

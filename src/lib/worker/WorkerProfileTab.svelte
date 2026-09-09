@@ -34,7 +34,7 @@
 					<div class="profile-user-text">
 						<h2>{user?.name}</h2>
 						<div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-							<span class="badge badge-general" style="font-size: 0.75rem; display: inline-flex; align-items: center; gap: 0.3rem;">
+							<span class="badge badge-gardening" style="font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.35rem;">
 								<Wrench size={13} /> Worker Account
 							</span>
 							{#if user?.address}

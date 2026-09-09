@@ -238,41 +238,45 @@
 					class="card feed-job-card"
 				>
 					<div class="feed-job-header">
-						<div>
-							<div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+						<!-- Top Row: Badges on left -->
+						<div class="feed-job-top-bar">
+							<div class="feed-job-badges">
 								<span class="badge {getCategoryBadge(job.category)}">{job.category}</span>
-								<span style="font-size: 0.78rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 0.25rem;">
-									<Clock size={12} />
-									{new Date(job.created_at).toLocaleDateString("en-PH", {
-										month: "short",
-										day: "numeric",
-										year: "numeric",
-										hour: "numeric",
-										minute: "2-digit",
-									})}
-								</span>
 							</div>
-							<h3 class="feed-job-title">
-								{job.title}
-							</h3>
-							<div style="font-size: 0.82rem; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 0.35rem; margin-top: 0.15rem;">
-								<User size={13} style="color: var(--accent);" />
+						</div>
+
+						<!-- Title Row -->
+						<h3 class="feed-job-title">
+							{job.title}
+						</h3>
+
+						<!-- Client Row -->
+						<div class="feed-job-posted-by">
+							<div style="display: inline-flex; align-items: center; gap: 0.35rem; min-width: 0;">
+								<User size={13} style="color: var(--accent); flex-shrink: 0;" />
 								<span>Client:</span> 
 								<button 
 									type="button" 
-									style="background: none; border: none; color: var(--accent-hover); font-weight: 600; cursor: pointer; text-decoration: underline; padding: 0; font-size: inherit;"
+									class="posted-by-link"
 									onclick={() => onopenviewprofile(job.customer_id)}
 								>
 									{job.customerName}
 								</button>
 							</div>
-						</div>
-						<div style="text-align: right;">
-							<strong class="feed-job-budget">
-								₱{job.budget.toLocaleString()}
-							</strong>
+							<span class="feed-job-date">
+								<Clock size={12} />
+								{new Date(job.created_at).toLocaleDateString("en-PH", {
+									month: "short",
+									day: "numeric",
+									year: "numeric",
+									hour: "numeric",
+									minute: "2-digit",
+								})}
+							</span>
 						</div>
 					</div>
+
+					<div class="feed-job-divider"></div>
 
 					<p class="feed-job-desc">
 						{job.description}
@@ -321,53 +325,59 @@
 						</div>
 					{/if}
 
-					<div
-						class="feed-job-actions"
-						style="display: flex; justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top: 0.75rem;"
-					>
-						{#if job.hasApplied}
-							<button
-								type="button"
-								class="btn btn-outline"
-								style="padding: 0.45rem 1.1rem; border-color: var(--accent); color: var(--accent-hover); display: inline-flex; align-items: center; gap: 0.35rem;"
-								onclick={() => onopenchat(job.id, job.customer_id)}
-							>
-								<MessageSquare size={14} /> Open Chat
-							</button>
-						{:else}
-							<form
-								method="POST"
-								action="?/inquireJob"
-								use:enhance={() => {
-									applyingJobId = job.id;
-									return async ({ update }) => {
-										applyingJobId = null;
-										await update();
-										onopenchat(job.id, job.customer_id);
-									};
-								}}
-								style="width: 100%; display: flex; justify-content: flex-end;"
-							>
-								<input type="hidden" name="jobId" value={job.id} />
-								<input type="hidden" name="customerId" value={job.customer_id} />
-								<input type="hidden" name="initialMessage" value="Hello! Inquiring po ako sa sideline job na ito: {job.title}." />
+					<div class="feed-job-footer">
+						<div class="feed-job-budget-wrap">
+							<span class="feed-job-budget-label">Budget</span>
+							<strong class="feed-job-budget">
+								₱{job.budget.toLocaleString()}
+							</strong>
+						</div>
+
+						<div>
+							{#if job.hasApplied}
 								<button
-									type="submit"
-									class="btn btn-primary"
-									style="padding: 0.45rem 1.1rem; display: inline-flex; align-items: center; gap: 0.35rem;"
-									disabled={applyingJobId === job.id}
-									id="inquire-btn-{job.id}"
+									type="button"
+									class="btn btn-outline"
+									style="padding: 0.45rem 1.1rem; border-color: var(--accent); color: var(--accent-hover); display: inline-flex; align-items: center; gap: 0.35rem;"
+									onclick={() => onopenchat(job.id, job.customer_id)}
 								>
-									{#if applyingJobId === job.id}
-										<span class="spinner spinner-sm"></span>
-										<span>Connecting...</span>
-									{:else}
-										<MessageSquare size={14} />
-										<span>Apply / Chat Client</span>
-									{/if}
+									<MessageSquare size={14} /> Open Chat
 								</button>
-							</form>
-						{/if}
+							{:else}
+								<form
+									method="POST"
+									action="?/inquireJob"
+									use:enhance={() => {
+										applyingJobId = job.id;
+										return async ({ update }) => {
+											applyingJobId = null;
+											await update();
+											onopenchat(job.id, job.customer_id);
+										};
+									}}
+									style="display: inline-flex;"
+								>
+									<input type="hidden" name="jobId" value={job.id} />
+									<input type="hidden" name="customerId" value={job.customer_id} />
+									<input type="hidden" name="initialMessage" value="Hello! Inquiring po ako sa sideline job na ito: {job.title}." />
+									<button
+										type="submit"
+										class="btn btn-primary"
+										style="padding: 0.45rem 1.1rem; display: inline-flex; align-items: center; gap: 0.35rem;"
+										disabled={applyingJobId === job.id}
+										id="inquire-btn-{job.id}"
+									>
+										{#if applyingJobId === job.id}
+											<span class="spinner spinner-sm"></span>
+											<span>Connecting...</span>
+										{:else}
+											<MessageSquare size={14} />
+											<span>Apply / Chat Client</span>
+										{/if}
+									</button>
+								</form>
+							{/if}
+						</div>
 					</div>
 				</div>
 			{/each}

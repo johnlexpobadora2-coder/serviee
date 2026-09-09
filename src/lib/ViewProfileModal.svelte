@@ -208,9 +208,9 @@
 									>
 										<span
 											class="badge {user.role === 'worker'
-												? 'badge-general'
+												? 'badge-gardening'
 												: 'badge-roofing'}"
-											style="font-size: 0.75rem;"
+											style="font-size: 0.78rem;"
 										>
 											{user.role === "worker"
 												? "Handyman / Worker"
@@ -1064,13 +1064,11 @@
 		justify-content: center;
 		cursor: pointer;
 		z-index: 20;
-		transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+		transition: background 0.2s ease, border-color 0.2s ease;
 	}
 	.close-modal-btn:hover {
 		background: rgba(15, 23, 42, 0.85);
 		border-color: rgba(255, 255, 255, 0.6);
-		transform: scale(1.08);
 		color: #ffffff;
 	}
 </style>

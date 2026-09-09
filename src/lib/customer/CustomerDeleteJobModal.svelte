@@ -54,7 +54,7 @@
 					<button 
 						type="submit" 
 						class="btn btn-primary" 
-						style="background-color: var(--accent); border-color: var(--accent); padding: 0.5rem 1.25rem; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.4rem; box-shadow: 0 4px 14px hsla(252, 78%, 62%, 0.35);"
+						style="background-color: var(--accent); border-color: var(--accent); padding: 0.5rem 1.25rem; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.4rem;"
 						disabled={deleteJobModal.deleting}
 					>
 						{#if deleteJobModal.deleting}
