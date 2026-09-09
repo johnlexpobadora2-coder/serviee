@@ -26,6 +26,13 @@
 </script>
 
 <div class="space-y-4">
+	<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+		<h2 style="font-size: 1.4rem; margin: 0;">My Active Jobs ({activeJobs.length})</h2>
+		<a href="/customer/post-job" class="btn btn-primary" style="width: auto; padding: 0.5rem 1.25rem;">
+			+ Post a Job
+		</a>
+	</div>
+
 	<div class="active-jobs-list" style="display: flex; flex-direction: column; gap: 1rem;">
 		{#if activeJobs.length === 0}
 			<div class="card" style="text-align: center; padding: 3rem 1.5rem; color: var(--text-muted);">

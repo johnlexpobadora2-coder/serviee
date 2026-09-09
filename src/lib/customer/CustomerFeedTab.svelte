@@ -90,7 +90,19 @@
 			</div>
 
 			<div class="form-group form-group-full">
-				<label for="filter-category">Category</label>
+				<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem;">
+					<label for="filter-category" style="margin-bottom: 0;">Category</label>
+					{#if searchCategory}
+						<button 
+							type="button" 
+							class="btn-text-clear" 
+							style="font-size: 0.72rem;" 
+							onclick={() => { searchCategory = ''; }}
+						>
+							Clear Category
+						</button>
+					{/if}
+				</div>
 				<select id="filter-category" bind:value={searchCategory}>
 					<option value="">All Categories</option>
 					<option value="Plumbing / Tubero">Plumbing / Tubero</option>
