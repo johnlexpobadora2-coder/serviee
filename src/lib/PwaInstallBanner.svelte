@@ -129,8 +129,16 @@
 {/if}
 
 {#if showIosModal}
-	<div class="ios-modal-backdrop" onclick={closeIosModal} role="presentation">
-		<div class="ios-modal-card" onclick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="ios-modal-title">
+	<div 
+		class="ios-modal-backdrop" 
+		onclick={(e) => { if (e.target === e.currentTarget) closeIosModal(); }} 
+		onkeydown={(e) => { if (e.key === 'Escape') closeIosModal(); }}
+		role="dialog" 
+		aria-modal="true" 
+		aria-labelledby="ios-modal-title"
+		tabindex="-1"
+	>
+		<div class="ios-modal-card" role="document">
 			<div class="ios-modal-header">
 				<div class="ios-modal-header-title">
 					<Smartphone class="ios-modal-icon" size={24} />

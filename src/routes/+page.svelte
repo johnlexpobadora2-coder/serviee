@@ -23,7 +23,7 @@
 	style="text-align: center; padding: 4rem 1.5rem 3rem 1.5rem; position: relative;"
 >
 	<h1
-		style="font-size: clamp(2.5rem, 6vw, 4rem); font-weight: 800; line-height: 1.1; margin-bottom: 1.5rem; background: linear-gradient(135deg, var(--text-primary) 30%, var(--accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"
+		style="font-size: clamp(2.5rem, 6vw, 4rem); font-weight: 800; line-height: 1.1; margin-bottom: 1.5rem; background: linear-gradient(135deg, var(--text-primary) 30%, var(--accent) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;"
 	>
 		Find Work.<br />Get Services.
 	</h1>

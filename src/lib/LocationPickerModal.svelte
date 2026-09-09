@@ -311,7 +311,6 @@
 		<div 
 			class="card modal-content" 
 			style="width: 100%; max-width: 620px; max-height: 90vh; overflow-y: auto; position: relative; padding: 1.5rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);"
-			onclick={(e) => e.stopPropagation()}
 		>
 			<!-- Header -->
 			<div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.85rem; margin-bottom: 1.25rem;">

@@ -22,6 +22,12 @@
 		show = false;
 	}
 
+	function handleBackdropClick(e) {
+		if (e.target === e.currentTarget) {
+			handleClose();
+		}
+	}
+
 	function handleKeydown(e) {
 		if (e.key === 'Escape') {
 			handleClose();
@@ -32,7 +38,7 @@
 {#if show}
 	<div 
 		class="confirm-modal-backdrop" 
-		onclick={handleClose} 
+		onclick={handleBackdropClick} 
 		onkeydown={handleKeydown}
 		role="dialog" 
 		aria-modal="true"
@@ -41,7 +47,6 @@
 	>
 		<div 
 			class="confirm-modal-card card" 
-			onclick={(e) => e.stopPropagation()} 
 			role="document"
 			transition:scale={{ duration: 75, start: 0.98 }}
 		>

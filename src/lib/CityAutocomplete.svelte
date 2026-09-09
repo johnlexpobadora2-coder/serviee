@@ -176,6 +176,7 @@
 		<input
 			bind:this={inputRef}
 			type="text"
+			role="combobox"
 			{id}
 			class="autocomplete-input"
 			{placeholder}
@@ -188,6 +189,7 @@
 			autocomplete="off"
 			aria-autocomplete="list"
 			aria-expanded={isOpen}
+			aria-controls="{id}-listbox"
 		/>
 
 		<div class="input-actions-right">
@@ -217,7 +219,7 @@
 
 	<!-- Suggestions Dropdown Menu -->
 	{#if isOpen && suggestions.length > 0}
-		<div class="suggestions-dropdown" role="listbox">
+		<div class="suggestions-dropdown" id="{id}-listbox" role="listbox">
 			<div class="dropdown-header">
 				<span>Tap to select official Municipality / City:</span>
 			</div>
@@ -225,11 +227,18 @@
 				{#each suggestions as item, idx}
 					<li
 						role="option"
+						tabindex="0"
 						aria-selected={selectedIndex === idx}
 						class="suggestion-item {selectedIndex === idx
 							? 'selected'
 							: ''}"
 						onclick={() => selectSuggestion(item)}
+						onkeydown={(e) => {
+							if (e.key === 'Enter' || e.key === ' ') {
+								e.preventDefault();
+								selectSuggestion(item);
+							}
+						}}
 					>
 						<div class="suggestion-pin">
 							<MapPin size={16} />
@@ -302,10 +311,6 @@
 		justify-content: center;
 		padding-left: 0.85rem;
 		color: var(--text-muted, #94a3b8);
-	}
-
-	.input-icon-left .text-success {
-		color: #10b981;
 	}
 
 	.autocomplete-input {

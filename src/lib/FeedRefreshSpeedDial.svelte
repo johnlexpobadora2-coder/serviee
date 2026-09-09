@@ -63,7 +63,9 @@
 		aria-label="Reload Feed"
 		disabled={isReloading}
 	>
-		<RotateCw size={22} class="refresh-icon" />
+		<span class="refresh-icon">
+			<RotateCw size={22} />
+		</span>
 	</button>
 </div>
 
@@ -116,6 +118,9 @@
 	}
 
 	.refresh-icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
 		transition: transform 0.2s ease;
 	}
 
