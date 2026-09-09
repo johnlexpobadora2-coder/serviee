@@ -660,7 +660,7 @@ export const db = {
 			return true;
 		},
 
-		async listForThread(jobId, userAId, userBId, limit = 20, before = null) {
+		async listForThread(jobId, userAId, userBId, limit = 10, before = null) {
 			const supabase = getSupabase();
 			let dbMsgs = [];
 			try {

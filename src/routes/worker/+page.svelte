@@ -145,7 +145,7 @@
 
 		loadingMessagesConvId = convId;
 		try {
-			const res = await fetch(`/api/messages?jobId=${encodeURIComponent(targetConv.job_id)}&otherUserId=${encodeURIComponent(targetConv.other_user_id)}&limit=20`);
+			const res = await fetch(`/api/messages?jobId=${encodeURIComponent(targetConv.job_id)}&otherUserId=${encodeURIComponent(targetConv.other_user_id)}&limit=10`);
 			if (res.ok) {
 				const result = await res.json();
 				if (result.messages) {
@@ -191,7 +191,7 @@
 		const prevScrollTop = body ? body.scrollTop : 0;
 
 		try {
-			const res = await fetch(`/api/messages?jobId=${encodeURIComponent(targetJobId)}&otherUserId=${encodeURIComponent(targetOtherUserId)}&limit=20&before=${encodeURIComponent(beforeTimestamp)}`);
+			const res = await fetch(`/api/messages?jobId=${encodeURIComponent(targetJobId)}&otherUserId=${encodeURIComponent(targetOtherUserId)}&limit=10&before=${encodeURIComponent(beforeTimestamp)}`);
 			if (res.ok) {
 				const result = await res.json();
 				if (result.messages && result.messages.length > 0) {

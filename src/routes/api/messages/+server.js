@@ -9,7 +9,7 @@ export async function GET({ locals, url }) {
 	try {
 		const jobId = url.searchParams.get('jobId');
 		const otherUserId = url.searchParams.get('otherUserId');
-		const limit = parseInt(url.searchParams.get('limit') || '20', 10);
+		const limit = parseInt(url.searchParams.get('limit') || '10', 10);
 		const before = url.searchParams.get('before') || null;
 
 		if (jobId && otherUserId) {
