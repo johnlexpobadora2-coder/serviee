@@ -14,6 +14,14 @@
 
 	onMount(() => {
 		if (typeof window !== 'undefined') {
+			// Check if we just reloaded via our refresh button
+			try {
+				if (sessionStorage.getItem('serviee_reload_scroll_top') === 'true') {
+					sessionStorage.removeItem('serviee_reload_scroll_top');
+					window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+				}
+			} catch (e) {}
+
 			window.addEventListener('scroll', handleScroll, { passive: true });
 			handleScroll();
 		}
@@ -29,13 +37,17 @@
 		if (isReloading) return;
 		isReloading = true;
 		if (typeof window !== 'undefined') {
-			// Prevent browser from restoring scroll position to bottom
+			try {
+				// Mark session so when the page finishes loading, it starts at the top
+				sessionStorage.setItem('serviee_reload_scroll_top', 'true');
+			} catch (e) {}
+
+			// Set scroll restoration to manual so browser doesn't scroll back down on load
 			if ('scrollRestoration' in history) {
 				history.scrollRestoration = 'manual';
 			}
-			// Scroll immediately to top
-			window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-			// Reload page
+
+			// Direct reload without moving the screen beforehand
 			window.location.reload();
 		}
 	}
@@ -47,8 +59,8 @@
 		type="button" 
 		class="feed-refresh-fab {isReloading ? 'spin-anim' : ''}" 
 		onclick={handleReload}
-		title="Reload and scroll to top"
-		aria-label="Reload and scroll to top"
+		title="Reload Feed"
+		aria-label="Reload Feed"
 		disabled={isReloading}
 	>
 		<RotateCw size={22} class="refresh-icon" />
