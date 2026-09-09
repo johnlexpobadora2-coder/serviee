@@ -286,7 +286,9 @@
 									}}
 									disabled={sendingMessage || uploadingImage}
 								>
-									<Compass size={16} color="var(--accent-hover)" />
+									<div class="chat-dropup-item-icon">
+										<Compass size={17} />
+									</div>
 									<div class="chat-dropup-item-info">
 										<span class="dropup-title">Custom Pin</span>
 										<span class="dropup-subtitle">Search & pin on map</span>
@@ -303,7 +305,9 @@
 									}}
 									disabled={sharingLocation || sendingMessage || uploadingImage}
 								>
-									<Navigation size={16} color="var(--accent-hover)" />
+									<div class="chat-dropup-item-icon">
+										<Navigation size={17} />
+									</div>
 									<div class="chat-dropup-item-info">
 										<span class="dropup-title">Auto GPS</span>
 										<span class="dropup-subtitle">Share current GPS location</span>
@@ -320,7 +324,9 @@
 									}}
 									disabled={uploadingImage || sendingMessage}
 								>
-									<ImageIcon size={16} color="var(--accent-hover)" />
+									<div class="chat-dropup-item-icon">
+										<ImageIcon size={17} />
+									</div>
 									<div class="chat-dropup-item-info">
 										<span class="dropup-title">Send Image</span>
 										<span class="dropup-subtitle">Upload & send a photo</span>

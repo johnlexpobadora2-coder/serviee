@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { SlidersHorizontal, ChevronUp, ChevronDown, Search, X, MapPin, ExternalLink, MessageSquare, User, Calendar, Clock, RotateCcw } from 'lucide-svelte';
 	import { getGoogleMapsUrl, getEmbedMapUrl } from '$lib/gpsUtils.js';
+	import FeedRefreshSpeedDial from '$lib/FeedRefreshSpeedDial.svelte';
 
 	let { 
 		filteredJobs = [], 
@@ -408,4 +409,7 @@
 			{/if}
 		{/if}
 	</section>
+
+	<!-- Feed Refresh Speed Dial (Floating Action Button) -->
+	<FeedRefreshSpeedDial />
 </div>
