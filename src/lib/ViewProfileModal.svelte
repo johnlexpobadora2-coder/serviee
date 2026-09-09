@@ -16,6 +16,7 @@
 	let {
 		userId = null,
 		currentUserId = "",
+		currentUserRole = "",
 		show = $bindable(false),
 		onclose = () => {},
 		onopenchat = null,
@@ -72,7 +73,12 @@
 	function handleMessageClick() {
 		closeModal();
 		if (onopenchat && profileData?.user) {
-			onopenchat(profileData.user.id);
+			const latestJob = (profileData.allPosts && profileData.allPosts.length > 0) ? profileData.allPosts[0] : null;
+			onopenchat(profileData.user.id, {
+				user: profileData.user,
+				job: latestJob,
+				allPosts: profileData.allPosts || []
+			});
 		}
 	}
 
@@ -163,6 +169,9 @@
 						new Date(a.created_at || 0).getTime(),
 				)}
 				{@const isSelf = user.id === currentUserId}
+				{@const isClientViewingClient = (currentUserRole === 'customer' || currentUserRole === 'client') && (user.role === 'customer' || user.role === 'client')}
+				{@const isWorkerViewingWorker = currentUserRole === 'worker' && user.role === 'worker'}
+				{@const canChat = Boolean(onopenchat && !isSelf && !isClientViewingClient && !isWorkerViewingWorker)}
 
 				<!-- Header Cover & Avatar Section -->
 				<div
@@ -578,7 +587,7 @@
 									{/if}
 								</div>
 
-								{#if onopenchat && !isSelf}
+								{#if canChat}
 									<div style="margin-top: 1.5rem;">
 										<button
 											type="button"
@@ -1031,7 +1040,7 @@
 					>
 						Close Profile
 					</button>
-					{#if onopenchat && !isSelf}
+					{#if canChat}
 						<button
 							type="button"
 							class="btn btn-primary"

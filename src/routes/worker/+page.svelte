@@ -23,6 +23,10 @@
 	let sendingMessage = $state(false);
 	// svelte-ignore state_referenced_locally
 	let conversations = $state(data.conversations || []);
+	let tempConversation = $state(null);
+	let displayedConversations = $derived(
+		tempConversation ? [tempConversation, ...conversations.filter(c => c.id !== tempConversation.id)] : conversations
+	);
 
 	// Restore chat tab & active conversation on page refresh
 	onMount(() => {
@@ -52,6 +56,7 @@
 					sessionStorage.removeItem('serviee_worker_conv');
 				}
 			} else {
+				tempConversation = null;
 				sessionStorage.removeItem('serviee_worker_tab');
 				sessionStorage.removeItem('serviee_worker_conv');
 			}
@@ -129,7 +134,11 @@
 	}
 
 	async function loadConversationMessages(convId, force = false) {
-		if (!convId || !conversations) return;
+		if (!convId) return;
+		if (tempConversation && tempConversation.id === convId) {
+			tempConversation.messagesLoaded = true;
+			return;
+		}
 		const targetConv = conversations.find(c => c.id === convId);
 		if (!targetConv) return;
 		if (targetConv.messagesLoaded && !force) return;
@@ -249,10 +258,11 @@
 	}
 
 	let activeConversation = $derived(
-		conversations.find(c => c.id === activeConvId) || conversations[0] || null
+		displayedConversations.find(c => c.id === activeConvId) || displayedConversations[0] || null
 	);
 
 	function closeActiveConversation() {
+		tempConversation = null;
 		if (typeof window !== 'undefined' && history.state?.chatOpen) {
 			history.back();
 		} else {
@@ -262,6 +272,9 @@
 	}
 
 	function selectConversation(convId) {
+		if (tempConversation && tempConversation.id !== convId) {
+			tempConversation = null;
+		}
 		activeConvId = convId;
 		showGpsDropup = false;
 		unreadConvIds.delete(convId);
@@ -272,13 +285,70 @@
 	}
 
 	function openChat(jobId, customerId) {
+		tempConversation = null;
 		const convId = `${jobId}_${customerId}`;
+		const existing = conversations.find(c => c.id === convId);
+		if (!existing) {
+			const job = (data.availableJobs || []).find(j => j.id === jobId) || (data.myJobs || []).find(j => j.id === jobId);
+			tempConversation = {
+				id: convId,
+				job_id: jobId,
+				job_title: job ? job.title : 'Job Inquiry',
+				other_user_id: customerId,
+				other_user_name: job?.customerName || 'Client',
+				other_user_role: 'customer',
+				last_message: 'Inquired on post. Send a message...',
+				last_message_at: new Date().toISOString(),
+				messages: [],
+				messagesLoaded: true
+			};
+		}
 		activeConvId = convId;
 		showGpsDropup = false;
 		activeTab = 'chat';
 		unreadConvIds.delete(convId);
 		unreadConvIds = new Set(unreadConvIds);
 		loadConversationMessages(convId);
+		scrollToBottom(false);
+	}
+
+	function openChatFromProfile(targetUserId, extraData = {}) {
+		if (!targetUserId) return;
+		tempConversation = null;
+
+		// Check if an existing conversation exists with this client
+		const matchConv = conversations?.find((c) => c.other_user_id === targetUserId);
+		if (matchConv) {
+			selectConversation(matchConv.id);
+			activeTab = "chat";
+			return;
+		}
+
+		// Find relevant job from profile data or data.availableJobs
+		const userJob = extraData?.job || (extraData?.allPosts && extraData.allPosts[0]) || (data.availableJobs || []).find(j => j.customer_id === targetUserId);
+		const targetJobId = userJob ? userJob.id : (data.availableJobs?.[0]?.id || 'inquiry');
+		const targetJobTitle = userJob ? userJob.title : 'Direct Inquiry';
+		const targetUserName = extraData?.user?.name || userJob?.customerName || 'Client';
+		const tempConvId = `${targetJobId}_${targetUserId}`;
+
+		tempConversation = {
+			id: tempConvId,
+			job_id: targetJobId,
+			job_title: targetJobTitle,
+			other_user_id: targetUserId,
+			other_user_name: targetUserName,
+			other_user_role: 'customer',
+			last_message: 'Start a conversation...',
+			last_message_at: new Date().toISOString(),
+			messages: [],
+			messagesLoaded: true
+		};
+
+		activeConvId = tempConvId;
+		activeTab = "chat";
+		showGpsDropup = false;
+		unreadConvIds.delete(tempConvId);
+		unreadConvIds = new Set(unreadConvIds);
 		scrollToBottom(false);
 	}
 
@@ -500,19 +570,23 @@
 			created_at: nowIso
 		};
 
-		conversations = conversations.map(c => {
-			if (c.id === targetConv.id) {
-				const previewText = formatMessagePreview(trimmed);
-				return {
-					...c,
-					last_message: previewText,
-					last_message_at: nowIso,
-					messages: [...(c.messages || []), optimisticMsg],
-					messagesLoaded: true
-				};
-			}
-			return c;
-		}).sort((a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime());
+		if (tempConversation && tempConversation.id === targetConv.id) {
+			tempConversation = null;
+		}
+		const previewText = formatMessagePreview(trimmed);
+		const updatedConv = {
+			...targetConv,
+			last_message: previewText,
+			last_message_at: nowIso,
+			messages: [...(targetConv.messages || []), optimisticMsg],
+			messagesLoaded: true
+		};
+		const exists = conversations.some(c => c.id === targetConv.id);
+		if (exists) {
+			conversations = conversations.map(c => c.id === targetConv.id ? updatedConv : c).sort((a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime());
+		} else {
+			conversations = [updatedConv, ...conversations].sort((a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime());
+		}
 
 		scrollToBottom(true);
 
@@ -689,7 +763,7 @@
 <WorkerTabsNav 
 	bind:activeTab 
 	myJobsCount={data.myJobs.length} 
-	conversationsCount={conversations?.length || 0} 
+	conversationsCount={displayedConversations?.length || 0} 
 	unreadCount={unreadConvIds.size} 
 	onselectchat={() => {
 		if (activeConversation) {
@@ -743,7 +817,7 @@
 	/>
 {:else if activeTab === "chat"}
 	<WorkerChatTab 
-		{conversations} 
+		conversations={displayedConversations} 
 		{activeConversation} 
 		bind:activeConvId 
 		{unreadConvIds} 
@@ -784,12 +858,9 @@
 	bind:show={showViewProfileModal}
 	userId={viewProfileUserId}
 	currentUserId={data.user?.id}
-	onopenchat={(targetUserId) => {
-		const matchConv = conversations?.find((c) => c.other_user_id === targetUserId);
-		if (matchConv) {
-			selectConversation(matchConv.id);
-			activeTab = "chat";
-		}
+	currentUserRole={data.user?.role}
+	onopenchat={(targetUserId, extraData) => {
+		openChatFromProfile(targetUserId, extraData);
 	}}
 />
 
