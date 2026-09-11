@@ -437,6 +437,207 @@ export const db = {
 			return data || [];
 		},
 
+		async listFeedPaginated({
+			limit = 10,
+			offset = 0,
+			status = null,
+			category = '',
+			location = '',
+			minBudget = null,
+			maxBudget = null,
+			search = '',
+			sortBy = 'newest',
+			workerId = null
+		}) {
+			const supabase = getSupabase();
+			let query = supabase
+				.from('job_posts')
+				.select('*', { count: 'exact' });
+
+			if (status) {
+				query = query.eq('status', status);
+			}
+			if (category) {
+				query = query.eq('category', category);
+			}
+			if (location) {
+				query = query.ilike('location', `%${location}%`);
+			}
+			if (minBudget !== null && minBudget !== undefined && minBudget !== '') {
+				query = query.gte('budget', Number(minBudget));
+			}
+			if (maxBudget !== null && maxBudget !== undefined && maxBudget !== '') {
+				query = query.lte('budget', Number(maxBudget));
+			}
+			if (search) {
+				const s = search.trim();
+				query = query.or(`title.ilike.%${s}%,description.ilike.%${s}%`);
+			}
+
+			if (sortBy === 'highest_cost') {
+				query = query.order('budget', { ascending: false });
+			} else if (sortBy === 'lowest_cost') {
+				query = query.order('budget', { ascending: true });
+			} else if (sortBy === 'nearest_date') {
+				query = query.order('target_date', { ascending: true });
+			} else {
+				query = query.order('created_at', { ascending: false });
+			}
+
+			const from = Math.max(0, offset);
+			const to = from + limit - 1;
+			query = query.range(from, to);
+
+			const { data: jobs, error, count } = await query;
+			if (error) throw new Error(error.message);
+
+			const jobList = jobs || [];
+			// Bulk fetch customer details
+			const customerIds = Array.from(new Set(jobList.map(j => j.customer_id).filter(Boolean)));
+			const customerMap = await db.users.findByIds(customerIds);
+
+			const hydratedJobs = jobList.map(job => {
+				const customer = customerMap.get(job.customer_id);
+				return {
+					...job,
+					customerName: customer ? customer.name : (workerId ? 'Anonymous Client' : 'Client'),
+					hasApplied: workerId ? (job.applicants || []).includes(workerId) : false
+				};
+			});
+
+			return {
+				jobs: hydratedJobs,
+				totalCount: count || 0,
+				hasMore: from + jobList.length < (count || 0)
+			};
+		},
+
+		async listCustomerActivePaginated({ customerId, limit = 10, offset = 0 }) {
+			const supabase = getSupabase();
+			const from = Math.max(0, offset);
+			const to = from + limit - 1;
+
+			const { data: jobs, error, count } = await supabase
+				.from('job_posts')
+				.select('*', { count: 'exact' })
+				.eq('customer_id', customerId)
+				.neq('status', 'completed')
+				.order('created_at', { ascending: false })
+				.range(from, to);
+
+			if (error) throw new Error(error.message);
+
+			const jobList = jobs || [];
+			// Collect worker & applicant IDs
+			const workerAndApplicantIds = new Set();
+			for (const post of jobList) {
+				if (post.worker_id) workerAndApplicantIds.add(post.worker_id);
+				(post.applicants || []).forEach(id => workerAndApplicantIds.add(id));
+			}
+
+			const userMap = await db.users.findByIds(Array.from(workerAndApplicantIds));
+			const workerStatsMap = new Map();
+			await Promise.all(
+				Array.from(workerAndApplicantIds).map(async (id) => {
+					const stats = await db.reviews.getStatsForWorker(id);
+					workerStatsMap.set(id, stats);
+				})
+			);
+
+			const hydratedJobs = jobList.map(post => {
+				let assignedWorker = null;
+				if (post.worker_id) {
+					const worker = userMap.get(post.worker_id);
+					if (worker) {
+						const stats = workerStatsMap.get(worker.id) || { average_rating: 0 };
+						assignedWorker = {
+							id: worker.id,
+							name: worker.name,
+							phone: worker.phone,
+							average_rating: stats.average_rating
+						};
+					}
+				}
+
+				const applicants = (post.applicants || [])
+					.map(applicantId => {
+						const worker = userMap.get(applicantId);
+						if (!worker) return null;
+						const stats = workerStatsMap.get(worker.id) || { average_rating: 0, completed_jobs_count: 0 };
+						return {
+							id: worker.id,
+							name: worker.name,
+							phone: worker.phone,
+							address: worker.address,
+							average_rating: stats.average_rating,
+							completed_jobs_count: stats.completed_jobs_count
+						};
+					})
+					.filter(Boolean);
+
+				return {
+					...post,
+					assignedWorker,
+					applicants
+				};
+			});
+
+			return {
+				jobs: hydratedJobs,
+				totalCount: count || 0,
+				hasMore: from + jobList.length < (count || 0)
+			};
+		},
+
+		async listWorkerActivePaginated({ workerId, limit = 10, offset = 0 }) {
+			const supabase = getSupabase();
+			const from = Math.max(0, offset);
+			const to = from + limit - 1;
+
+			const { data: jobs, error, count } = await supabase
+				.from('job_posts')
+				.select('*', { count: 'exact' })
+				.eq('worker_id', workerId)
+				.in('status', ['assigned', 'in_progress'])
+				.order('created_at', { ascending: false })
+				.range(from, to);
+
+			if (error) throw new Error(error.message);
+
+			const jobList = jobs || [];
+			const customerIds = Array.from(new Set(jobList.map(j => j.customer_id).filter(Boolean)));
+			const customerMap = await db.users.findByIds(customerIds);
+
+			const hydratedJobs = jobList.map(job => {
+				const customer = customerMap.get(job.customer_id);
+				return {
+					...job,
+					customerName: customer ? customer.name : 'Anonymous Client',
+					customerPhone: customer ? customer.phone : 'Not available'
+				};
+			});
+
+			return {
+				jobs: hydratedJobs,
+				totalCount: count || 0,
+				hasMore: from + jobList.length < (count || 0)
+			};
+		},
+
+		async getAvailableLocations(status = null) {
+			const supabase = getSupabase();
+			let query = supabase.from('job_posts').select('location');
+			if (status) {
+				query = query.eq('status', status);
+			}
+			const { data, error } = await query;
+			if (error) return [];
+			const locations = Array.from(
+				new Set((data || []).map(j => j.location?.trim()).filter(Boolean))
+			).sort((a, b) => a.localeCompare(b));
+			return locations;
+		},
+
 		async listByCustomer(customerId) {
 			const supabase = getSupabase();
 			const { data, error } = await supabase

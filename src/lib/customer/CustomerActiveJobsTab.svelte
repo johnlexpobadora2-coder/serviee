@@ -1,11 +1,16 @@
 <script>
 	import { enhance } from '$app/forms';
-	import { Star, User, MessageSquare, UserCheck, Pencil, Trash2, MapPin, ExternalLink, Clock } from 'lucide-svelte';
+	import { Star, User, MessageSquare, UserCheck, Pencil, Trash2, MapPin, ExternalLink, Clock, Loader2 } from 'lucide-svelte';
 	import { getGoogleMapsUrl, getEmbedMapUrl } from '$lib/gpsUtils.js';
 
 	let { 
 		activeJobs = [], 
+		totalCount = 0,
+		loading = false,
+		loadingMore = false,
+		hasMore = false,
 		changingStatus = $bindable(false), 
+		onloadmore,
 		onopeneditjob, 
 		onopendeletejob, 
 		onopenviewprofile, 
@@ -23,18 +28,43 @@
 			default: return 'badge-general';
 		}
 	}
+
+	function handleWindowScroll() {
+		if (typeof window === 'undefined' || loading || loadingMore || !hasMore) return;
+		const scrollPosition = window.innerHeight + window.scrollY;
+		const threshold = document.documentElement.scrollHeight - 300;
+		if (scrollPosition >= threshold) {
+			if (onloadmore) {
+				onloadmore();
+			}
+		}
+	}
+
+	$effect(() => {
+		if (typeof window !== 'undefined') {
+			window.addEventListener('scroll', handleWindowScroll, { passive: true });
+			return () => {
+				window.removeEventListener('scroll', handleWindowScroll);
+			};
+		}
+	});
 </script>
 
 <div class="space-y-4">
 	<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
-		<h2 style="font-size: 1.4rem; margin: 0;">My Active Jobs ({activeJobs.length})</h2>
+		<h2 style="font-size: 1.4rem; margin: 0;">My Active Jobs ({totalCount || activeJobs.length})</h2>
 		<a href="/customer/post-job" class="btn btn-primary" style="width: auto; padding: 0.5rem 1.25rem;">
 			+ Post a Job
 		</a>
 	</div>
 
 	<div class="active-jobs-list" style="display: flex; flex-direction: column; gap: 1rem;">
-		{#if activeJobs.length === 0}
+		{#if loading && activeJobs.length === 0}
+			<div class="card" style="text-align: center; padding: 4rem 2rem;">
+				<Loader2 size={32} class="animate-spin" style="margin: 0 auto 1rem auto; color: var(--accent);" />
+				<p style="color: var(--text-secondary); font-size: 0.95rem;">Loading your active jobs...</p>
+			</div>
+		{:else if activeJobs.length === 0}
 			<div class="card" style="text-align: center; padding: 3rem 1.5rem; color: var(--text-muted);">
 				<div style="width: 56px; height: 56px; margin: 0 auto 1rem auto; background-color: var(--bg-input); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--text-secondary);">
 					<UserCheck size={28} />
@@ -157,9 +187,9 @@
 					<div style="border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 0.5rem;">
 						{#if job.status === 'open'}
 							<h4 style="font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--text-primary);">
-								Applicants ({job.applicants.length})
+								Applicants ({job.applicants?.length || 0})
 							</h4>
-							{#if job.applicants.length === 0}
+							{#if !job.applicants || job.applicants.length === 0}
 								<p style="color: var(--text-muted); font-size: 0.85rem; font-style: italic;">
 									Waiting for interested handymen or workers to apply...
 								</p>
@@ -317,6 +347,17 @@
 
 				</div>
 			{/each}
+
+			{#if loadingMore}
+				<div style="display: flex; justify-content: center; align-items: center; padding: 1.5rem; gap: 0.5rem; color: var(--text-secondary);">
+					<Loader2 size={20} class="animate-spin" style="color: var(--accent);" />
+					<span style="font-size: 0.9rem;">Loading more active jobs...</span>
+				</div>
+			{:else if !hasMore && activeJobs.length > 0}
+				<div style="text-align: center; padding: 2rem 1rem; color: var(--text-muted); font-size: 0.85rem; border-top: 1px dashed var(--border);">
+					✓ You have viewed all your active jobs ({activeJobs.length} total)
+				</div>
+			{/if}
 		{/if}
 	</div>
 </div>

@@ -17,19 +17,273 @@
 	import CustomerEditJobModal from '$lib/customer/CustomerEditJobModal.svelte';
 	import CustomerImagePreviewModal from '$lib/customer/CustomerImagePreviewModal.svelte';
 
+	import { getSmartCache, setSmartCache, removeSmartCache } from '$lib/smartCache.js';
+
 	let { data, form } = $props();
 
 	let activeTab = $state('feed'); // 'feed' | 'my-jobs' | 'chat' | 'profile'
 	let historySubTab = $state('posted'); // 'posted' | 'completed'
+
+	// --- FEED TAB LAZY & PAGINATED STATE ---
+	// svelte-ignore state_referenced_locally
+	let feedJobs = $state(data.initialFeedJobs || []);
+	// svelte-ignore state_referenced_locally
+	let feedTotalCount = $state(data.initialFeedTotalCount || 0);
+	// svelte-ignore state_referenced_locally
+	let feedHasMore = $state(data.initialFeedHasMore ?? false);
+	let feedLoading = $state(false);
+	let feedLoadingMore = $state(false);
+	// svelte-ignore state_referenced_locally
+	let availableLocations = $state(data.availableLocations || []);
+
+	let showMobileFilters = $state(false);
+	let searchQuery = $state('');
+	let searchCategory = $state('');
+	let searchLocation = $state('');
+	/** @type {number | null} */
+	let minBudget = $state(null);
+	/** @type {number | null} */
+	let maxBudget = $state(null);
+	let sortBy = $state('newest');
+
+	let hasActiveFilters = $derived(
+		!!searchCategory || 
+		!!searchLocation || 
+		minBudget != null ||
+		maxBudget != null ||
+		!!searchQuery ||
+		sortBy !== 'newest'
+	);
+
+	let feedInitialMount = true;
+	let feedDebounceTimer = null;
+
+	async function fetchFeedJobs(offset = 0, append = false) {
+		if (append) {
+			if (feedLoadingMore || !feedHasMore) return;
+			feedLoadingMore = true;
+		} else {
+			feedLoading = true;
+		}
+
+		try {
+			const params = new URLSearchParams({
+				limit: '10',
+				offset: String(offset),
+				category: searchCategory || '',
+				location: searchLocation || '',
+				sortBy: sortBy || 'newest',
+				search: searchQuery.trim()
+			});
+			if (minBudget != null) {
+				params.append('minBudget', String(minBudget));
+			}
+			if (maxBudget != null) {
+				params.append('maxBudget', String(maxBudget));
+			}
+
+			const res = await fetch(`/api/jobs/feed?${params.toString()}`);
+			if (res.ok) {
+				const result = await res.json();
+				if (result.jobs) {
+					if (append) {
+						feedJobs = [...feedJobs, ...result.jobs];
+					} else {
+						feedJobs = result.jobs;
+						if (!hasActiveFilters && offset === 0) {
+							setSmartCache(`${data.user?.id}_customer_feed_default`, {
+								jobs: result.jobs,
+								totalCount: result.totalCount,
+								hasMore: result.hasMore,
+								availableLocations: result.availableLocations || availableLocations
+							});
+						}
+					}
+					feedTotalCount = result.totalCount;
+					feedHasMore = result.hasMore;
+					if (result.availableLocations && result.availableLocations.length > 0) {
+						availableLocations = result.availableLocations;
+					}
+				}
+			}
+		} catch (err) {
+			console.error('Failed to fetch feed jobs:', err);
+		} finally {
+			feedLoading = false;
+			feedLoadingMore = false;
+		}
+	}
+
+	// Trigger debounced feed search/filter when filter criteria changes
+	$effect(() => {
+		// track dependencies
+		const _cat = searchCategory;
+		const _loc = searchLocation;
+		const _min = minBudget;
+		const _max = maxBudget;
+		const _q = searchQuery;
+		const _sort = sortBy;
+
+		if (feedInitialMount) {
+			feedInitialMount = false;
+			return;
+		}
+
+		if (feedDebounceTimer) clearTimeout(feedDebounceTimer);
+		feedDebounceTimer = setTimeout(() => {
+			fetchFeedJobs(0, false);
+		}, 250);
+	});
+
+	// --- ACTIVE JOBS TAB LAZY & PAGINATED STATE ---
+	let activeJobs = $state([]);
+	let activeJobsTotalCount = $state(0);
+	let activeJobsHasMore = $state(false);
+	let activeJobsLoaded = $state(false);
+	let activeJobsLoading = $state(false);
+	let activeJobsLoadingMore = $state(false);
+
+	async function fetchActiveJobs(offset = 0, append = false, silent = false) {
+		if (append) {
+			if (activeJobsLoadingMore || !activeJobsHasMore) return;
+			activeJobsLoadingMore = true;
+		} else if (!silent) {
+			activeJobsLoading = true;
+		}
+
+		try {
+			const res = await fetch(`/api/jobs/active?offset=${offset}&limit=10`);
+			if (res.ok) {
+				const result = await res.json();
+				if (result.jobs) {
+					if (append) {
+						activeJobs = [...activeJobs, ...result.jobs];
+					} else {
+						activeJobs = result.jobs;
+						if (offset === 0) {
+							setSmartCache(`${data.user?.id}_customer_active_jobs`, {
+								jobs: result.jobs,
+								totalCount: result.totalCount,
+								hasMore: result.hasMore
+							});
+						}
+					}
+					activeJobsTotalCount = result.totalCount;
+					activeJobsHasMore = result.hasMore;
+					activeJobsLoaded = true;
+				}
+			}
+		} catch (err) {
+			console.error('Failed to fetch active jobs:', err);
+		} finally {
+			activeJobsLoading = false;
+			activeJobsLoadingMore = false;
+		}
+	}
+
+	// --- CHAT TAB LAZY STATE ---
 	let activeConvId = $state('');
 	let newMessageContent = $state('');
 	let sendingMessage = $state(false);
-	// svelte-ignore state_referenced_locally
-	let conversations = $state(data.conversations || []);
+	let conversations = $state([]);
+	let conversationsLoaded = $state(false);
+	let conversationsLoading = $state(false);
 	let tempConversation = $state(null);
 	let displayedConversations = $derived(
 		tempConversation ? [tempConversation, ...conversations.filter(c => c.id !== tempConversation.id)] : conversations
 	);
+
+	async function fetchConversations(silent = false) {
+		if (conversationsLoading) return;
+		if (!silent) conversationsLoading = true;
+		try {
+			const res = await fetch('/api/conversations');
+			if (res.ok) {
+				const result = await res.json();
+				if (result.conversations) {
+					conversations = result.conversations;
+					conversationsLoaded = true;
+					setSmartCache(`${data.user?.id}_conversations`, result.conversations);
+				}
+			}
+		} catch (err) {
+			console.error('Failed to fetch conversations:', err);
+		} finally {
+			conversationsLoading = false;
+		}
+	}
+
+	// --- PROFILE TAB LAZY STATE ---
+	let profilePosts = $state([]);
+	let profileCompletedJobs = $state([]);
+	let profileLoaded = $state(false);
+	let profileLoading = $state(false);
+
+	async function fetchProfileData(silent = false) {
+		if (profileLoading) return;
+		if (!silent) profileLoading = true;
+		try {
+			const res = await fetch('/api/user/profile-data');
+			if (res.ok) {
+				const result = await res.json();
+				if (result.posts) {
+					profilePosts = result.posts;
+					profileCompletedJobs = result.completedJobs || [];
+					profileLoaded = true;
+					setSmartCache(`${data.user?.id}_customer_profile`, {
+						posts: result.posts,
+						completedJobs: result.completedJobs || []
+					});
+				}
+			}
+		} catch (err) {
+			console.error('Failed to fetch profile data:', err);
+		} finally {
+			profileLoading = false;
+		}
+	}
+
+	// --- TAB LAZY LOADER EFFECT WITH SMART CACHE ---
+	$effect(() => {
+		if (activeTab === 'my-jobs' && !activeJobsLoaded && !activeJobsLoading) {
+			const cached = getSmartCache(`${data.user?.id}_customer_active_jobs`);
+			if (cached.exists && cached.data) {
+				activeJobs = cached.data.jobs || [];
+				activeJobsTotalCount = cached.data.totalCount || 0;
+				activeJobsHasMore = cached.data.hasMore || false;
+				activeJobsLoaded = true;
+				// Stale-while-revalidate in background if stale
+				if (cached.isStale) {
+					fetchActiveJobs(0, false, true);
+				}
+			} else {
+				fetchActiveJobs(0, false, false);
+			}
+		} else if (activeTab === 'chat' && !conversationsLoaded && !conversationsLoading) {
+			const cached = getSmartCache(`${data.user?.id}_conversations`);
+			if (cached.exists && cached.data) {
+				conversations = cached.data;
+				conversationsLoaded = true;
+				if (cached.isStale) {
+					fetchConversations(true);
+				}
+			} else {
+				fetchConversations(false);
+			}
+		} else if (activeTab === 'profile' && !profileLoaded && !profileLoading) {
+			const cached = getSmartCache(`${data.user?.id}_customer_profile`);
+			if (cached.exists && cached.data) {
+				profilePosts = cached.data.posts || [];
+				profileCompletedJobs = cached.data.completedJobs || [];
+				profileLoaded = true;
+				if (cached.isStale) {
+					fetchProfileData(true);
+				}
+			} else {
+				fetchProfileData(false);
+			}
+		}
+	});
 
 	// Restore chat tab & active conversation on page refresh
 	onMount(() => {
@@ -40,7 +294,6 @@
 				const savedConvId = sessionStorage.getItem('serviee_customer_conv');
 				if (savedConvId) {
 					activeConvId = savedConvId;
-					loadConversationMessages(savedConvId);
 				}
 			}
 		} catch (e) {
@@ -65,13 +318,6 @@
 			}
 		} catch (e) {
 			console.error(e);
-		}
-	});
-
-	// Keep conversations reactive to data updates
-	$effect(() => {
-		if (data.conversations) {
-			conversations = data.conversations;
 		}
 	});
 
@@ -237,7 +483,7 @@
 
 	async function refreshChatData() {
 		try {
-			const res = await fetch('/api/messages');
+			const res = await fetch('/api/conversations');
 			if (res.ok) {
 				const result = await res.json();
 				if (result.conversations) {
@@ -248,7 +494,8 @@
 							return {
 								...newConv,
 								messages: existing.messages,
-								messagesLoaded: true
+								messagesLoaded: true,
+								hasMore: existing.hasMore
 							};
 						}
 						return newConv;
@@ -256,95 +503,109 @@
 				}
 			}
 		} catch (err) {
-			console.error('Failed to refresh chat:', err);
+			console.error('Failed to refresh chat data:', err);
 		}
 	}
 
 	let activeConversation = $derived(
-		displayedConversations.find(c => c.id === activeConvId) || displayedConversations[0] || null
+		displayedConversations.find(c => c.id === activeConvId)
 	);
 
-	function closeActiveConversation() {
-		tempConversation = null;
-		if (typeof window !== 'undefined' && history.state?.chatOpen) {
-			history.back();
-		} else {
-			activeConvId = '';
-			showGpsDropup = false;
-		}
-	}
-
 	function selectConversation(convId) {
-		if (tempConversation && tempConversation.id !== convId) {
-			tempConversation = null;
-		}
 		activeConvId = convId;
 		showGpsDropup = false;
 		unreadConvIds.delete(convId);
 		unreadConvIds = new Set(unreadConvIds);
-		isOtherUserTyping = false;
 		loadConversationMessages(convId);
 		scrollToBottom(false);
 	}
 
+	function closeActiveConversation() {
+		activeConvId = '';
+		showGpsDropup = false;
+	}
+
 	function openChat(jobId, workerId) {
-		tempConversation = null;
-		const convId = `${jobId}_${workerId}`;
-		const existing = conversations.find(c => c.id === convId);
-		if (!existing) {
-			const job = (data.posts || []).find(j => j.id === jobId);
+		const convKey = `${jobId}_${workerId}`;
+		let matchedConv = conversations.find(c => c.id === convKey);
+
+		if (!matchedConv) {
+			const targetJob = activeJobs.find(j => j.id === jobId) || feedJobs.find(j => j.id === jobId);
+			const targetApplicant = targetJob?.applicants?.find(a => a.id === workerId);
+			const targetWorkerName = targetJob?.assignedWorker?.id === workerId 
+				? targetJob.assignedWorker.name 
+				: (targetApplicant?.name || 'Worker');
+
 			tempConversation = {
-				id: convId,
+				id: convKey,
 				job_id: jobId,
-				job_title: job ? job.title : 'Job Inquiry',
 				other_user_id: workerId,
-				other_user_name: 'Worker',
+				job_title: targetJob?.title || 'Job Inquiry',
+				other_user_name: targetWorkerName,
 				other_user_role: 'worker',
 				last_message: 'Inquired on post. Send a message...',
 				last_message_at: new Date().toISOString(),
 				messages: [],
-				messagesLoaded: true
+				messagesLoaded: true,
+				hasMore: false
 			};
+		} else {
+			tempConversation = null;
 		}
-		activeConvId = convId;
-		showGpsDropup = false;
+
+		activeConvId = convKey;
 		activeTab = 'chat';
-		unreadConvIds.delete(convId);
+		showGpsDropup = false;
+		unreadConvIds.delete(convKey);
 		unreadConvIds = new Set(unreadConvIds);
-		loadConversationMessages(convId);
+		loadConversationMessages(convKey);
 		scrollToBottom(false);
 	}
 
-	function openChatFromProfile(targetUserId, extraData = {}) {
-		if (!targetUserId) return;
-		tempConversation = null;
+	function openChatFromProfile(workerUserId, extraData = {}) {
+		if (!workerUserId) return;
+		showViewProfileModal = false;
 
-		// Check if an existing conversation exists with this worker
-		const matchConv = conversations?.find((c) => c.other_user_id === targetUserId);
-		if (matchConv) {
-			selectConversation(matchConv.id);
+		const matchingConv = conversations.find(c => c.other_user_id === workerUserId);
+
+		if (matchingConv) {
+			activeConvId = matchingConv.id;
 			activeTab = "chat";
+			showGpsDropup = false;
+			unreadConvIds.delete(matchingConv.id);
+			unreadConvIds = new Set(unreadConvIds);
+			loadConversationMessages(matchingConv.id);
+			scrollToBottom(false);
 			return;
 		}
 
-		// Find relevant customer job
-		const userJob = (data.posts || []).find(j => j.worker_id === targetUserId || (j.applicants && j.applicants.includes(targetUserId))) || (data.posts && data.posts[0]);
-		const targetJobId = userJob ? userJob.id : (data.allJobs?.[0]?.id || 'inquiry');
-		const targetJobTitle = userJob ? userJob.title : 'Direct Inquiry';
-		const targetUserName = extraData?.user?.name || 'Worker';
-		const tempConvId = `${targetJobId}_${targetUserId}`;
+		let targetJobId = extraData.jobId;
+		if (!targetJobId && activeJobs && activeJobs.length > 0) {
+			const jobWithWorker = activeJobs.find(j => j.worker_id === workerUserId || (j.applicants || []).some(a => a.id === workerUserId));
+			if (jobWithWorker) {
+				targetJobId = jobWithWorker.id;
+			} else {
+				targetJobId = activeJobs[0].id;
+			}
+		}
 
+		if (!targetJobId) {
+			targetJobId = 'profile_inquiry';
+		}
+
+		const tempConvId = `${targetJobId}_${workerUserId}`;
 		tempConversation = {
 			id: tempConvId,
 			job_id: targetJobId,
-			job_title: targetJobTitle,
-			other_user_id: targetUserId,
-			other_user_name: targetUserName,
+			other_user_id: workerUserId,
+			job_title: extraData.jobTitle || 'Direct Worker Inquiry',
+			other_user_name: extraData.userName || 'Worker',
 			other_user_role: 'worker',
-			last_message: 'Start a conversation...',
+			last_message: 'Inquired on profile. Send a message...',
 			last_message_at: new Date().toISOString(),
 			messages: [],
-			messagesLoaded: true
+			messagesLoaded: true,
+			hasMore: false
 		};
 
 		activeConvId = tempConvId;
@@ -451,56 +712,43 @@
 
 	function handleIncomingMessageDelete(messageId) {
 		if (!messageId || !conversations) return;
-		conversations = conversations.map(c => {
-			const updatedMsgs = (c.messages || []).filter(m => m.id !== messageId);
-			const lastMsg = updatedMsgs[updatedMsgs.length - 1];
-			return {
-				...c,
-				last_message: formatMessagePreview(lastMsg?.content),
-				messages: updatedMsgs
-			};
-		});
+		conversations = conversations.map(c => ({
+			...c,
+			messages: (c.messages || []).filter(m => m.id !== messageId)
+		}));
 	}
 
 	let showDeleteConfirmModal = $state(false);
-	let pendingDeleteMsgId = $state('');
+	let messageToDeleteId = $state(null);
 	let deletingMessage = $state(false);
 
-	function promptDeleteMessage(messageId) {
-		if (!messageId) return;
-		pendingDeleteMsgId = messageId;
+	function promptDeleteMessage(msgId) {
+		if (!msgId) return;
+		messageToDeleteId = msgId;
 		showDeleteConfirmModal = true;
 	}
 
 	async function confirmDeleteMessage() {
-		if (!pendingDeleteMsgId) return;
+		if (!messageToDeleteId || !activeConversation) return;
+		const msgId = messageToDeleteId;
 		deletingMessage = true;
+
 		try {
-			await handleDeleteMessage(pendingDeleteMsgId);
-		} finally {
-			deletingMessage = false;
-			pendingDeleteMsgId = '';
+			handleIncomingMessageDelete(msgId);
+			if (realtimeControls) {
+				realtimeControls.sendBroadcastDelete(msgId);
+			}
 			showDeleteConfirmModal = false;
-		}
-	}
-
-	async function handleDeleteMessage(messageId) {
-		if (!messageId || !activeConversation) return;
-
-		handleIncomingMessageDelete(messageId);
-
-		if (realtimeControls) {
-			realtimeControls.sendBroadcastDelete(messageId);
-		}
-
-		try {
+			messageToDeleteId = null;
 			await fetch('/api/messages/delete', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ messageId })
+				body: JSON.stringify({ messageId: msgId })
 			});
 		} catch (err) {
 			console.error('Failed to delete message:', err);
+		} finally {
+			deletingMessage = false;
 		}
 	}
 
@@ -635,71 +883,6 @@
 		await sendChatMessagePayload(trimmed);
 	}
 
-	let showMobileFilters = $state(false);
-	let searchQuery = $state('');
-	let searchCategory = $state('');
-	// svelte-ignore state_referenced_locally
-	let searchLocation = $state(data.user?.address || '');
-	/** @type {number | null} */
-	let minBudget = $state(null);
-	/** @type {number | null} */
-	let maxBudget = $state(null);
-	let sortBy = $state('newest');
-
-	let hasActiveFilters = $derived(
-		!!searchCategory || 
-		!!searchLocation || 
-		minBudget != null ||
-		maxBudget != null ||
-		!!searchQuery ||
-		sortBy !== 'newest'
-	);
-
-	let filteredJobs = $derived.by(() => {
-		const q = searchQuery.trim().toLowerCase();
-		const list = (data.allJobs || []).filter(job => {
-			const isNotCompleted = job.status !== 'completed';
-			const matchesSearch = !q || 
-				(job.title && job.title.toLowerCase().includes(q)) || 
-				(job.description && job.description.toLowerCase().includes(q));
-			const matchesCategory = !searchCategory || job.category === searchCategory;
-			const matchesLocation = !searchLocation || (job.location && job.location.toLowerCase().includes(searchLocation.toLowerCase()));
-			const matchesMinBudget = minBudget == null || job.budget >= Number(minBudget);
-			const matchesMaxBudget = maxBudget == null || job.budget <= Number(maxBudget);
-			return isNotCompleted && matchesSearch && matchesCategory && matchesLocation && matchesMinBudget && matchesMaxBudget;
-		});
-
-		return [...list].sort((a, b) => {
-			if (sortBy === 'highest_cost') {
-				return (Number(b.budget) || 0) - (Number(a.budget) || 0);
-			} else if (sortBy === 'lowest_cost') {
-				return (Number(a.budget) || 0) - (Number(b.budget) || 0);
-			} else if (sortBy === 'nearest_date') {
-				const timeA = new Date(a.target_date || a.created_at).getTime() || 0;
-				const timeB = new Date(b.target_date || b.created_at).getTime() || 0;
-				return timeA - timeB;
-			} else {
-				// 'newest' (default)
-				const timeA = new Date(a.created_at).getTime() || 0;
-				const timeB = new Date(b.created_at).getTime() || 0;
-				return timeB - timeA;
-			}
-		});
-	});
-
-	let availableLocations = $derived(
-		Array.from(
-			new Set(
-				(data.allJobs || [])
-					.map((j) => j.location?.trim())
-					.filter(Boolean)
-			)
-		).sort((a, b) => a.localeCompare(b))
-	);
-
-	let activeJobs = $derived(data.posts.filter(job => job.status !== 'completed'));
-	let completedJobs = $derived(data.posts.filter(job => job.status === 'completed'));
-
 	// Modal State
 	let showRatingModal = $state(false);
 	/** @type {any} */
@@ -707,7 +890,6 @@
 	let ratingValue = $state(5);
 	let reviewText = $state('');
 
-	let postingJob = $state(false);
 	let changingStatus = $state(false);
 
 	let deleteJobModal = $state({
@@ -808,6 +990,18 @@
 		reviewText = '';
 		showRatingModal = true;
 	}
+
+	// Refetch when form actions return
+	$effect(() => {
+		if (form?.success) {
+			removeSmartCache(`${data.user?.id}_customer_active_jobs`);
+			removeSmartCache(`${data.user?.id}_customer_feed_default`);
+			removeSmartCache(`${data.user?.id}_customer_profile`);
+			fetchActiveJobs(0, false);
+			fetchFeedJobs(0, false);
+			if (profileLoaded) fetchProfileData();
+		}
+	});
 </script>
 
 <svelte:head>
@@ -816,8 +1010,6 @@
 
 <CustomerTabsNav 
 	bind:activeTab 
-	activeJobsCount={activeJobs.length} 
-	conversationsCount={displayedConversations?.length || 0} 
 	unreadCount={unreadConvIds.size} 
 	onselectchat={() => {
 		if (activeConversation) {
@@ -842,7 +1034,11 @@
 
 {#if activeTab === 'feed'}
 	<CustomerFeedTab 
-		{filteredJobs} 
+		jobs={feedJobs} 
+		totalCount={feedTotalCount}
+		loading={feedLoading}
+		loadingMore={feedLoadingMore}
+		hasMore={feedHasMore}
 		{availableLocations}
 		bind:searchCategory 
 		bind:searchLocation 
@@ -853,13 +1049,19 @@
 		bind:showMobileFilters 
 		{hasActiveFilters} 
 		currentUserId={data.user?.id} 
+		onloadmore={() => fetchFeedJobs(feedJobs.length, true)}
 		onopenviewprofile={openViewProfile} 
 		onopendeletejob={openDeleteJobModal} 
 	/>
 {:else if activeTab === 'my-jobs'}
 	<CustomerActiveJobsTab 
 		{activeJobs} 
+		totalCount={activeJobsTotalCount}
+		loading={activeJobsLoading}
+		loadingMore={activeJobsLoadingMore}
+		hasMore={activeJobsHasMore}
 		bind:changingStatus 
+		onloadmore={() => fetchActiveJobs(activeJobs.length, true)}
 		onopeneditjob={openEditJobModal} 
 		onopendeletejob={openDeleteJobModal} 
 		onopenviewprofile={openViewProfile} 
@@ -899,8 +1101,8 @@
 {:else if activeTab === 'profile'}
 	<CustomerProfileTab 
 		user={data.user} 
-		posts={data.posts} 
-		{completedJobs} 
+		posts={profilePosts} 
+		completedJobs={profileCompletedJobs} 
 		bind:historySubTab 
 		onopendeletejob={openDeleteJobModal} 
 	/>

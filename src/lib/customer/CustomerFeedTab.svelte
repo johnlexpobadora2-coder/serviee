@@ -1,10 +1,14 @@
 <script>
-	import { SlidersHorizontal, ChevronUp, ChevronDown, Search, X, Trash2, MapPin, ExternalLink, User, Calendar, Clock, RotateCcw } from 'lucide-svelte';
+	import { SlidersHorizontal, ChevronUp, ChevronDown, Search, X, Trash2, MapPin, ExternalLink, User, Calendar, Clock, RotateCcw, Loader2 } from 'lucide-svelte';
 	import { getGoogleMapsUrl, getEmbedMapUrl } from '$lib/gpsUtils.js';
 	import FeedRefreshSpeedDial from '$lib/FeedRefreshSpeedDial.svelte';
 
 	let { 
-		filteredJobs = [], 
+		jobs = [], 
+		totalCount = 0,
+		loading = false,
+		loadingMore = false,
+		hasMore = false,
 		availableLocations = [],
 		searchCategory = $bindable(''), 
 		searchLocation = $bindable(''), 
@@ -15,6 +19,7 @@
 		showMobileFilters = $bindable(false), 
 		hasActiveFilters = false, 
 		currentUserId = null, 
+		onloadmore,
 		onopenviewprofile, 
 		onopendeletejob 
 	} = $props();
@@ -38,6 +43,26 @@
 			default: return 'badge-general';
 		}
 	}
+
+	function handleWindowScroll() {
+		if (typeof window === 'undefined' || loading || loadingMore || !hasMore) return;
+		const scrollPosition = window.innerHeight + window.scrollY;
+		const threshold = document.documentElement.scrollHeight - 300;
+		if (scrollPosition >= threshold) {
+			if (onloadmore) {
+				onloadmore();
+			}
+		}
+	}
+
+	$effect(() => {
+		if (typeof window !== 'undefined') {
+			window.addEventListener('scroll', handleWindowScroll, { passive: true });
+			return () => {
+				window.removeEventListener('scroll', handleWindowScroll);
+			};
+		}
+	});
 </script>
 
 <div class="dashboard-layout">
@@ -224,13 +249,20 @@
 		</div>
 
 		<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
-			<h2 style="font-size: 1.4rem;">All Available Postings ({filteredJobs.length})</h2>
+			<h2 style="font-size: 1.4rem;">
+				All Available Postings ({totalCount || jobs.length})
+			</h2>
 			<a href="/customer/post-job" class="btn btn-primary" style="width: auto; padding: 0.5rem 1.25rem;">
 				+ Post a Job
 			</a>
 		</div>
 
-		{#if filteredJobs.length === 0}
+		{#if loading && jobs.length === 0}
+			<div class="card" style="text-align: center; padding: 4rem 2rem;">
+				<Loader2 size={32} class="animate-spin" style="margin: 0 auto 1rem auto; color: var(--accent);" />
+				<p style="color: var(--text-secondary); font-size: 0.95rem;">Loading job postings...</p>
+			</div>
+		{:else if jobs.length === 0}
 			<div class="card" style="text-align: center; padding: 4rem 2rem; border-style: dashed;">
 				<h4 style="font-size: 1.25rem; margin-bottom: 0.5rem;">No job postings found.</h4>
 				<p style="color: var(--text-secondary); font-size: 0.9rem;">
@@ -238,7 +270,7 @@
 				</p>
 			</div>
 		{:else}
-			{#each filteredJobs as job (job.id)}
+			{#each jobs as job (job.id)}
 				<div class="card feed-job-card">
 					<div class="feed-job-header">
 						<!-- Top Row: Badges on left -->
@@ -343,6 +375,18 @@
 					</div>
 				</div>
 			{/each}
+
+			<!-- Infinite Scroll Loading Indicator & End of Feed Indicator -->
+			{#if loadingMore}
+				<div style="display: flex; justify-content: center; align-items: center; padding: 1.5rem; gap: 0.5rem; color: var(--text-secondary);">
+					<Loader2 size={20} class="animate-spin" style="color: var(--accent);" />
+					<span style="font-size: 0.9rem;">Loading more jobs...</span>
+				</div>
+			{:else if !hasMore && jobs.length > 0}
+				<div style="text-align: center; padding: 2rem 1rem; color: var(--text-muted); font-size: 0.85rem; border-top: 1px dashed var(--border);">
+					✓ You have viewed all available job postings ({jobs.length} total)
+				</div>
+			{/if}
 		{/if}
 	</section>
 

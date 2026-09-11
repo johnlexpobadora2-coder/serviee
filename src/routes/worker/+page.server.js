@@ -9,59 +9,17 @@ export async function load({ locals }) {
 		throw redirect(303, '/customer');
 	}
 
-	const workerId = locals.user.id;
-
-	const [allJobs, stats, conversations] = await Promise.all([
-		db.jobs.listAll(),
-		db.reviews.getStatsForWorker(workerId),
-		db.messages.listConversationsForUser(workerId, locals.user)
+	const [initialFeed, availableLocations] = await Promise.all([
+		db.jobs.listFeedPaginated({ limit: 10, offset: 0, status: 'open', workerId: locals.user.id }),
+		db.jobs.getAvailableLocations('open')
 	]);
 
-	// Filter available jobs, assigned jobs, and completed jobs
-	const availableJobs = allJobs.filter(j => j.status === 'open');
-	const assignedJobs = allJobs.filter(j => j.worker_id === workerId && (j.status === 'assigned' || j.status === 'in_progress'));
-	const completedJobs = allJobs.filter(j => j.worker_id === workerId && j.status === 'completed');
-
-	// Bulk fetch all relevant customers in a single IN query
-	const relevantCustomerIds = Array.from(new Set([...availableJobs, ...assignedJobs, ...completedJobs].map(j => j.customer_id)));
-	const customerMap = await db.users.findByIds(relevantCustomerIds);
-
-	const hydratedAvailableJobs = availableJobs.map(job => {
-		const customer = customerMap.get(job.customer_id);
-		return {
-			...job,
-			customerName: customer ? customer.name : 'Anonymous Client',
-			hasApplied: job.applicants.includes(workerId)
-		};
-	});
-
-	const myAssignedJobs = assignedJobs.map(job => {
-		const customer = customerMap.get(job.customer_id);
-		return {
-			...job,
-			customerName: customer ? customer.name : 'Anonymous Client',
-			customerPhone: customer ? customer.phone : 'Not available'
-		};
-	});
-
-	const myCompletedJobs = completedJobs.map(job => {
-		const customer = customerMap.get(job.customer_id);
-		return {
-			...job,
-			customerName: customer ? customer.name : 'Anonymous Client',
-			customerPhone: customer ? customer.phone : 'Not available'
-		};
-	});
-
-	hydratedAvailableJobs.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-	myCompletedJobs.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-
 	return {
-		availableJobs: hydratedAvailableJobs,
-		myJobs: myAssignedJobs,
-		completedJobs: myCompletedJobs,
-		conversations,
-		stats
+		initialFeedJobs: initialFeed.jobs,
+		initialFeedTotalCount: initialFeed.totalCount,
+		initialFeedHasMore: initialFeed.hasMore,
+		availableLocations,
+		user: locals.user
 	};
 }
 

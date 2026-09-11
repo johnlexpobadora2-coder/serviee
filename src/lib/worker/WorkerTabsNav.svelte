@@ -3,8 +3,6 @@
 
 	let { 
 		activeTab = $bindable('feed'), 
-		myJobsCount = 0, 
-		conversationsCount = 0, 
 		unreadCount = 0, 
 		onselectchat 
 	} = $props();
@@ -25,7 +23,7 @@
 		onclick={() => (activeTab = "my-jobs")}
 		id="tab-myjobs-btn"
 	>
-		My Jobs ({myJobsCount})
+		My Active Jobs
 	</button>
 	<button
 		type="button"
@@ -37,7 +35,7 @@
 		id="tab-chat-btn"
 		style="display: inline-flex; align-items: center; gap: 0.4rem;"
 	>
-		<MessageSquare size={16} /> Messages ({conversationsCount})
+		<MessageSquare size={16} /> Messages
 		{#if unreadCount > 0}
 			<span class="badge-unread-counter">{unreadCount}</span>
 		{/if}

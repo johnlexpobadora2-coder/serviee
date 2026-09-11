@@ -1,13 +1,15 @@
 <script>
 	import { enhance } from '$app/forms';
-	import { SlidersHorizontal, ChevronUp, ChevronDown, Search, X, MapPin, ExternalLink, MessageSquare, User, Calendar, Clock, RotateCcw } from 'lucide-svelte';
+	import { SlidersHorizontal, ChevronUp, ChevronDown, Search, X, MapPin, ExternalLink, MessageSquare, User, Calendar, Clock, RotateCcw, Loader2 } from 'lucide-svelte';
 	import { getGoogleMapsUrl, getEmbedMapUrl } from '$lib/gpsUtils.js';
 	import FeedRefreshSpeedDial from '$lib/FeedRefreshSpeedDial.svelte';
 
 	let { 
-		filteredJobs = [], 
-		visibleFeedJobs = [], 
-		visibleFeedJobsLimit = $bindable(40), 
+		jobs = [], 
+		totalCount = 0,
+		loading = false,
+		loadingMore = false,
+		hasMore = false,
 		availableLocations = [],
 		searchCategory = $bindable(''), 
 		searchLocation = $bindable(''), 
@@ -18,9 +20,9 @@
 		showMobileFilters = $bindable(false), 
 		hasActiveFilters = false, 
 		applyingJobId = $bindable(null), 
+		onloadmore,
 		onopenviewprofile, 
-		onopenchat, 
-		onloadmorefeedjobs 
+		onopenchat
 	} = $props();
 
 	function clearFilters() {
@@ -42,6 +44,26 @@
 			default: return "badge-general";
 		}
 	}
+
+	function handleWindowScroll() {
+		if (typeof window === 'undefined' || loading || loadingMore || !hasMore) return;
+		const scrollPosition = window.innerHeight + window.scrollY;
+		const threshold = document.documentElement.scrollHeight - 300;
+		if (scrollPosition >= threshold) {
+			if (onloadmore) {
+				onloadmore();
+			}
+		}
+	}
+
+	$effect(() => {
+		if (typeof window !== 'undefined') {
+			window.addEventListener('scroll', handleWindowScroll, { passive: true });
+			return () => {
+				window.removeEventListener('scroll', handleWindowScroll);
+			};
+		}
+	});
 </script>
 
 <div class="dashboard-layout">
@@ -229,11 +251,16 @@
 
 		<div style="display: flex; justify-content: space-between; align-items: center;">
 			<h2 style="font-size: 1.3rem;">
-				Available Jobs ({filteredJobs.length})
+				Available Jobs ({totalCount || jobs.length})
 			</h2>
 		</div>
 
-		{#if filteredJobs.length === 0}
+		{#if loading && jobs.length === 0}
+			<div class="card" style="text-align: center; padding: 4rem 2rem;">
+				<Loader2 size={32} class="animate-spin" style="margin: 0 auto 1rem auto; color: var(--accent);" />
+				<p style="color: var(--text-secondary); font-size: 0.95rem;">Loading available jobs...</p>
+			</div>
+		{:else if jobs.length === 0}
 			<div
 				class="card"
 				style="text-align: center; padding: 3rem 1.5rem; border-style: dashed;"
@@ -246,7 +273,7 @@
 				</p>
 			</div>
 		{:else}
-			{#each visibleFeedJobs as job (job.id)}
+			{#each jobs as job (job.id)}
 				<div
 					class="card feed-job-card"
 				>
@@ -395,16 +422,14 @@
 				</div>
 			{/each}
 
-			{#if visibleFeedJobsLimit < filteredJobs.length}
-				<div style="text-align: center; padding: 1rem 0;">
-					<button
-						type="button"
-						class="btn btn-secondary"
-						onclick={onloadmorefeedjobs}
-						style="padding: 0.6rem 1.5rem;"
-					>
-						Load 20 More Jobs ({filteredJobs.length - visibleFeedJobsLimit} remaining)
-					</button>
+			{#if loadingMore}
+				<div style="display: flex; justify-content: center; align-items: center; padding: 1.5rem; gap: 0.5rem; color: var(--text-secondary);">
+					<Loader2 size={20} class="animate-spin" style="color: var(--accent);" />
+					<span style="font-size: 0.9rem;">Loading more jobs...</span>
+				</div>
+			{:else if !hasMore && jobs.length > 0}
+				<div style="text-align: center; padding: 2rem 1rem; color: var(--text-muted); font-size: 0.85rem; border-top: 1px dashed var(--border);">
+					✓ You have viewed all available sideline jobs ({jobs.length} total)
 				</div>
 			{/if}
 		{/if}
