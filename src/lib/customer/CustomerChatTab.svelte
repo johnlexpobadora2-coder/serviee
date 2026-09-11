@@ -158,50 +158,52 @@
 									<Trash2 size={13} />
 								</button>
 							{/if}
-							<div class="chat-bubble {msg.sender_id === currentUserId ? 'sent' : 'received'}">
-								{#if gpsData}
-									<div class="chat-location-card">
-										<div class="chat-location-header">
-											<MapPin size={15} color="var(--accent-hover)" />
-											<span>{gpsData.label}</span>
+							<div class="chat-bubble-wrap {msg.sender_id === currentUserId ? 'sent' : 'received'}">
+								<div class="chat-bubble {msg.sender_id === currentUserId ? 'sent' : 'received'}">
+									{#if gpsData}
+										<div class="chat-location-card">
+											<div class="chat-location-header">
+												<MapPin size={15} color="var(--accent-hover)" />
+												<span>{gpsData.label}</span>
+											</div>
+											<div class="chat-location-preview-box">
+												<iframe 
+													title="Shared GPS Location"
+													src={gpsData.embedUrl}
+													loading="lazy"
+												></iframe>
+											</div>
+											<div style="font-size: 0.72rem; opacity: 0.85;">
+												Coordinates: {gpsData.lat}, {gpsData.lng}
+											</div>
+											<div class="chat-location-actions">
+												<a 
+													href={gpsData.mapUrl} 
+													class="chat-location-btn"
+												>
+													<ExternalLink size={13} /> Open in Google Maps
+												</a>
+											</div>
 										</div>
-										<div class="chat-location-preview-box">
-											<iframe 
-												title="Shared GPS Location"
-												src={gpsData.embedUrl}
-												loading="lazy"
-											></iframe>
-										</div>
-										<div style="font-size: 0.72rem; opacity: 0.85;">
-											Coordinates: {gpsData.lat}, {gpsData.lng}
-										</div>
-										<div class="chat-location-actions">
-											<a 
-												href={gpsData.mapUrl} 
-												class="chat-location-btn"
+									{:else if imgData}
+										<div class="chat-image-card">
+											<button 
+												type="button" 
+												class="chat-image-btn" 
+												onclick={() => onpreviewimage(imgData.url)}
+												title="Click to view full photo"
 											>
-												<ExternalLink size={13} /> Open in Google Maps
-											</a>
+												<img src={imgData.url} alt="Shared attachment" class="chat-image-preview" loading="lazy" />
+											</button>
+											{#if imgData.caption}
+												<div class="chat-image-caption">{imgData.caption}</div>
+											{/if}
 										</div>
-									</div>
-								{:else if imgData}
-									<div class="chat-image-card">
-										<button 
-											type="button" 
-											class="chat-image-btn" 
-											onclick={() => onpreviewimage(imgData.url)}
-											title="Click to view full photo"
-										>
-											<img src={imgData.url} alt="Shared attachment" class="chat-image-preview" loading="lazy" />
-										</button>
-										{#if imgData.caption}
-											<div class="chat-image-caption">{imgData.caption}</div>
-										{/if}
-									</div>
-								{:else}
-									<div>{msg.content}</div>
-								{/if}
-								<div class="chat-time">
+									{:else}
+										<div>{msg.content}</div>
+									{/if}
+								</div>
+								<div class="chat-time {msg.sender_id === currentUserId ? 'sent' : 'received'}">
 									{new Date(msg.created_at).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' })}
 								</div>
 							</div>

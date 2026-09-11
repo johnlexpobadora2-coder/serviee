@@ -339,10 +339,11 @@
 								</div>
 								<a 
 									href={getGoogleMapsUrl(job.latitude, job.longitude, job.title)} 
-									class="btn btn-outline"
-									style="padding: 0.15rem 0.5rem; font-size: 0.72rem; border-color: var(--accent); color: var(--accent-hover);"
+									target="_blank"
+									rel="noopener noreferrer"
+									class="feed-job-directions-link"
 								>
-									<ExternalLink size={11} /> Open Directions
+									<ExternalLink size={12} /> Open Directions
 								</a>
 							</div>
 							<div class="feed-job-map-iframe-container">

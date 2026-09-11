@@ -238,17 +238,10 @@
 						{/if}
 
 						{#if showMapPreview}
-							<div style="margin-top: 0.6rem; border-radius: var(--radius-sm); overflow: hidden; height: 160px; border: 1px solid var(--border-color);">
+							<div class="feed-job-map-iframe-container" style="margin-top: 0.6rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
 								<iframe 
 									title="Pinned GPS Map Location"
-									width="100%" 
-									height="100%" 
-									frameborder="0" 
-									scrolling="no" 
-									marginheight="0" 
-									marginwidth="0" 
 									src={getEmbedMapUrl(latitude, longitude)}
-									style="border: 0;"
 								></iframe>
 							</div>
 						{/if}
@@ -281,6 +274,7 @@
 						id="target_date" 
 						name="target_date" 
 						value={form?.target_date ?? ''}
+						min={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}
 						required 
 					/>
 				</div>

@@ -479,7 +479,7 @@ export const db = {
 			} else if (sortBy === 'lowest_cost') {
 				query = query.order('budget', { ascending: true });
 			} else if (sortBy === 'nearest_date') {
-				query = query.order('target_date', { ascending: true });
+				query = query.gte('target_date', new Date().toISOString()).order('target_date', { ascending: true });
 			} else {
 				query = query.order('created_at', { ascending: false });
 			}

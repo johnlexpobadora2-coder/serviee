@@ -92,7 +92,7 @@
 
 					<div class="form-group">
 						<label for="edit-target_date" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem;">Target Date & Time</label>
-						<input type="datetime-local" id="edit-target_date" name="target_date" class="form-control" bind:value={editJobModal.target_date} required style="width: 100%; padding: 0.6rem 0.8rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-primary);" />
+						<input type="datetime-local" id="edit-target_date" name="target_date" class="form-control" bind:value={editJobModal.target_date} min={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)} required style="width: 100%; padding: 0.6rem 0.8rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-primary);" />
 					</div>
 				</div>
 
