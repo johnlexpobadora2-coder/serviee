@@ -39,7 +39,8 @@
 	let showMobileFilters = $state(false);
 	let searchQuery = $state('');
 	let searchCategory = $state('');
-	let searchLocation = $state('');
+	// svelte-ignore state_referenced_locally
+	let searchLocation = $state(data.user?.address || '');
 	/** @type {number | null} */
 	let minBudget = $state(null);
 	/** @type {number | null} */

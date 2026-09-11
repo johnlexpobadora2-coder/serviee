@@ -9,8 +9,9 @@ export async function load({ locals }) {
 		throw redirect(303, '/customer');
 	}
 
+	const userLocation = locals.user.address || '';
 	const [initialFeed, availableLocations] = await Promise.all([
-		db.jobs.listFeedPaginated({ limit: 10, offset: 0, status: 'open', workerId: locals.user.id }),
+		db.jobs.listFeedPaginated({ limit: 10, offset: 0, status: 'open', workerId: locals.user.id, location: userLocation }),
 		db.jobs.getAvailableLocations('open')
 	]);
 
