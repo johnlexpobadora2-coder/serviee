@@ -56,7 +56,7 @@
 					<div style="
 						width: 36px;
 						height: 36px;
-						background: linear-gradient(135deg, #10b981, #059669);
+						background: #10b981;
 						border: 2.5px solid #ffffff;
 						border-radius: 50% 50% 50% 0;
 						transform: rotate(-45deg);

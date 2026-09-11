@@ -141,6 +141,25 @@ export function getGoogleMapsUrl(lat, lng, label = '') {
 }
 
 /**
+ * Build Serviee In-App Fullscreen Map View URL
+ * @param {number|string} lat
+ * @param {number|string} lng
+ * @param {string} [title]
+ * @param {string} [address]
+ * @param {string} [backUrl]
+ * @returns {string}
+ */
+export function getServieeMapUrl(lat, lng, title = '', address = '', backUrl = '') {
+	const params = new URLSearchParams();
+	if (lat) params.set('lat', String(lat));
+	if (lng) params.set('lng', String(lng));
+	if (title) params.set('title', title);
+	if (address) params.set('address', address);
+	if (backUrl) params.set('back', backUrl);
+	return `/map?${params.toString()}`;
+}
+
+/**
  * Build OpenStreetMap Embed URL for lightweight interactive iframe previews (no API key needed)
  * @param {number|string} lat
  * @param {number|string} lng
@@ -179,7 +198,7 @@ export function isGpsMessage(content) {
 /**
  * Parses a GPS message string into structured data
  * @param {string} content
- * @returns {{ isGps: boolean, lat: number, lng: number, label: string, mapUrl: string, embedUrl: string } | null}
+ * @returns {{ isGps: boolean, lat: number, lng: number, label: string, mapUrl: string, servieeMapUrl: string, embedUrl: string } | null}
  */
 export function parseGpsMessage(content) {
 	if (!isGpsMessage(content)) return null;
@@ -200,6 +219,7 @@ export function parseGpsMessage(content) {
 			lng,
 			label,
 			mapUrl: getGoogleMapsUrl(lat, lng, label),
+			servieeMapUrl: getServieeMapUrl(lat, lng, label),
 			embedUrl: getEmbedMapUrl(lat, lng)
 		};
 	} catch (e) {

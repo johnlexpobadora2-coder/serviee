@@ -1,7 +1,8 @@
 <script>
 	import { enhance } from '$app/forms';
 	import { Star, User, MessageSquare, UserCheck, Pencil, Trash2, MapPin, ExternalLink, Clock, Loader2 } from 'lucide-svelte';
-	import { getGoogleMapsUrl, getEmbedMapUrl } from '$lib/gpsUtils.js';
+	import { getGoogleMapsUrl, getServieeMapUrl, getEmbedMapUrl } from '$lib/gpsUtils.js';
+	import { mapModal } from '$lib/mapViewerModal.svelte.js';
 
 	let { 
 		activeJobs = [], 
@@ -122,10 +123,14 @@
 						{#if job.latitude && job.longitude}
 							<div>
 								<a 
-									href={getGoogleMapsUrl(job.latitude, job.longitude, job.title)} 
+									href={getServieeMapUrl(job.latitude, job.longitude, job.title, job.location)} 
 									class="gps-badge"
+									onclick={(e) => {
+										e.preventDefault();
+										mapModal.openModal({ latitude: job.latitude, longitude: job.longitude, title: job.title, address: job.location });
+									}}
 								>
-									<MapPin size={12} /> Google Maps
+									<MapPin size={12} /> View Map
 								</a>
 							</div>
 						{/if}
@@ -134,16 +139,22 @@
 					{#if job.latitude && job.longitude}
 						<div class="feed-job-map-preview">
 							<div class="feed-job-map-header">
-								<div style="display: flex; align-items: center; gap: 0.35rem; color: var(--accent-hover); font-weight: 600;">
-									<MapPin size={13} /> Pinned GPS Location ({job.latitude}, {job.longitude})
+								<div class="feed-job-map-title-wrap">
+									<span class="feed-job-map-pin-icon"><MapPin size={13} /></span>
+									<span class="feed-job-map-title-text">Pinned GPS Location ({job.latitude}, {job.longitude})</span>
 								</div>
 								<a 
-									href={getGoogleMapsUrl(job.latitude, job.longitude, job.title)} 
-									target="_blank"
-									rel="noopener noreferrer"
+									href={getServieeMapUrl(job.latitude, job.longitude, job.title, job.location)} 
 									class="feed-job-directions-link"
+									onclick={(e) => {
+										e.preventDefault();
+										mapModal.openModal({ latitude: job.latitude, longitude: job.longitude, title: job.title, address: job.location });
+									}}
+									title="View Map"
+									aria-label="View Map"
 								>
-									<ExternalLink size={12} /> Open Directions
+									<MapPin size={14} class="feed-job-map-btn-icon" />
+									<span class="feed-job-map-btn-text">View Map</span>
 								</a>
 							</div>
 							<div class="feed-job-map-iframe-container">

@@ -4,6 +4,8 @@
 	import { Menu, X, Settings, LogOut, LogIn, UserPlus, Home, PlusCircle, User, ShieldCheck, Download } from 'lucide-svelte';
 	import ThemeToggle from '$lib/ThemeToggle.svelte';
 	import PwaInstallBanner from '$lib/PwaInstallBanner.svelte';
+	import MapViewer from '$lib/MapViewer.svelte';
+	import { mapModal } from '$lib/mapViewerModal.svelte.js';
 	import { navigating } from '$app/stores';
 	import { page } from '$app/state';
 
@@ -24,13 +26,23 @@
 	}
 
 	function handleKeydown(e) {
-		if (e.key === 'Escape' && menuOpen) {
-			closeMenu();
+		if (e.key === 'Escape') {
+			if (mapModal.open) {
+				mapModal.closeModal();
+				return;
+			}
+			if (menuOpen) {
+				closeMenu();
+			}
 		}
 	}
 
+	function handlePopState(e) {
+		mapModal.handlePopState();
+	}
+
 	$effect(() => {
-		if (menuOpen) {
+		if (menuOpen || mapModal.open) {
 			document.body.style.overflow = 'hidden';
 		} else {
 			document.body.style.overflow = '';
@@ -41,7 +53,7 @@
 	});
 </script>
 
-<svelte:window onkeydown={handleKeydown} />
+<svelte:window onkeydown={handleKeydown} onpopstate={handlePopState} />
 
 {#if $navigating}
 	<div class="global-loading-indicator">
@@ -233,4 +245,16 @@
 	{/if}
 
 	<PwaInstallBanner bind:this={pwaBannerRef} />
+
+	{#if mapModal.open}
+		<MapViewer
+			latitude={mapModal.latitude}
+			longitude={mapModal.longitude}
+			title={mapModal.title}
+			address={mapModal.address}
+			backUrl={mapModal.backUrl}
+			fullscreen={true}
+			onClose={() => mapModal.closeModal()}
+		/>
+	{/if}
 </div>

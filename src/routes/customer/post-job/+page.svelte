@@ -1,6 +1,7 @@
 <script>
 	import { enhance } from '$app/forms';
-	import { getCurrentCoordinates, reverseGeocode, getGoogleMapsUrl, getEmbedMapUrl } from '$lib/gpsUtils.js';
+	import { getCurrentCoordinates, reverseGeocode, getGoogleMapsUrl, getServieeMapUrl, getEmbedMapUrl } from '$lib/gpsUtils.js';
+	import { mapModal } from '$lib/mapViewerModal.svelte.js';
 	import LocationPickerModal from '$lib/LocationPickerModal.svelte';
 	import CityAutocomplete from '$lib/CityAutocomplete.svelte';
 	import { MapPin, Navigation, ExternalLink, Check, AlertCircle, RefreshCw, Compass } from 'lucide-svelte';
@@ -224,11 +225,15 @@
 								{/if}
 							</div>
 							<a 
-								href={getGoogleMapsUrl(latitude, longitude)} 
-								class="btn btn-outline" 
-								style="padding: 0.25rem 0.6rem; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 0.3rem; border-color: var(--accent); color: var(--accent-hover);"
+								href={getServieeMapUrl(latitude, longitude, 'New Job Location', detectedAddressLabel)} 
+								class="btn btn-outline feed-job-edit-btn" 
+								onclick={(e) => {
+									e.preventDefault();
+									mapModal.openModal({ latitude, longitude, title: 'New Job Location', address: detectedAddressLabel });
+								}}
 							>
-								<ExternalLink size={12} /> Open in Google Maps
+								<MapPin size={13} />
+								<span>View Map</span>
 							</a>
 						</div>
 
