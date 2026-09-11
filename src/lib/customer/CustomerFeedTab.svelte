@@ -220,9 +220,14 @@
 					>₱1k - 5k</button>
 					<button 
 						type="button" 
-						class="price-pill {minBudget === 5000 && maxBudget === null ? 'active' : ''}" 
-						onclick={() => { minBudget = 5000; maxBudget = null; }}
-					>₱5k+</button>
+						class="price-pill {minBudget === 5000 && maxBudget === 20000 ? 'active' : ''}" 
+						onclick={() => { minBudget = 5000; maxBudget = 20000; }}
+					>₱5k - 20k</button>
+					<button 
+						type="button" 
+						class="price-pill {minBudget === 20000 && maxBudget === null ? 'active' : ''}" 
+						onclick={() => { minBudget = 20000; maxBudget = null; }}
+					>₱20k+</button>
 				</div>
 			</div>
 		</div>
