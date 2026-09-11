@@ -67,11 +67,23 @@ CREATE TABLE IF NOT EXISTS public.otps (
 );
 
 -- Disable Row Level Security (RLS) for testing and ease of use with the anon key
+-- Create conversation_deletions table for per-user conversation deletion
+CREATE TABLE IF NOT EXISTS public.conversation_deletions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    job_id UUID REFERENCES public.job_posts(id) ON DELETE CASCADE NOT NULL,
+    user_id UUID REFERENCES public.users(id) ON DELETE CASCADE NOT NULL,
+    other_user_id UUID REFERENCES public.users(id) ON DELETE CASCADE NOT NULL,
+    deleted_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    CONSTRAINT conv_deletions_unique UNIQUE (job_id, user_id, other_user_id)
+);
+
+-- Disable Row Level Security (RLS) for testing and ease of use with the anon key
 ALTER TABLE public.users DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.job_posts DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ratings_reviews DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.otps DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.conversation_deletions DISABLE ROW LEVEL SECURITY;
 
 -- Fallback permissive RLS policies in case RLS is enabled on Supabase Dashboard
 DROP POLICY IF EXISTS "Allow anon all on users" ON public.users;
@@ -89,6 +101,9 @@ CREATE POLICY "Allow anon all on ratings_reviews" ON public.ratings_reviews FOR 
 DROP POLICY IF EXISTS "Allow anon all on messages" ON public.messages;
 CREATE POLICY "Allow anon all on messages" ON public.messages FOR ALL USING (true) WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Allow anon all on conversation_deletions" ON public.conversation_deletions;
+CREATE POLICY "Allow anon all on conversation_deletions" ON public.conversation_deletions FOR ALL USING (true) WITH CHECK (true);
+
 -- Performance Indexes
 CREATE INDEX IF NOT EXISTS idx_job_posts_customer_id ON public.job_posts(customer_id);
 CREATE INDEX IF NOT EXISTS idx_job_posts_worker_id ON public.job_posts(worker_id);
@@ -99,6 +114,9 @@ CREATE INDEX IF NOT EXISTS idx_messages_sender_id ON public.messages(sender_id);
 CREATE INDEX IF NOT EXISTS idx_messages_receiver_id ON public.messages(receiver_id);
 CREATE INDEX IF NOT EXISTS idx_messages_job_id ON public.messages(job_id);
 CREATE INDEX IF NOT EXISTS idx_messages_created_at ON public.messages(created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_conv_del_user ON public.conversation_deletions(user_id);
+CREATE INDEX IF NOT EXISTS idx_conv_del_job ON public.conversation_deletions(job_id);
 
 CREATE INDEX IF NOT EXISTS idx_ratings_reviews_worker_id ON public.ratings_reviews(worker_id);
 CREATE INDEX IF NOT EXISTS idx_ratings_reviews_customer_id ON public.ratings_reviews(customer_id);
@@ -112,3 +130,4 @@ BEGIN
     ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
   END IF;
 END $$;
+

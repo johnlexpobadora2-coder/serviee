@@ -144,6 +144,7 @@
 						<option value="Gardening">Gardening / Landscape</option>
 						<option value="Carpentry">Carpentry / Karpintero</option>
 						<option value="General Manual Labor">General Manual Labor</option>
+						<option value="Others">Others</option>
 					</select>
 				</div>
 

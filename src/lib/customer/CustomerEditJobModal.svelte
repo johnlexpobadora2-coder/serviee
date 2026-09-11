@@ -76,6 +76,7 @@
 						<option value="Carpentry">Carpentry</option>
 						<option value="Electrical / Kuryente">Electrical / Kuryente</option>
 						<option value="General Manual Labor">General Manual Labor</option>
+						<option value="Others">Others</option>
 					</select>
 				</div>
 

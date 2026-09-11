@@ -822,6 +822,7 @@ export const db = {
 
 	messages: {
 		fallbackStore: [],
+		fallbackDeletions: [],
 
 		async send({ job_id, sender_id, receiver_id, content }) {
 			const msg = {
@@ -842,6 +843,21 @@ export const db = {
 				throw new Error(error.message);
 			}
 
+			// If sender had previously deleted this conversation, clear their deletion record so it's active again
+			try {
+				await supabase
+					.from('conversation_deletions')
+					.delete()
+					.eq('job_id', job_id)
+					.eq('user_id', sender_id)
+					.eq('other_user_id', receiver_id);
+			} catch (err) {
+				console.warn('Error clearing conversation deletion on send:', err.message);
+			}
+			this.fallbackDeletions = this.fallbackDeletions.filter(
+				d => !(d.job_id === job_id && d.user_id === sender_id && d.other_user_id === receiver_id)
+			);
+
 			return msg;
 		},
 
@@ -861,9 +877,157 @@ export const db = {
 			return true;
 		},
 
+		async deleteConversationForUser(userId, jobId, otherUserId) {
+			const supabase = getSupabase();
+			const now = new Date().toISOString();
+
+			// Check if the other user has already deleted this conversation
+			let otherDeleted = false;
+			try {
+				const { data, error } = await supabase
+					.from('conversation_deletions')
+					.select('*')
+					.eq('job_id', jobId)
+					.eq('user_id', otherUserId)
+					.eq('other_user_id', userId)
+					.maybeSingle();
+
+				if (!error && data) {
+					otherDeleted = true;
+				}
+			} catch (err) {
+				console.warn('Error checking other user conversation deletion:', err.message);
+			}
+
+			if (!otherDeleted) {
+				const fallbackMatch = this.fallbackDeletions.find(
+					d => d.job_id === jobId && d.user_id === otherUserId && d.other_user_id === userId
+				);
+				if (fallbackMatch) otherDeleted = true;
+			}
+
+			if (otherDeleted) {
+				// Both users have deleted the conversation! Permanently delete all messages and deletion records from DB
+				try {
+					await supabase
+						.from('messages')
+						.delete()
+						.eq('job_id', jobId)
+						.in('sender_id', [userId, otherUserId])
+						.in('receiver_id', [userId, otherUserId]);
+
+					await supabase
+						.from('conversation_deletions')
+						.delete()
+						.eq('job_id', jobId)
+						.in('user_id', [userId, otherUserId])
+						.in('other_user_id', [userId, otherUserId]);
+				} catch (err) {
+					console.error('Error hard deleting conversation messages:', err.message);
+				}
+
+				// Also clean fallback stores
+				this.fallbackStore = this.fallbackStore.filter(
+					m => !(
+						m.job_id === jobId &&
+						((m.sender_id === userId && m.receiver_id === otherUserId) ||
+						 (m.sender_id === otherUserId && m.receiver_id === userId))
+					)
+				);
+				this.fallbackDeletions = this.fallbackDeletions.filter(
+					d => !(
+						d.job_id === jobId &&
+						((d.user_id === userId && d.other_user_id === otherUserId) ||
+						 (d.user_id === otherUserId && d.other_user_id === userId))
+					)
+				);
+
+				return { success: true, hardDeleted: true };
+			} else {
+				// Only this user has deleted it -> record deletion for this user
+				try {
+					await supabase
+						.from('conversation_deletions')
+						.upsert(
+							{
+								job_id: jobId,
+								user_id: userId,
+								other_user_id: otherUserId,
+								deleted_at: now
+							},
+							{ onConflict: 'job_id,user_id,other_user_id' }
+						);
+				} catch (err) {
+					console.error('Error saving conversation deletion:', err.message);
+				}
+
+				// Update fallback store
+				this.fallbackDeletions = this.fallbackDeletions.filter(
+					d => !(d.job_id === jobId && d.user_id === userId && d.other_user_id === otherUserId)
+				);
+				this.fallbackDeletions.push({
+					id: crypto.randomUUID(),
+					job_id: jobId,
+					user_id: userId,
+					other_user_id: otherUserId,
+					deleted_at: now
+				});
+
+				return { success: true, hardDeleted: false };
+			}
+		},
+
+		async getUserDeletions(userId) {
+			const supabase = getSupabase();
+			let dbDeletions = [];
+			try {
+				const { data, error } = await supabase
+					.from('conversation_deletions')
+					.select('*')
+					.eq('user_id', userId);
+
+				if (!error && data) {
+					dbDeletions = data;
+				}
+			} catch (err) {
+				console.warn('Error fetching conversation deletions:', err.message);
+			}
+
+			const map = new Map();
+			for (const d of [...dbDeletions, ...this.fallbackDeletions.filter(d => d.user_id === userId)]) {
+				map.set(`${d.job_id}_${d.other_user_id}`, d);
+			}
+			return map;
+		},
+
 		async listForThread(jobId, userAId, userBId, limit = 10, before = null) {
 			const supabase = getSupabase();
 			let dbMsgs = [];
+
+			// Check if userA has deleted prior messages in this conversation
+			let userADeletionTime = null;
+			try {
+				const { data } = await supabase
+					.from('conversation_deletions')
+					.select('deleted_at')
+					.eq('job_id', jobId)
+					.eq('user_id', userAId)
+					.eq('other_user_id', userBId)
+					.maybeSingle();
+				if (data?.deleted_at) {
+					userADeletionTime = data.deleted_at;
+				}
+			} catch (err) {
+				console.warn('Error checking user deletion for thread:', err.message);
+			}
+
+			if (!userADeletionTime) {
+				const fb = this.fallbackDeletions.find(
+					d => d.job_id === jobId && d.user_id === userAId && d.other_user_id === userBId
+				);
+				if (fb?.deleted_at) userADeletionTime = fb.deleted_at;
+			}
+
 			try {
 				let query = supabase
 					.from('messages')
@@ -871,6 +1035,10 @@ export const db = {
 					.eq('job_id', jobId)
 					.in('sender_id', [userAId, userBId])
 					.in('receiver_id', [userAId, userBId]);
+
+				if (userADeletionTime) {
+					query = query.gt('created_at', userADeletionTime);
+				}
 
 				if (before) {
 					query = query.lt('created_at', before);
@@ -893,6 +1061,7 @@ export const db = {
 			const fallbackFiltered = this.fallbackStore.filter(
 				m => m.job_id === jobId &&
 				((m.sender_id === userAId && m.receiver_id === userBId) || (m.sender_id === userBId && m.receiver_id === userAId)) &&
+				(!userADeletionTime || new Date(m.created_at).getTime() > new Date(userADeletionTime).getTime()) &&
 				(!before || new Date(m.created_at).getTime() < new Date(before).getTime())
 			);
 
@@ -915,6 +1084,8 @@ export const db = {
 
 		async listForUser(userId) {
 			const supabase = getSupabase();
+			const deletionsMap = await this.getUserDeletions(userId);
+
 			let dbMsgs = [];
 			try {
 				const { data, error } = await supabase
@@ -922,10 +1093,10 @@ export const db = {
 					.select('*')
 					.or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
 					.order('created_at', { ascending: false })
-					.limit(30);
+					.limit(60);
 
 				if (error) {
-					console.error('Error fetching recent 30 messages from Supabase:', error.message);
+					console.error('Error fetching recent messages from Supabase:', error.message);
 				} else if (data) {
 					dbMsgs = data;
 				}
@@ -940,6 +1111,15 @@ export const db = {
 
 			const map = new Map();
 			for (const m of [...dbMsgs, ...fallbackFiltered]) {
+				const otherUserId = m.sender_id === userId ? m.receiver_id : m.sender_id;
+				const convKey = `${m.job_id}_${otherUserId}`;
+				const deletion = deletionsMap.get(convKey);
+
+				// Filter out messages that were created before user's deletion timestamp
+				if (deletion && new Date(m.created_at).getTime() <= new Date(deletion.deleted_at).getTime()) {
+					continue;
+				}
+
 				map.set(m.id, m);
 			}
 
@@ -950,7 +1130,11 @@ export const db = {
 		},
 
 		async listConversationsForUser(userId, currentUserObj = null) {
-			const allMsgs = await this.listForUser(userId);
+			const [allMsgs, deletionsMap] = await Promise.all([
+				this.listForUser(userId),
+				this.getUserDeletions(userId)
+			]);
+
 			const conversationsMap = new Map();
 
 			for (const msg of allMsgs) {
@@ -968,17 +1152,17 @@ export const db = {
 				conversationsMap.get(convKey).messages.push(msg);
 			}
 
-			// Include all job post applicants and assigned workers into conversations
+			// Include all job post applicants and assigned workers into conversations (unless deleted by user)
 			const currentUser = currentUserObj || (await db.users.findById(userId));
 
 			if (currentUser) {
 				if (currentUser.role === 'customer') {
-					// Customer: get jobs owned by this customer only (no need for listAll)
+					// Customer: get jobs owned by this customer only
 					const customerJobs = await db.jobs.listByCustomer(userId);
 					for (const job of customerJobs) {
 						for (const applicantId of (job.applicants || [])) {
 							const convKey = `${job.id}_${applicantId}`;
-							if (!conversationsMap.has(convKey)) {
+							if (!conversationsMap.has(convKey) && !deletionsMap.has(convKey)) {
 								conversationsMap.set(convKey, {
 									id: convKey,
 									job_id: job.id,
@@ -989,7 +1173,7 @@ export const db = {
 						}
 						if (job.worker_id) {
 							const convKey = `${job.id}_${job.worker_id}`;
-							if (!conversationsMap.has(convKey)) {
+							if (!conversationsMap.has(convKey) && !deletionsMap.has(convKey)) {
 								conversationsMap.set(convKey, {
 									id: convKey,
 									job_id: job.id,
@@ -1017,7 +1201,7 @@ export const db = {
 
 					for (const job of allWorkerJobsMap.values()) {
 						const convKey = `${job.id}_${job.customer_id}`;
-						if (!conversationsMap.has(convKey)) {
+						if (!conversationsMap.has(convKey) && !deletionsMap.has(convKey)) {
 							conversationsMap.set(convKey, {
 								id: convKey,
 								job_id: job.id,

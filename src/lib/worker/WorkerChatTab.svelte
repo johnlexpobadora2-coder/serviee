@@ -23,6 +23,7 @@
 		onloadmoremessages, 
 		onopenviewprofile, 
 		onpromptdeletemessage, 
+		onpromptdeleteconversation, 
 		ontriggerimageupload, 
 		onimagefileselect, 
 		onsharelocation, 
@@ -48,35 +49,38 @@
 				</div>
 			{:else}
 				{#each conversations as conv (conv.id)}
-					<button
-						type="button"
-						class="chat-thread-item {activeConversation?.id === conv.id ? 'active' : ''}"
-						onclick={() => onselectconversation(conv.id)}
-					>
-						<div class="chat-avatar" style="position: relative;">
-							{conv.other_user_name ? conv.other_user_name.charAt(0).toUpperCase() : 'U'}
-							{#if unreadConvIds.has(conv.id)}
-								<span class="chat-unread-dot" style="position: absolute; top: -2px; right: -2px; border: 2px solid var(--bg-card);"></span>
-							{/if}
-						</div>
-						<div class="chat-thread-info">
-							<div class="chat-thread-top">
-								<span class="chat-thread-name">{conv.other_user_name}</span>
-								<span class="chat-role-badge">Client</span>
-							</div>
-							<div class="chat-thread-title">
-								<Pin size={11} style="flex-shrink: 0;" /> <span class="chat-thread-title-text">{conv.job_title}</span>
-							</div>
-							<div class="chat-thread-preview" style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
-								<span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-									{conv.last_message || "No messages yet."}
-								</span>
+					<div class="chat-thread-item-wrapper" style="position: relative; display: flex; align-items: center;">
+						<button
+							type="button"
+							class="chat-thread-item {activeConversation?.id === conv.id ? 'active' : ''}"
+							style="flex: 1;"
+							onclick={() => onselectconversation(conv.id)}
+						>
+							<div class="chat-avatar" style="position: relative;">
+								{conv.other_user_name ? conv.other_user_name.charAt(0).toUpperCase() : 'U'}
 								{#if unreadConvIds.has(conv.id)}
-									<span class="badge-unread-counter" style="font-size: 0.65rem; height: 14px; min-width: 14px; padding: 0 3px;">•</span>
+									<span class="chat-unread-dot" style="position: absolute; top: -2px; right: -2px; border: 2px solid var(--bg-card);"></span>
 								{/if}
 							</div>
-						</div>
-					</button>
+							<div class="chat-thread-info">
+								<div class="chat-thread-top">
+									<span class="chat-thread-name">{conv.other_user_name}</span>
+									<span class="chat-role-badge">Client</span>
+								</div>
+								<div class="chat-thread-title">
+									<Pin size={11} style="flex-shrink: 0;" /> <span class="chat-thread-title-text">{conv.job_title}</span>
+								</div>
+								<div class="chat-thread-preview" style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
+									<span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+										{conv.last_message || "No messages yet."}
+									</span>
+									{#if unreadConvIds.has(conv.id)}
+										<span class="badge-unread-counter" style="font-size: 0.65rem; height: 14px; min-width: 14px; padding: 0 3px;">•</span>
+									{/if}
+								</div>
+							</div>
+						</button>
+					</div>
 				{/each}
 			{/if}
 		</div>
@@ -107,14 +111,30 @@
 					</div>
 				</div>
 
-				<button
-					type="button"
-					class="btn btn-outline"
-					style="padding: 0.25rem 0.65rem; font-size: 0.78rem; border-color: var(--accent); color: var(--accent-hover); display: inline-flex; align-items: center; gap: 0.35rem; flex-shrink: 0; margin-left: 0.5rem;"
-					onclick={() => onopenviewprofile(activeConversation.other_user_id)}
-				>
-					<User size={13} /> Profile
-				</button>
+				<div style="display: flex; align-items: center; gap: 0.45rem; flex-shrink: 0; margin-left: 0.5rem;">
+					<button
+						type="button"
+						class="btn btn-outline chat-action-icon-btn"
+						style="width: 36px; height: 36px; min-width: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; border-color: var(--accent); color: var(--accent-hover);"
+						title="View Profile"
+						aria-label="View Profile"
+						onclick={() => onopenviewprofile(activeConversation.other_user_id)}
+					>
+						<User size={18} />
+					</button>
+					{#if onpromptdeleteconversation}
+						<button
+							type="button"
+							class="btn btn-outline chat-action-icon-btn chat-delete-conv-btn"
+							style="width: 36px; height: 36px; min-width: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; border-color: var(--border-color); color: var(--text-muted);"
+							title="Delete Conversation"
+							aria-label="Delete Conversation"
+							onclick={() => onpromptdeleteconversation(activeConversation)}
+						>
+							<Trash2 size={16} />
+						</button>
+					{/if}
+				</div>
 			</div>
 
 			<div class="chat-messages-body" id="chat-messages-worker-body" onscroll={onchatscroll}>

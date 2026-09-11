@@ -1,5 +1,5 @@
 <script>
-	import { SlidersHorizontal, ChevronUp, ChevronDown, Search, X, Trash2, MapPin, ExternalLink, User, Calendar, Clock, RotateCcw, Loader2 } from 'lucide-svelte';
+	import { SlidersHorizontal, ChevronUp, ChevronDown, Search, X, Trash2, MapPin, ExternalLink, User, Calendar, Clock, RotateCcw, Loader2, Settings } from 'lucide-svelte';
 	import { getGoogleMapsUrl, getEmbedMapUrl } from '$lib/gpsUtils.js';
 	import FeedRefreshSpeedDial from '$lib/FeedRefreshSpeedDial.svelte';
 
@@ -40,6 +40,7 @@
 			case 'Excavation / Hukay Lupa': return 'badge-excavation';
 			case 'Gardening': return 'badge-gardening';
 			case 'Carpentry': return 'badge-carpentry';
+			case 'Others': return 'badge-general';
 			default: return 'badge-general';
 		}
 	}
@@ -94,7 +95,11 @@
 	>
 		<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
 			<h4 style="font-size: 1.1rem; margin: 0; display: flex; align-items: center; gap: 0.4rem;">
-				<SlidersHorizontal size={17} style="color: var(--accent);" />
+				{#if loading}
+					<Settings size={17} class="animate-spin" style="color: var(--accent);" />
+				{:else}
+					<SlidersHorizontal size={17} style="color: var(--accent);" />
+				{/if}
 				Filter Jobs
 			</h4>
 			{#if hasActiveFilters || searchLocation || searchCategory || minBudget !== null || maxBudget !== null || searchQuery || sortBy !== 'newest'}
@@ -137,6 +142,7 @@
 					<option value="Gardening">Gardening / Landscape</option>
 					<option value="Carpentry">Carpentry / Karpintero</option>
 					<option value="General Manual Labor">General Manual Labor</option>
+					<option value="Others">Others</option>
 				</select>
 			</div>
 
@@ -227,7 +233,11 @@
 		<!-- Search Bar above Job Postings -->
 		<div class="job-search-bar-container">
 			<div class="job-search-input-wrapper">
-				<Search size={18} class="job-search-icon" />
+				{#if loading}
+					<Settings size={18} class="job-search-icon animate-spin" style="color: var(--accent);" />
+				{:else}
+					<Search size={18} class="job-search-icon" />
+				{/if}
 				<input 
 					type="text" 
 					id="job-search-input" 
@@ -257,10 +267,17 @@
 			</a>
 		</div>
 
+		{#if loading && jobs.length > 0}
+			<div class="card" style="display: flex; align-items: center; justify-content: center; gap: 0.6rem; padding: 0.65rem 1rem; border-color: var(--accent); background: rgba(59, 130, 246, 0.05); font-size: 0.88rem; color: var(--accent); font-weight: 500;">
+				<Settings size={16} class="animate-spin" />
+				<span>Updating filter results...</span>
+			</div>
+		{/if}
+
 		{#if loading && jobs.length === 0}
 			<div class="card" style="text-align: center; padding: 4rem 2rem;">
-				<Loader2 size={32} class="animate-spin" style="margin: 0 auto 1rem auto; color: var(--accent);" />
-				<p style="color: var(--text-secondary); font-size: 0.95rem;">Loading job postings...</p>
+				<Settings size={36} class="animate-spin" style="margin: 0 auto 1rem auto; color: var(--accent);" />
+				<p style="color: var(--text-secondary); font-size: 0.95rem;">Fetching & filtering job postings...</p>
 			</div>
 		{:else if jobs.length === 0}
 			<div class="card" style="text-align: center; padding: 4rem 2rem; border-style: dashed;">

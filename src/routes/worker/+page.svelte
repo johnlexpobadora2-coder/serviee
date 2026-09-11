@@ -713,6 +713,10 @@
 	let messageToDeleteId = $state(null);
 	let deletingMessage = $state(false);
 
+	let showDeleteConvConfirmModal = $state(false);
+	let convToDelete = $state(null);
+	let deletingConversation = $state(false);
+
 	function promptDeleteMessage(msgId) {
 		if (!msgId) return;
 		messageToDeleteId = msgId;
@@ -740,6 +744,41 @@
 			console.error('Failed to delete message:', err);
 		} finally {
 			deletingMessage = false;
+		}
+	}
+
+	function promptDeleteConversation(conv) {
+		if (!conv) return;
+		convToDelete = conv;
+		showDeleteConvConfirmModal = true;
+	}
+
+	async function confirmDeleteConversation() {
+		if (!convToDelete) return;
+		const targetConv = convToDelete;
+		deletingConversation = true;
+
+		try {
+			const res = await fetch('/api/conversations/delete', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					jobId: targetConv.job_id,
+					otherUserId: targetConv.other_user_id
+				})
+			});
+
+			conversations = conversations.filter(c => c.id !== targetConv.id);
+			setSmartCache(`${data.user?.id}_conversations`, conversations);
+			if (activeConvId === targetConv.id || activeConversation?.id === targetConv.id) {
+				closeActiveConversation();
+			}
+			showDeleteConvConfirmModal = false;
+			convToDelete = null;
+		} catch (err) {
+			console.error('Failed to delete conversation:', err);
+		} finally {
+			deletingConversation = false;
 		}
 	}
 
@@ -969,6 +1008,7 @@
 		onloadmoremessages={loadMoreMessages} 
 		onopenviewprofile={openViewProfile} 
 		onpromptdeletemessage={promptDeleteMessage} 
+		onpromptdeleteconversation={promptDeleteConversation} 
 		ontriggerimageupload={triggerImageUpload} 
 		onimagefileselect={handleImageFileSelect} 
 		onsharelocation={handleShareLocation} 
@@ -1010,4 +1050,13 @@
 	bind:show={showDeleteConfirmModal} 
 	loading={deletingMessage} 
 	onConfirm={confirmDeleteMessage} 
+/>
+
+<ConfirmDeleteModal 
+	bind:show={showDeleteConvConfirmModal} 
+	title="Delete Conversation?"
+	message="Are you sure you want to delete this conversation? It will be removed from your chat list. If the other person also deletes it, the messages will be permanently deleted."
+	confirmText="Delete for me"
+	loading={deletingConversation} 
+	onConfirm={confirmDeleteConversation} 
 />

@@ -5,6 +5,8 @@
 		show = $bindable(false),
 		title = 'Delete Message?',
 		message = 'Are you sure you want to delete this message? This action cannot be undone.',
+		confirmText = 'Delete Message',
+		loadingText = 'Deleting...',
 		loading = false,
 		onConfirm
 	} = $props();
@@ -71,9 +73,9 @@
 				>
 					{#if loading}
 						<span class="spinner spinner-sm"></span>
-						<span>Deleting...</span>
+						<span>{loadingText}</span>
 					{:else}
-						<span>Delete Message</span>
+						<span>{confirmText}</span>
 					{/if}
 				</button>
 			</div>
