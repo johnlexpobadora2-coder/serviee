@@ -1,6 +1,6 @@
 // Smart Local Storage Caching Utility with TTL and Stale-While-Revalidate support
 
-const DEFAULT_TTL = 3 * 60 * 1000; // 3 minutes default TTL
+const DEFAULT_TTL = 24 * 60 * 60 * 1000; // 24 hours (1 day) default TTL cooldown
 
 export function getSmartCache(key, maxAgeMs = DEFAULT_TTL) {
 	if (typeof window === 'undefined') return { data: null, isStale: true, exists: false };

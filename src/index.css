@@ -1406,6 +1406,40 @@ html.light .feed-job-budget {
 		flex-shrink: 0 !important;
 	}
 
+	/* Main Dashboard Tabs Mobile: Clean Icon-Only Layout */
+	.main-dashboard-tabs {
+		display: flex !important;
+		width: 100% !important;
+		gap: 0.25rem !important;
+		margin-bottom: 1.25rem !important;
+		overflow-x: visible !important;
+	}
+	.main-dashboard-tabs .tab-btn {
+		flex: 1 1 0 !important;
+		min-width: 0 !important;
+		padding: 0.75rem 0.35rem !important;
+		justify-content: center !important;
+		display: inline-flex !important;
+		align-items: center !important;
+		gap: 0.3rem !important;
+		border-top-left-radius: 8px !important;
+		border-top-right-radius: 8px !important;
+	}
+	.main-dashboard-tabs .tab-btn .tab-label {
+		display: none !important;
+	}
+	.main-dashboard-tabs .tab-btn .tab-icon {
+		width: 20px !important;
+		height: 20px !important;
+	}
+	.main-dashboard-tabs .tab-btn .badge-unread-counter {
+		font-size: 0.65rem !important;
+		min-width: 16px !important;
+		height: 16px !important;
+		padding: 0 3px !important;
+		margin-left: 0.1rem !important;
+	}
+
 	/* Professional Mobile Active Jobs & Management */
 	.active-job-card {
 		padding: 1.1rem !important;
@@ -1666,11 +1700,11 @@ html.light .feed-job-budget {
 	.feed-filters-grid .form-group-full {
 		grid-column: span 1 !important;
 	}
-	.tabs-header {
+	.tabs-header:not(.main-dashboard-tabs) {
 		gap: 0.2rem !important;
 		margin-bottom: 1rem !important;
 	}
-	.tab-btn {
+	.tabs-header:not(.main-dashboard-tabs) .tab-btn {
 		font-size: 0.8rem !important;
 		padding: 0.45rem 0.65rem !important;
 	}
@@ -1827,6 +1861,10 @@ html.light .feed-job-budget {
 }
 
 .tab-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.45rem;
 	background: transparent;
 	border: none;
 	color: var(--text-secondary);
@@ -1845,9 +1883,18 @@ html.light .feed-job-budget {
 	margin-bottom: -1px;
 }
 
+.tab-btn .tab-icon {
+	flex-shrink: 0;
+	transition: transform var(--transition-fast);
+}
+
 .tab-btn:hover {
 	color: var(--text-primary);
 	background-color: var(--bg-input);
+}
+
+.tab-btn:hover .tab-icon {
+	transform: translateY(-1px);
 }
 
 .tab-btn.active {

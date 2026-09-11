@@ -9,16 +9,17 @@
 	} = $props();
 </script>
 
-<div class="tabs-header">
+<div class="tabs-header main-dashboard-tabs">
 	<button 
 		type="button" 
 		class="tab-btn {activeTab === 'overview' ? 'active' : ''}" 
 		onclick={() => activeTab = 'overview'}
 		id="tab-overview-btn"
-		style="display: inline-flex; align-items: center; gap: 0.45rem;"
+		title="Overview"
+		aria-label="Overview"
 	>
-		<Activity size={16} />
-		<span>Overview</span>
+		<Activity size={18} class="tab-icon" />
+		<span class="tab-label">Overview</span>
 	</button>
 
 	<button 
@@ -26,10 +27,11 @@
 		class="tab-btn {activeTab === 'users' ? 'active' : ''}" 
 		onclick={() => activeTab = 'users'}
 		id="tab-users-btn"
-		style="display: inline-flex; align-items: center; gap: 0.45rem;"
+		title="Users Directory ({userCount})"
+		aria-label="Users Directory"
 	>
-		<Users size={16} />
-		<span>Users Directory ({userCount})</span>
+		<Users size={18} class="tab-icon" />
+		<span class="tab-label">Users Directory ({userCount})</span>
 	</button>
 
 	<button 
@@ -37,10 +39,11 @@
 		class="tab-btn {activeTab === 'jobs' ? 'active' : ''}" 
 		onclick={() => activeTab = 'jobs'}
 		id="tab-jobs-btn"
-		style="display: inline-flex; align-items: center; gap: 0.45rem;"
+		title="Job Listings ({jobCount})"
+		aria-label="Job Listings"
 	>
-		<Briefcase size={16} />
-		<span>Job Listings ({jobCount})</span>
+		<Briefcase size={18} class="tab-icon" />
+		<span class="tab-label">Job Listings ({jobCount})</span>
 	</button>
 
 	<button 
@@ -48,10 +51,11 @@
 		class="tab-btn {activeTab === 'reviews' ? 'active' : ''}" 
 		onclick={() => activeTab = 'reviews'}
 		id="tab-reviews-btn"
-		style="display: inline-flex; align-items: center; gap: 0.45rem;"
+		title="Reviews ({reviewCount})"
+		aria-label="Reviews"
 	>
-		<Star size={16} />
-		<span>Reviews ({reviewCount})</span>
+		<Star size={18} class="tab-icon" />
+		<span class="tab-label">Reviews ({reviewCount})</span>
 	</button>
 
 	<button 
@@ -59,9 +63,10 @@
 		class="tab-btn {activeTab === 'system' ? 'active' : ''}" 
 		onclick={() => activeTab = 'system'}
 		id="tab-system-btn"
-		style="display: inline-flex; align-items: center; gap: 0.45rem;"
+		title="System Status"
+		aria-label="System Status"
 	>
-		<Settings size={16} />
-		<span>System Status</span>
+		<Settings size={18} class="tab-icon" />
+		<span class="tab-label">System Status</span>
 	</button>
 </div>
