@@ -1,4 +1,5 @@
 import { db, hashPassword } from '$lib/server/db.js';
+import { createSignedSession } from '$lib/server/session.js';
 import { redirect, fail } from '@sveltejs/kit';
 
 export function load({ locals }) {
@@ -47,11 +48,13 @@ export const actions = {
 
 			console.log('✅ Authentication successful! User ID:', matchingUser.id, 'Role:', matchingUser.role);
 
-			// Set session cookie (expires in 7 days)
-			cookies.set('session_id', matchingUser.id, {
+			// Set cryptographically signed session cookie (expires in 7 days)
+			const signedToken = createSignedSession(matchingUser.id);
+			cookies.set('session_id', signedToken, {
 				path: '/',
 				httpOnly: true,
-				sameSite: 'strict',
+				sameSite: 'lax',
+				secure: process.env.NODE_ENV === 'production',
 				maxAge: 60 * 60 * 24 * 7
 			});
 

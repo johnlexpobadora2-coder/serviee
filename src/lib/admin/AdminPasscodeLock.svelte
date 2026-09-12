@@ -1,12 +1,14 @@
 <script>
 	import { fade, slide, scale } from 'svelte/transition';
-	import { Shield, AlertTriangle, Unlock, ArrowLeft } from 'lucide-svelte';
+	import { Shield, AlertTriangle, Unlock, ArrowLeft, Loader2 } from 'lucide-svelte';
+	import { enhance } from '$app/forms';
 
 	let { 
 		passcode = $bindable(''), 
-		passError = '', 
-		onsubmit 
+		passError = '' 
 	} = $props();
+
+	let isSubmitting = $state(false);
 </script>
 
 <div class="admin-lock-wrapper" transition:fade={{ duration: 150 }}>
@@ -29,11 +31,23 @@
 			</div>
 		{/if}
 
-		<form onsubmit={onsubmit} class="admin-lock-form">
+		<form 
+			method="POST" 
+			action="?/loginAdmin" 
+			use:enhance={() => {
+				isSubmitting = true;
+				return async ({ update }) => {
+					isSubmitting = false;
+					await update();
+				};
+			}}
+			class="admin-lock-form"
+		>
 			<div class="admin-lock-form-group">
 				<label for="passcode" class="admin-lock-label">Secret Passcode</label>
 				<input 
 					id="passcode" 
+					name="passcode"
 					type="password" 
 					bind:value={passcode}
 					placeholder="Enter PIN..." 
@@ -46,9 +60,15 @@
 			<button 
 				type="submit" 
 				class="admin-lock-submit-btn"
+				disabled={isSubmitting}
 			>
-				<Unlock size={18} />
-				<span>Authenticate & Unlock</span>
+				{#if isSubmitting}
+					<Loader2 size={18} class="animate-spin" />
+					<span>Verifying...</span>
+				{:else}
+					<Unlock size={18} />
+					<span>Authenticate & Unlock</span>
+				{/if}
 			</button>
 		</form>
 

@@ -38,6 +38,14 @@ export const actions = {
 		}
 
 		try {
+			const job = await db.jobs.findById(jobId);
+			if (!job) {
+				return fail(404, { error: 'Job post not found.' });
+			}
+			if (job.status !== 'open') {
+				return fail(400, { error: 'This job is no longer accepting applications.' });
+			}
+
 			await db.jobs.apply(jobId, locals.user.id);
 			return { success: 'Successfully applied! Wait for customer approval.' };
 		} catch (error) {
@@ -60,6 +68,14 @@ export const actions = {
 		}
 
 		try {
+			const job = await db.jobs.findById(jobId);
+			if (!job) {
+				return fail(404, { error: 'Job post not found.' });
+			}
+			if (job.customer_id !== customerId) {
+				return fail(400, { error: 'Invalid client for this job post.' });
+			}
+
 			// Automatically apply worker to post
 			await db.jobs.apply(jobId, locals.user.id);
 			

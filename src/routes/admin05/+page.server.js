@@ -1,9 +1,32 @@
 import { db } from '$lib/server/db.js';
+import { verifyAdminPasscode, createAdminSessionToken, verifyAdminSessionToken } from '$lib/server/session.js';
 import { fail } from '@sveltejs/kit';
 
 export async function load({ cookies }) {
-	// Auto logout any logged-in user session when accessing admin panel
-	cookies.delete('session_id', { path: '/' });
+	const adminToken = cookies.get('admin_session');
+	const isAuthenticated = verifyAdminSessionToken(adminToken);
+
+	if (!isAuthenticated) {
+		return {
+			isAuthenticated: false,
+			stats: {
+				totalUsers: 0,
+				totalCustomers: 0,
+				totalWorkers: 0,
+				totalJobs: 0,
+				openJobs: 0,
+				assignedJobs: 0,
+				inProgressJobs: 0,
+				completedJobs: 0,
+				totalBudget: 0,
+				totalReviews: 0,
+				avgRating: '0.0'
+			},
+			users: [],
+			jobs: [],
+			reviews: []
+		};
+	}
 
 	try {
 		const [users, jobs, reviews] = await Promise.all([
@@ -53,6 +76,7 @@ export async function load({ cookies }) {
 			: '0.0';
 
 		return {
+			isAuthenticated: true,
 			stats: {
 				totalUsers,
 				totalCustomers,
@@ -73,6 +97,7 @@ export async function load({ cookies }) {
 	} catch (err) {
 		console.error('Error loading admin dataset:', err);
 		return {
+			isAuthenticated: true,
 			stats: {
 				totalUsers: 0,
 				totalCustomers: 0,
@@ -94,7 +119,38 @@ export async function load({ cookies }) {
 }
 
 export const actions = {
-	updateUserAddress: async ({ request }) => {
+	loginAdmin: async ({ request, cookies }) => {
+		const data = await request.formData();
+		const passcode = data.get('passcode')?.toString() || '';
+
+		if (!verifyAdminPasscode(passcode)) {
+			return fail(401, {
+				authError: 'Invalid Secret Passcode. Access denied.'
+			});
+		}
+
+		const token = createAdminSessionToken();
+		cookies.set('admin_session', token, {
+			path: '/admin05',
+			httpOnly: true,
+			sameSite: 'strict',
+			secure: process.env.NODE_ENV === 'production',
+			maxAge: 60 * 60 * 24 // 24 hours
+		});
+
+		return { success: true, authSuccess: true };
+	},
+
+	logoutAdmin: async ({ cookies }) => {
+		cookies.delete('admin_session', { path: '/admin05' });
+		return { success: true, loggedOut: true };
+	},
+
+	updateUserAddress: async ({ request, cookies }) => {
+		if (!verifyAdminSessionToken(cookies.get('admin_session'))) {
+			return fail(401, { message: 'Unauthorized. Admin authentication required.' });
+		}
+
 		const data = await request.formData();
 		const userId = data.get('userId');
 		const address = data.get('address');
@@ -114,7 +170,11 @@ export const actions = {
 		}
 	},
 
-	resetUserPassword: async ({ request }) => {
+	resetUserPassword: async ({ request, cookies }) => {
+		if (!verifyAdminSessionToken(cookies.get('admin_session'))) {
+			return fail(401, { message: 'Unauthorized. Admin authentication required.' });
+		}
+
 		const data = await request.formData();
 		const userId = data.get('userId');
 		const newPassword = data.get('newPassword');
@@ -136,7 +196,11 @@ export const actions = {
 		}
 	},
 
-	deleteUser: async ({ request }) => {
+	deleteUser: async ({ request, cookies }) => {
+		if (!verifyAdminSessionToken(cookies.get('admin_session'))) {
+			return fail(401, { message: 'Unauthorized. Admin authentication required.' });
+		}
+
 		const data = await request.formData();
 		const userId = data.get('userId');
 
@@ -153,7 +217,11 @@ export const actions = {
 		}
 	},
 
-	deleteJob: async ({ request }) => {
+	deleteJob: async ({ request, cookies }) => {
+		if (!verifyAdminSessionToken(cookies.get('admin_session'))) {
+			return fail(401, { message: 'Unauthorized. Admin authentication required.' });
+		}
+
 		const data = await request.formData();
 		const jobId = data.get('jobId');
 
@@ -170,7 +238,11 @@ export const actions = {
 		}
 	},
 
-	updateJobStatus: async ({ request }) => {
+	updateJobStatus: async ({ request, cookies }) => {
+		if (!verifyAdminSessionToken(cookies.get('admin_session'))) {
+			return fail(401, { message: 'Unauthorized. Admin authentication required.' });
+		}
+
 		const data = await request.formData();
 		const jobId = data.get('jobId');
 		const status = data.get('status');
@@ -188,7 +260,11 @@ export const actions = {
 		}
 	},
 
-	deleteReview: async ({ request }) => {
+	deleteReview: async ({ request, cookies }) => {
+		if (!verifyAdminSessionToken(cookies.get('admin_session'))) {
+			return fail(401, { message: 'Unauthorized. Admin authentication required.' });
+		}
+
 		const data = await request.formData();
 		const reviewId = data.get('reviewId');
 
@@ -205,3 +281,4 @@ export const actions = {
 		}
 	}
 };
+

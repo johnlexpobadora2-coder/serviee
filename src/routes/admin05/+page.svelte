@@ -14,42 +14,24 @@
 	import AdminDeleteModal from '$lib/admin/AdminDeleteModal.svelte';
 	import AdminEditAddressModal from '$lib/admin/AdminEditAddressModal.svelte';
 	import AdminResetPasswordModal from '$lib/admin/AdminResetPasswordModal.svelte';
+	import { enhance } from '$app/forms';
 
 	let { data, form } = $props();
 
-	// Secret Passcode Verification State
+	// Secret Passcode Verification State derived from server
 	let passcode = $state('');
-	let isAuthenticated = $state(false);
-	let passError = $state('');
+	let passError = $derived(form?.authError || '');
+	let isLockedOut = $state(false);
+
+	let isAuthenticated = $derived(data.isAuthenticated && !isLockedOut);
 
 	function lockAdmin() {
-		isAuthenticated = false;
-		passcode = '';
-		if (typeof window !== 'undefined') {
-			sessionStorage.removeItem('admin05_authed');
-		}
-	}
-
-	onDestroy(() => {
-		lockAdmin();
-	});
-
-	if (typeof window !== 'undefined') {
-		window.addEventListener('pagehide', lockAdmin);
-		window.addEventListener('beforeunload', lockAdmin);
-	}
-
-	function handlePasscodeSubmit(e) {
-		e.preventDefault();
-		if (passcode.trim() === '1473') {
-			isAuthenticated = true;
-			passError = '';
-			if (typeof window !== 'undefined') {
-				sessionStorage.setItem('admin05_authed', 'true');
-			}
-		} else {
-			passError = 'Invalid Secret Passcode. Access denied.';
-		}
+		isLockedOut = true;
+		// Submit form to clear server admin cookie
+		const formData = new FormData();
+		fetch('?/logoutAdmin', { method: 'POST', body: formData }).then(() => {
+			window.location.reload();
+		});
 	}
 
 	// Navigation Tabs
@@ -167,7 +149,6 @@
 		<AdminPasscodeLock 
 			bind:passcode 
 			{passError} 
-			onsubmit={handlePasscodeSubmit} 
 		/>
 	{:else}
 		<div class="max-w-[1400px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6 flex-1 flex flex-col justify-start" transition:fade={{ duration: 150 }}>

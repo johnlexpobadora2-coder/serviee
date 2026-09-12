@@ -5,6 +5,7 @@
 	import ThemeToggle from '$lib/ThemeToggle.svelte';
 	import PwaInstallBanner from '$lib/PwaInstallBanner.svelte';
 	import MapViewer from '$lib/MapViewer.svelte';
+	import LogoutConfirmModal from '$lib/LogoutConfirmModal.svelte';
 	import { mapModal } from '$lib/mapViewerModal.svelte.js';
 	import { navigating } from '$app/stores';
 	import { page } from '$app/state';
@@ -13,6 +14,8 @@
 
 	let menuOpen = $state(false);
 	let pwaBannerRef = $state(null);
+	let showLogoutModal = $state(false);
+	let logoutFormRef = $state(null);
 
 	let isAdminPage = $derived(page.url.pathname.startsWith('/admin'));
 	let currentPath = $derived(page.url.pathname);
@@ -178,9 +181,17 @@
 						<ThemeToggle />
 					</div>
 
-					<!-- Logout Action Form -->
-					<form method="POST" action="/logout" class="nav-logout-form">
-						<button type="submit" class="nav-link nav-logout-btn" onclick={closeMenu} id="nav-logout-btn">
+					<!-- Logout Action Form with Confirmation Modal Trigger -->
+					<form method="POST" action="/logout" class="nav-logout-form" bind:this={logoutFormRef}>
+						<button 
+							type="button" 
+							class="nav-link nav-logout-btn" 
+							onclick={() => {
+								closeMenu();
+								showLogoutModal = true;
+							}} 
+							id="nav-logout-btn"
+						>
 							<LogOut size={18} class="nav-item-icon" />
 							<span>Log Out</span>
 						</button>
@@ -245,6 +256,11 @@
 	{/if}
 
 	<PwaInstallBanner bind:this={pwaBannerRef} />
+
+	<LogoutConfirmModal 
+		bind:show={showLogoutModal} 
+		onConfirm={() => logoutFormRef?.submit()} 
+	/>
 
 	{#if mapModal.open}
 		<MapViewer

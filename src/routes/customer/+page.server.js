@@ -39,6 +39,14 @@ export const actions = {
 		}
 
 		try {
+			const job = await db.jobs.findById(jobId);
+			if (!job) {
+				return fail(404, { error: 'Job post not found.' });
+			}
+			if (job.customer_id !== locals.user.id) {
+				return fail(403, { error: 'You are not authorized to assign workers for this job.' });
+			}
+
 			await db.jobs.assign(jobId, workerId);
 			return { success: 'Worker assigned successfully!' };
 		} catch (error) {
@@ -59,6 +67,14 @@ export const actions = {
 		}
 
 		try {
+			const job = await db.jobs.findById(jobId);
+			if (!job) {
+				return fail(404, { error: 'Job post not found.' });
+			}
+			if (job.customer_id !== locals.user.id) {
+				return fail(403, { error: 'You are not authorized to start this job.' });
+			}
+
 			await db.jobs.updateStatus(jobId, 'in_progress');
 			return { success: 'Job started successfully!' };
 		} catch (error) {
@@ -82,6 +98,14 @@ export const actions = {
 		}
 
 		try {
+			const job = await db.jobs.findById(jobId);
+			if (!job) {
+				return fail(404, { error: 'Job post not found.' });
+			}
+			if (job.customer_id !== locals.user.id) {
+				return fail(403, { error: 'You are not authorized to complete or rate this job.' });
+			}
+
 			// Update status to completed
 			await db.jobs.updateStatus(jobId, 'completed');
 

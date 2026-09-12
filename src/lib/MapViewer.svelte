@@ -56,14 +56,6 @@
 			html: `
 				<div style="position: relative; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -100%);">
 					<div style="
-						position: absolute;
-						width: 44px;
-						height: 44px;
-						background: rgba(16, 185, 129, 0.25);
-						border-radius: 50%;
-						animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
-					"></div>
-					<div style="
 						width: 38px;
 						height: 38px;
 						background: #10b981;
@@ -73,7 +65,7 @@
 						display: flex;
 						align-items: center;
 						justify-content: center;
-						box-shadow: 0 8px 20px rgba(16, 185, 129, 0.5), 0 4px 10px rgba(0,0,0,0.3);
+						box-shadow: 0 2px 6px rgba(0,0,0,0.3);
 						z-index: 2;
 					">
 						<svg style="transform: rotate(45deg); width: 20px; height: 20px;" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -90,7 +82,6 @@
 						height: 5px;
 						background: rgba(0,0,0,0.4);
 						border-radius: 50%;
-						filter: blur(1.5px);
 					"></div>
 				</div>
 			`,
@@ -538,34 +529,31 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: rgba(15, 23, 42, 0.82);
+		background: rgba(15, 23, 42, 0.88);
 		backdrop-filter: blur(12px);
 		-webkit-backdrop-filter: blur(12px);
 		border: 1px solid rgba(255, 255, 255, 0.15);
 		color: #ffffff;
 		border-radius: var(--radius-md, 10px);
-		box-shadow: 0 4px 14px rgba(0,0,0,0.3);
 		cursor: pointer;
 		transition: all 0.2s ease;
 	}
 
 	.map-control-btn:hover {
-		background: #10b981;
-		border-color: #10b981;
+		background: rgba(255, 255, 255, 0.18);
+		border-color: rgba(255, 255, 255, 0.3);
 		color: #ffffff;
-		transform: scale(1.05);
 	}
 
 	.map-zoom-group {
 		display: flex;
 		flex-direction: column;
-		background: rgba(15, 23, 42, 0.82);
+		background: rgba(15, 23, 42, 0.88);
 		backdrop-filter: blur(12px);
 		-webkit-backdrop-filter: blur(12px);
 		border: 1px solid rgba(255, 255, 255, 0.15);
 		border-radius: var(--radius-md, 10px);
 		overflow: hidden;
-		box-shadow: 0 4px 14px rgba(0,0,0,0.3);
 	}
 
 	.map-zoom-group .zoom-btn {
@@ -594,13 +582,13 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.75rem;
-		background: rgba(15, 23, 42, 0.88);
+		background: rgba(15, 23, 42, 0.92);
 		backdrop-filter: blur(16px);
 		-webkit-backdrop-filter: blur(16px);
 		border: 1px solid rgba(255, 255, 255, 0.14);
 		border-radius: var(--radius-lg, 16px);
 		padding: 1rem 1.2rem;
-		box-shadow: 0 12px 35px rgba(0, 0, 0, 0.45);
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 	}
 
 	.coords-tag {
@@ -620,7 +608,6 @@
 		height: 7px;
 		background: #10b981;
 		border-radius: 50%;
-		box-shadow: 0 0 8px #10b981;
 	}
 
 	.coord-text {
@@ -673,18 +660,15 @@
 		font-size: 0.9rem;
 		font-weight: 600;
 		text-decoration: none;
-		box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35);
-		transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+		transition: background-color 0.15s ease;
 	}
 
 	.google-maps-btn:hover {
 		background: #059669;
-		box-shadow: 0 8px 24px rgba(16, 185, 129, 0.45);
-		transform: translateY(-2px);
 	}
 
 	.google-maps-btn:active {
-		transform: translateY(0);
+		background: #047857;
 	}
 
 	@keyframes -global-pulse-ring {
