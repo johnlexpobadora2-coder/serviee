@@ -1,6 +1,7 @@
 <script>
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
+	import { enhance } from '$app/forms';
 	import { 
 		MapPin, 
 		Navigation, 
@@ -21,7 +22,8 @@
 
 	let {
 		jobs = [],
-		applyingJobId = null,
+		applyingJobId = $bindable(null),
+		userRole = 'worker',
 		onopenchat = () => {},
 		onopenviewprofile = () => {},
 		onopenshare = () => {}
@@ -485,14 +487,59 @@
 					<Share2 size={15} />
 				</button>
 
-				<button 
-					type="button" 
-					class="btn btn-primary map-card-apply-btn"
-					onclick={() => onopenchat(selectedJob.id, selectedJob.customer_id)}
-				>
-					<MessageSquare size={14} />
-					<span>Apply / Chat Client</span>
-				</button>
+				{#if userRole === 'worker'}
+					{#if (jobs.find(j => j.id === selectedJob.id)?.hasApplied || selectedJob.hasApplied)}
+						<button
+							type="button"
+							class="btn btn-outline map-card-apply-btn"
+							style="border-color: var(--accent); color: var(--accent-hover); display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem;"
+							onclick={() => onopenchat(selectedJob.id, selectedJob.customer_id)}
+						>
+							<MessageSquare size={14} />
+							<span>Open Chat</span>
+						</button>
+					{:else}
+						<form
+							method="POST"
+							action="?/inquireJob"
+							use:enhance={() => {
+								applyingJobId = selectedJob.id;
+								const initMsg = `Hello! Inquiring po ako sa sideline job na ito: ${selectedJob.title}.`;
+								return async ({ update, result }) => {
+									applyingJobId = null;
+									await update();
+									const sentMessage = result?.type === 'success' && result?.data ? result.data.sentMessage : null;
+									onopenchat(selectedJob.id, selectedJob.customer_id, {
+										initialMessage: initMsg,
+										sentMessage,
+										jobTitle: selectedJob.title,
+										customerName: selectedJob.customerName
+									});
+								};
+							}}
+							style="display: inline-flex; flex: 1;"
+						>
+							<input type="hidden" name="jobId" value={selectedJob.id} />
+							<input type="hidden" name="customerId" value={selectedJob.customer_id} />
+							<input type="hidden" name="initialMessage" value="Hello! Inquiring po ako sa sideline job na ito: {selectedJob.title}." />
+							<button
+								type="submit"
+								class="btn btn-primary map-card-apply-btn"
+								style="width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem;"
+								disabled={applyingJobId === selectedJob.id}
+								id="map-inquire-btn-{selectedJob.id}"
+							>
+								{#if applyingJobId === selectedJob.id}
+									<span class="spinner spinner-sm"></span>
+									<span>Connecting...</span>
+								{:else}
+									<MessageSquare size={14} />
+									<span>Apply / Chat Client</span>
+								{/if}
+							</button>
+						</form>
+					{/if}
+				{/if}
 			</div>
 		</div>
 	{/if}

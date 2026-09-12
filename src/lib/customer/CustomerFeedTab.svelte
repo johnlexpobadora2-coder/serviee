@@ -331,6 +331,7 @@
 		{#if viewMode === 'map'}
 			<JobFeedMapView 
 				{jobs} 
+				userRole="customer"
 				onopenchat={() => {}} 
 				{onopenviewprofile} 
 				onopenshare={handleOpenShare} 
@@ -525,6 +526,8 @@
 
 	<!-- Saved Jobs Drawer -->
 	<SavedJobsDrawer 
+		{jobs}
+		userRole="customer"
 		onopenchat={() => {}}
 		{onopenviewprofile} 
 		onopenshare={handleOpenShare} 

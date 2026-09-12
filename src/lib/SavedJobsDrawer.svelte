@@ -1,4 +1,5 @@
 <script>
+	import { enhance } from '$app/forms';
 	import { 
 		Bookmark, 
 		X, 
@@ -15,16 +16,22 @@
 
 	/**
 	 * @type {{
+	 *  jobs?: any[],
+	 *  userRole?: string,
 	 *  onopenchat?: (jobId: string, customerId: string, extraData?: any) => void,
 	 *  onopenviewprofile?: (customerId: string) => void,
 	 *  onopenshare?: (job: any) => void
 	 * }}
 	 */
 	let {
+		jobs = [],
+		userRole = 'worker',
 		onopenchat = () => {},
 		onopenviewprofile = () => {},
 		onopenshare = () => {}
 	} = $props();
+
+	let applyingJobId = $state(null);
 
 	function handleKeydown(e) {
 		if (e.key === 'Escape' && savedJobs.isDrawerOpen) {
@@ -195,23 +202,63 @@
 												<MapPin size={13} />
 											</button>
 										{/if}
-										<button 
-											type="button" 
-											class="btn btn-primary" 
-											style="padding: 0.4rem 0.85rem; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.35rem;" 
-											onclick={() => {
-												savedJobs.closeDrawer();
-												if (onopenchat) {
-													onopenchat(job.id, job.customer_id, {
-														jobTitle: job.title,
-														customerName: job.customerName
-													});
-												}
-											}}
-										>
-											<MessageSquare size={13} />
-											<span>Apply / Chat</span>
-										</button>
+										{#if userRole === 'worker'}
+											{#if (jobs.find(j => j.id === job.id)?.hasApplied || job.hasApplied)}
+												<button
+													type="button"
+													class="btn btn-outline"
+													style="padding: 0.4rem 0.85rem; font-size: 0.78rem; border-color: var(--accent); color: var(--accent-hover); display: inline-flex; align-items: center; gap: 0.35rem;"
+													onclick={() => {
+														savedJobs.closeDrawer();
+														onopenchat(job.id, job.customer_id);
+													}}
+												>
+													<MessageSquare size={13} />
+													<span>Open Chat</span>
+												</button>
+											{:else}
+												<form
+													method="POST"
+													action="?/inquireJob"
+													use:enhance={() => {
+														applyingJobId = job.id;
+														const initMsg = `Hello! Inquiring po ako sa sideline job na ito: ${job.title}.`;
+														return async ({ update, result }) => {
+															applyingJobId = null;
+															await update();
+															savedJobs.closeDrawer();
+															const sentMessage = result?.type === 'success' && result?.data ? result.data.sentMessage : null;
+															onopenchat(job.id, job.customer_id, {
+																initialMessage: initMsg,
+																sentMessage,
+																jobTitle: job.title,
+																customerName: job.customerName
+															});
+														};
+													}}
+													style="display: inline-flex;"
+												>
+													<input type="hidden" name="jobId" value={job.id} />
+													<input type="hidden" name="customerId" value={job.customer_id} />
+													<input type="hidden" name="initialMessage" value="Hello! Inquiring po ako sa sideline job na ito: {job.title}." />
+													<button
+														type="submit"
+														class="btn btn-primary"
+														style="padding: 0.4rem 0.85rem; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.35rem;"
+														disabled={applyingJobId === job.id}
+														id="saved-inquire-btn-{job.id}"
+													>
+														{#if applyingJobId === job.id}
+															<span class="spinner spinner-sm"></span>
+															<span>Connecting...</span>
+														{:else}
+															<MessageSquare size={13} />
+															<span>Apply / Chat</span>
+														{/if}
+													</button>
+												</form>
+											{/if}
+										{/if}
 									</div>
 								</div>
 							</div>
