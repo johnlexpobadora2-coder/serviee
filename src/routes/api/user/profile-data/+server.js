@@ -42,6 +42,10 @@ export async function GET({ locals }) {
 							id: worker.id,
 							name: worker.name,
 							phone: worker.phone,
+							address: worker.address,
+							bio: worker.bio || '',
+							skills: worker.skills || [],
+							availability_status: worker.availability_status || 'available',
 							average_rating: stats.average_rating
 						};
 					}
@@ -57,6 +61,9 @@ export async function GET({ locals }) {
 							name: worker.name,
 							phone: worker.phone,
 							address: worker.address,
+							bio: worker.bio || '',
+							skills: worker.skills || [],
+							availability_status: worker.availability_status || 'available',
 							average_rating: stats.average_rating,
 							completed_jobs_count: stats.completed_jobs_count
 						};

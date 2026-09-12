@@ -20,14 +20,19 @@
 	} = $props();
 
 	function getCategoryBadge(category) {
-		switch (category) {
-			case 'Plumbing / Tubero': return 'badge-plumbing';
-			case 'Roofing / Ayos Yero': return 'badge-roofing';
-			case 'Excavation / Hukay Lupa': return 'badge-excavation';
-			case 'Gardening': return 'badge-gardening';
-			case 'Carpentry': return 'badge-carpentry';
-			default: return 'badge-general';
-		}
+		const lower = (category || '').toLowerCase();
+		if (lower.includes('plumb') || lower.includes('tubero')) return 'badge-plumbing';
+		if (lower.includes('roof') || lower.includes('yero')) return 'badge-roofing';
+		if (lower.includes('excavat') || lower.includes('hukay')) return 'badge-excavation';
+		if (lower.includes('garden') || lower.includes('landscape')) return 'badge-gardening';
+		if (lower.includes('carpent') || lower.includes('karpintero')) return 'badge-carpentry';
+		if (lower.includes('electr') || lower.includes('wiring')) return 'badge-electrical';
+		if (lower.includes('appliance') || lower.includes('aircon')) return 'badge-appliance';
+		if (lower.includes('clean')) return 'badge-cleaning';
+		if (lower.includes('paint') || lower.includes('pintura')) return 'badge-painting';
+		if (lower.includes('mason')) return 'badge-masonry';
+		if (lower.includes('weld') || lower.includes('steel')) return 'badge-welding';
+		return 'badge-general';
 	}
 
 	function handleWindowScroll() {
@@ -195,8 +200,22 @@
 									{#each job.applicants as applicant (applicant.id)}
 										<div class="applicant-card">
 											<div class="applicant-info">
-												<strong style="color: var(--text-primary); font-size: 0.95rem;">{applicant.name}</strong>
-												<div class="applicant-meta-row">
+												<div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
+													<strong style="color: var(--text-primary); font-size: 0.95rem;">{applicant.name}</strong>
+													{#if applicant.availability_status === 'busy'}
+														<span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); font-size: 0.72rem; padding: 0.15rem 0.45rem; display: inline-flex; align-items: center; gap: 0.25rem;">
+															<span style="width: 6px; height: 6px; border-radius: 50%; background: #f59e0b;"></span>
+															Busy
+														</span>
+													{:else}
+														<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.72rem; padding: 0.15rem 0.45rem; display: inline-flex; align-items: center; gap: 0.25rem;">
+															<span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></span>
+															Available
+														</span>
+													{/if}
+												</div>
+
+												<div class="applicant-meta-row" style="margin-top: 0.25rem;">
 													<span class="rating-badge {applicant.average_rating > 0 ? 'rating-badge-positive' : applicant.average_rating < 0 ? 'rating-badge-negative' : 'rating-badge-zero'}" style="display: inline-flex; align-items: center; gap: 0.2rem;">
 														<Star size={11} fill="currentColor" /> {applicant.average_rating > 0 ? `+${applicant.average_rating}` : applicant.average_rating} rating
 													</span>
@@ -205,8 +224,30 @@
 													<span>•</span>
 													<span>Phone: {applicant.phone}</span>
 												</div>
+
+												{#if applicant.bio}
+													<p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0.3rem 0 0 0; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+														{applicant.bio}
+													</p>
+												{/if}
+
+												{#if applicant.skills && applicant.skills.length > 0}
+													<div style="display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.35rem;">
+														{#each applicant.skills.slice(0, 3) as skill}
+															<span class="badge {getCategoryBadge(skill)}" style="font-size: 0.72rem; padding: 0.15rem 0.45rem; border-radius: var(--radius-full);">
+																{skill}
+															</span>
+														{/each}
+														{#if applicant.skills.length > 3}
+															<span style="font-size: 0.72rem; color: var(--text-muted); align-self: center;">
+																+{applicant.skills.length - 3} more
+															</span>
+														{/if}
+													</div>
+												{/if}
+
 												{#if applicant.address}
-													<span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.2rem;">Address: {applicant.address}</span>
+													<span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">Address: {applicant.address}</span>
 												{/if}
 											</div>
 											<div class="applicant-actions">
@@ -254,17 +295,28 @@
 							<div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
 								<div>
 									<span style="color: var(--text-muted); font-size: 0.85rem; display: block;">Assigned Worker:</span>
-									<button 
-										type="button"
-										style="background: none; border: none; color: var(--text-primary); font-weight: 700; font-size: 1rem; cursor: pointer; text-decoration: underline; padding: 0;"
-										onclick={() => onopenviewprofile(job.worker_id)}
-									>
-										{job.assignedWorker?.name}
-									</button>
-									<span class="rating-badge {job.assignedWorker?.average_rating > 0 ? 'rating-badge-positive' : job.assignedWorker?.average_rating < 0 ? 'rating-badge-negative' : 'rating-badge-zero'}" style="margin-left: 0.35rem; display: inline-flex; align-items: center; gap: 0.2rem;">
-										<Star size={12} fill="currentColor" /> {job.assignedWorker?.average_rating > 0 ? `+${job.assignedWorker.average_rating}` : job.assignedWorker?.average_rating || 0}
-									</span>
-									<span style="color: var(--text-secondary); font-size: 0.85rem; margin-left: 0.5rem;">Phone: {job.assignedWorker?.phone}</span>
+									<div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.15rem;">
+										<button 
+											type="button"
+											style="background: none; border: none; color: var(--text-primary); font-weight: 700; font-size: 1rem; cursor: pointer; text-decoration: underline; padding: 0;"
+											onclick={() => onopenviewprofile(job.worker_id)}
+										>
+											{job.assignedWorker?.name}
+										</button>
+										{#if job.assignedWorker?.availability_status === 'busy'}
+											<span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); font-size: 0.72rem; padding: 0.15rem 0.45rem;">
+												Busy
+											</span>
+										{:else}
+											<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.72rem; padding: 0.15rem 0.45rem;">
+												Available
+											</span>
+										{/if}
+										<span class="rating-badge {job.assignedWorker?.average_rating > 0 ? 'rating-badge-positive' : job.assignedWorker?.average_rating < 0 ? 'rating-badge-negative' : 'rating-badge-zero'}" style="display: inline-flex; align-items: center; gap: 0.2rem;">
+											<Star size={12} fill="currentColor" /> {job.assignedWorker?.average_rating > 0 ? `+${job.assignedWorker.average_rating}` : job.assignedWorker?.average_rating || 0}
+										</span>
+										<span style="color: var(--text-secondary); font-size: 0.85rem; margin-left: 0.25rem;">Phone: {job.assignedWorker?.phone}</span>
+									</div>
 								</div>
 								
 								<div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">

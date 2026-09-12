@@ -31,6 +31,9 @@ CREATE TABLE IF NOT EXISTS public.job_posts (
 
 -- Migration helper if table already exists in existing database
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS token_version INTEGER DEFAULT 1 NOT NULL;
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS bio TEXT DEFAULT '';
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS skills TEXT[] DEFAULT '{}'::TEXT[];
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS availability_status TEXT DEFAULT 'available';
 ALTER TABLE public.job_posts ADD COLUMN IF NOT EXISTS latitude DOUBLE PRECISION;
 ALTER TABLE public.job_posts ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION;
 

@@ -1,5 +1,18 @@
 <script>
-	import { Star, ClipboardList, Check, Mail, Phone, MapPin, Wrench, User as UserIcon } from 'lucide-svelte';
+	import { 
+		Star, 
+		ClipboardList, 
+		Check, 
+		Mail, 
+		Phone, 
+		MapPin, 
+		Wrench, 
+		User as UserIcon, 
+		Activity, 
+		FileText, 
+		Settings, 
+		RefreshCw 
+	} from 'lucide-svelte';
 
 	let { 
 		user = {}, 
@@ -8,15 +21,60 @@
 		profileSubTab = $bindable('history') 
 	} = $props();
 
-	function getCategoryBadge(category) {
-		switch (category) {
-			case "Plumbing / Tubero": return "badge-plumbing";
-			case "Roofing / Ayos Yero": return "badge-roofing";
-			case "Excavation / Hukay Lupa": return "badge-excavation";
-			case "Gardening": return "badge-gardening";
-			case "Carpentry": return "badge-carpentry";
-			default: return "badge-general";
+	let updatingAvailability = $state(false);
+	// svelte-ignore state_referenced_locally
+	let availabilityStatus = $state(user?.availability_status || 'available');
+
+	$effect(() => {
+		if (user?.availability_status) {
+			availabilityStatus = user.availability_status;
 		}
+	});
+
+	async function toggleAvailability() {
+		if (updatingAvailability) return;
+		const nextStatus = availabilityStatus === 'available' ? 'busy' : 'available';
+		const prevStatus = availabilityStatus;
+		availabilityStatus = nextStatus;
+		updatingAvailability = true;
+
+		try {
+			const res = await fetch('/api/user/availability', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ availability_status: nextStatus })
+			});
+
+			if (!res.ok) {
+				throw new Error('Failed to update availability');
+			}
+			const result = await res.json();
+			if (result.availability_status) {
+				availabilityStatus = result.availability_status;
+				user.availability_status = result.availability_status;
+			}
+		} catch (err) {
+			console.error('Error toggling availability:', err);
+			availabilityStatus = prevStatus;
+		} finally {
+			updatingAvailability = false;
+		}
+	}
+
+	function getCategoryBadge(category) {
+		const lower = (category || "").toLowerCase();
+		if (lower.includes("plumb") || lower.includes("tubero")) return "badge-plumbing";
+		if (lower.includes("roof") || lower.includes("yero")) return "badge-roofing";
+		if (lower.includes("excavat") || lower.includes("hukay")) return "badge-excavation";
+		if (lower.includes("garden") || lower.includes("landscape")) return "badge-gardening";
+		if (lower.includes("carpent") || lower.includes("karpintero")) return "badge-carpentry";
+		if (lower.includes("electr") || lower.includes("wiring")) return "badge-electrical";
+		if (lower.includes("appliance") || lower.includes("aircon")) return "badge-appliance";
+		if (lower.includes("clean")) return "badge-cleaning";
+		if (lower.includes("paint") || lower.includes("pintura")) return "badge-painting";
+		if (lower.includes("mason")) return "badge-masonry";
+		if (lower.includes("weld") || lower.includes("steel")) return "badge-welding";
+		return "badge-general";
 	}
 </script>
 
@@ -26,7 +84,7 @@
 		<div class="profile-cover-banner"></div>
 		<div class="profile-header-content">
 			<div class="profile-header-row">
-				<!-- Left Side: Avatar + Name + Role Badge -->
+				<!-- Left Side: Avatar + Name + Role Badge + Availability Badge -->
 				<div class="profile-user-left">
 					<div class="profile-avatar-wrapper">
 						{user?.name ? user.name.charAt(0).toUpperCase() : "W"}
@@ -37,6 +95,20 @@
 							<span class="badge badge-gardening" style="font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.35rem;">
 								<Wrench size={13} /> Worker Account
 							</span>
+
+							<!-- Live Availability Badge -->
+							{#if availabilityStatus === 'busy'}
+								<span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); font-size: 0.76rem; display: inline-flex; align-items: center; gap: 0.35rem;">
+									<span style="width: 7px; height: 7px; border-radius: 50%; background: #f59e0b;"></span>
+									Busy / On Leave
+								</span>
+							{:else}
+								<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.76rem; display: inline-flex; align-items: center; gap: 0.35rem;">
+									<span style="width: 7px; height: 7px; border-radius: 50%; background: #10b981; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);"></span>
+									Available for Jobs
+								</span>
+							{/if}
+
 							{#if user?.address}
 								<span style="font-size: 0.8rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 0.25rem;">
 									<MapPin size={13} style="color: var(--accent);" />
@@ -77,32 +149,132 @@
 
 	<!-- Main 2-Column Grid -->
 	<div class="profile-main-grid">
-		<!-- Left Column: Introduction / Details -->
-		<aside class="card" style="padding: 1.5rem;">
-			<h4 style="font-size: 1.15rem; margin-bottom: 1.25rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
-				<UserIcon size={18} style="color: var(--accent);" />
-				Worker Details
-			</h4>
-			<div style="display: flex; flex-direction: column; gap: 1.1rem; font-size: 0.9rem;">
-				<div style="display: flex; align-items: flex-start; gap: 0.65rem;">
-					<Mail size={16} style="color: var(--text-muted); margin-top: 0.2rem; flex-shrink: 0;" />
-					<div style="min-width: 0; word-break: break-all;">
-						<span style="color: var(--text-muted); font-size: 0.75rem; display: block; text-transform: uppercase; font-weight: 600; letter-spacing: 0.04em;">Email Address</span>
-						<strong style="color: var(--text-primary); font-size: 0.88rem;">{user?.email || '—'}</strong>
-					</div>
+		<!-- Left Column: Availability Quick Switch + Details + Bio + Skills -->
+		<aside style="display: flex; flex-direction: column; gap: 1.25rem;">
+			<!-- Quick Availability Toggle Card -->
+			<div class="card" style="padding: 1.25rem; background: var(--bg-card); border: 1.5px solid {availabilityStatus === 'available' ? 'var(--success)' : '#f59e0b'};">
+				<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+					<h4 style="font-size: 0.95rem; margin: 0; color: var(--text-primary); display: flex; align-items: center; gap: 0.4rem;">
+						<Activity size={16} style="color: {availabilityStatus === 'available' ? 'var(--success)' : '#f59e0b'};" />
+						Job Availability
+					</h4>
+					<span style="font-size: 0.75rem; font-weight: 600; color: {availabilityStatus === 'available' ? 'var(--success)' : '#f59e0b'};">
+						{availabilityStatus === 'available' ? 'Available' : 'Busy'}
+					</span>
 				</div>
-				<div style="display: flex; align-items: flex-start; gap: 0.65rem;">
-					<Phone size={16} style="color: var(--text-muted); margin-top: 0.2rem; flex-shrink: 0;" />
-					<div>
-						<span style="color: var(--text-muted); font-size: 0.75rem; display: block; text-transform: uppercase; font-weight: 600; letter-spacing: 0.04em;">Phone Number</span>
-						<strong style="color: var(--text-primary); font-size: 0.88rem;">{user?.phone || '—'}</strong>
-					</div>
+				<p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.85rem; line-height: 1.4;">
+					{availabilityStatus === 'available' 
+						? 'Aktibo kang tumatanggap ng mga bagong trabaho. Makikita ka ng mga kliyente bilang Available.' 
+						: 'Naka-set ka bilang Busy o On Leave. Hindi ka muna bibigyan ng bagong direct tasks.'}
+				</p>
+				<button
+					type="button"
+					class="btn {availabilityStatus === 'available' ? 'btn-outline' : 'btn-primary'}"
+					style="width: 100%; padding: 0.5rem; font-size: 0.82rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;"
+					onclick={toggleAvailability}
+					disabled={updatingAvailability}
+				>
+					{#if updatingAvailability}
+						<span class="spinner spinner-sm" style="width: 12px; height: 12px;"></span>
+						<span>Updating...</span>
+					{:else if availabilityStatus === 'available'}
+						<span>Switch to "Busy / On Leave"</span>
+					{:else}
+						<span>Switch to "Available for Jobs"</span>
+					{/if}
+				</button>
+			</div>
+
+			<!-- Bio / About Me Card -->
+			<div class="card" style="padding: 1.25rem;">
+				<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+					<h4 style="font-size: 1.05rem; margin: 0; color: var(--text-primary); display: flex; align-items: center; gap: 0.4rem;">
+						<FileText size={16} style="color: var(--accent);" />
+						Bio / About Me
+					</h4>
+					<a href="/settings" style="font-size: 0.78rem; color: var(--accent-hover); display: inline-flex; align-items: center; gap: 0.25rem; text-decoration: none; font-weight: 500;">
+						Edit
+					</a>
 				</div>
-				<div style="display: flex; align-items: flex-start; gap: 0.65rem;">
-					<MapPin size={16} style="color: var(--text-muted); margin-top: 0.2rem; flex-shrink: 0;" />
-					<div>
-						<span style="color: var(--text-muted); font-size: 0.75rem; display: block; text-transform: uppercase; font-weight: 600; letter-spacing: 0.04em;">City / Municipality</span>
-						<strong style="color: var(--text-primary); font-size: 0.88rem;">{user?.address || '—'}</strong>
+				{#if user?.bio && user.bio.trim()}
+					<p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; margin: 0; white-space: pre-line; background: var(--bg-input); padding: 0.75rem 0.85rem; border-radius: var(--radius-md);">
+						{user.bio.trim()}
+					</p>
+				{:else}
+					<div style="text-align: center; padding: 1rem; background: var(--bg-input); border-radius: var(--radius-md);">
+						<p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+							Wala ka pang nilalagay na bio o pagpapakilala.
+						</p>
+						<a href="/settings" class="btn btn-secondary btn-sm" style="font-size: 0.78rem; padding: 0.25rem 0.6rem;">
+							+ Maglagay ng Bio
+						</a>
+					</div>
+				{/if}
+			</div>
+
+			<!-- Skills & Services Offered Card -->
+			<div class="card" style="padding: 1.25rem;">
+				<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+					<h4 style="font-size: 1.05rem; margin: 0; color: var(--text-primary); display: flex; align-items: center; gap: 0.4rem;">
+						<Wrench size={16} style="color: var(--accent);" />
+						Skills & Services
+					</h4>
+					<a href="/settings" style="font-size: 0.78rem; color: var(--accent-hover); display: inline-flex; align-items: center; gap: 0.25rem; text-decoration: none; font-weight: 500;">
+						Edit
+					</a>
+				</div>
+				{#if user?.skills && user.skills.length > 0}
+					<div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+						{#each user.skills as skill}
+							<span class="badge {getCategoryBadge(skill)}" style="font-size: 0.78rem; padding: 0.25rem 0.6rem; border-radius: var(--radius-full); display: inline-flex; align-items: center; gap: 0.3rem;">
+								<Check size={11} /> {skill}
+							</span>
+						{/each}
+					</div>
+				{:else}
+					<div style="text-align: center; padding: 1rem; background: var(--bg-input); border-radius: var(--radius-md);">
+						<p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+							Wala ka pang napipiling skills o serbisyo.
+						</p>
+						<a href="/settings" class="btn btn-secondary btn-sm" style="font-size: 0.78rem; padding: 0.25rem 0.6rem;">
+							+ Pumili ng Skills
+						</a>
+					</div>
+				{/if}
+			</div>
+
+			<!-- Worker Account Details -->
+			<div class="card" style="padding: 1.25rem;">
+				<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+					<h4 style="font-size: 1.05rem; margin: 0; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+						<UserIcon size={17} style="color: var(--accent);" />
+						Account Details
+					</h4>
+					<a href="/settings" style="font-size: 0.78rem; color: var(--accent-hover); display: inline-flex; align-items: center; gap: 0.25rem; text-decoration: none; font-weight: 500;">
+						<Settings size={13} /> Settings
+					</a>
+				</div>
+				<div style="display: flex; flex-direction: column; gap: 1rem; font-size: 0.9rem;">
+					<div style="display: flex; align-items: flex-start; gap: 0.65rem;">
+						<Mail size={16} style="color: var(--text-muted); margin-top: 0.2rem; flex-shrink: 0;" />
+						<div style="min-width: 0; word-break: break-all;">
+							<span style="color: var(--text-muted); font-size: 0.75rem; display: block; text-transform: uppercase; font-weight: 600; letter-spacing: 0.04em;">Email Address</span>
+							<strong style="color: var(--text-primary); font-size: 0.88rem;">{user?.email || '—'}</strong>
+						</div>
+					</div>
+					<div style="display: flex; align-items: flex-start; gap: 0.65rem;">
+						<Phone size={16} style="color: var(--text-muted); margin-top: 0.2rem; flex-shrink: 0;" />
+						<div>
+							<span style="color: var(--text-muted); font-size: 0.75rem; display: block; text-transform: uppercase; font-weight: 600; letter-spacing: 0.04em;">Phone Number</span>
+							<strong style="color: var(--text-primary); font-size: 0.88rem;">{user?.phone || '—'}</strong>
+						</div>
+					</div>
+					<div style="display: flex; align-items: flex-start; gap: 0.65rem;">
+						<MapPin size={16} style="color: var(--text-muted); margin-top: 0.2rem; flex-shrink: 0;" />
+						<div>
+							<span style="color: var(--text-muted); font-size: 0.75rem; display: block; text-transform: uppercase; font-weight: 600; letter-spacing: 0.04em;">City / Municipality</span>
+							<strong style="color: var(--text-primary); font-size: 0.88rem;">{user?.address || '—'}</strong>
+						</div>
 					</div>
 				</div>
 			</div>

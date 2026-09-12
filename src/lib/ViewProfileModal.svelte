@@ -11,6 +11,11 @@
 		Calendar,
 		UserCheck,
 		ClipboardList,
+		Wrench,
+		FileText,
+		Check,
+		Activity,
+		Sparkles
 	} from "lucide-svelte";
 
 	let {
@@ -83,20 +88,19 @@
 	}
 
 	function getCategoryBadge(category) {
-		switch (category) {
-			case "Plumbing / Tubero":
-				return "badge-plumbing";
-			case "Roofing / Ayos Yero":
-				return "badge-roofing";
-			case "Excavation / Hukay Lupa":
-				return "badge-excavation";
-			case "Gardening":
-				return "badge-gardening";
-			case "Carpentry":
-				return "badge-carpentry";
-			default:
-				return "badge-general";
-		}
+		const lower = (category || "").toLowerCase();
+		if (lower.includes("plumb") || lower.includes("tubero")) return "badge-plumbing";
+		if (lower.includes("roof") || lower.includes("yero")) return "badge-roofing";
+		if (lower.includes("excavat") || lower.includes("hukay")) return "badge-excavation";
+		if (lower.includes("garden") || lower.includes("landscape")) return "badge-gardening";
+		if (lower.includes("carpent") || lower.includes("karpintero")) return "badge-carpentry";
+		if (lower.includes("electr") || lower.includes("wiring")) return "badge-electrical";
+		if (lower.includes("appliance") || lower.includes("aircon")) return "badge-appliance";
+		if (lower.includes("clean")) return "badge-cleaning";
+		if (lower.includes("paint") || lower.includes("pintura")) return "badge-painting";
+		if (lower.includes("mason")) return "badge-masonry";
+		if (lower.includes("weld") || lower.includes("steel")) return "badge-welding";
+		return "badge-general";
 	}
 </script>
 
@@ -225,6 +229,25 @@
 												? "Handyman / Worker"
 												: "Client / Customer"}
 										</span>
+										{#if user.role === "worker"}
+											{#if user.availability_status === 'busy'}
+												<span
+													class="badge"
+													style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); font-size: 0.76rem; display: inline-flex; align-items: center; gap: 0.35rem;"
+												>
+													<span style="width: 7px; height: 7px; border-radius: 50%; background: #f59e0b;"></span>
+													Busy / On Leave
+												</span>
+											{:else}
+												<span
+													class="badge"
+													style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.76rem; display: inline-flex; align-items: center; gap: 0.35rem;"
+												>
+													<span style="width: 7px; height: 7px; border-radius: 50%; background: #10b981; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);"></span>
+													Available for Jobs
+												</span>
+											{/if}
+										{/if}
 										<span
 											style="font-size: 0.8rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 0.25rem;"
 										>
@@ -378,6 +401,81 @@
 						<div
 							style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;"
 						>
+							<!-- Bio / About Me Card -->
+							<div
+								class="card"
+								style="padding: 1.25rem; background: var(--bg-input); grid-column: 1 / -1;"
+							>
+								<h4
+									style="font-size: 1rem; margin-bottom: 0.6rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.4rem;"
+								>
+									<FileText
+										size={16}
+										style="color: var(--accent);"
+									/> About / Pagpapakilala
+								</h4>
+								{#if user.bio && user.bio.trim()}
+									<p
+										style="color: var(--text-primary); font-size: 0.92rem; line-height: 1.6; white-space: pre-line; margin: 0; background: var(--bg-card); padding: 0.85rem 1rem; border-radius: var(--radius-md);"
+									>
+										{user.bio.trim()}
+									</p>
+								{:else}
+									<p
+										style="color: var(--text-muted); font-size: 0.88rem; font-style: italic; margin: 0;"
+									>
+										No bio provided yet.
+									</p>
+								{/if}
+							</div>
+
+							{#if user.role === "worker"}
+								<!-- Skills & Services Offered Card -->
+								<div
+									class="card"
+									style="padding: 1.25rem; background: var(--bg-input); grid-column: 1 / -1;"
+								>
+									<h4
+										style="font-size: 1rem; margin-bottom: 0.75rem; color: var(--text-primary); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;"
+									>
+										<span style="display: flex; align-items: center; gap: 0.4rem;">
+											<Wrench
+												size={16}
+												style="color: var(--accent);"
+											/> Skills & Services Offered
+										</span>
+										{#if user.skills && user.skills.length > 0}
+											<span
+												style="font-size: 0.75rem; color: var(--accent-hover); font-weight: 600; background: var(--accent-light); padding: 0.15rem 0.55rem; border-radius: var(--radius-full);"
+											>
+												{user.skills.length} {user.skills.length === 1 ? 'service' : 'services'}
+											</span>
+										{/if}
+									</h4>
+									{#if user.skills && user.skills.length > 0}
+										<div
+											style="display: flex; flex-wrap: wrap; gap: 0.45rem;"
+										>
+											{#each user.skills as skill}
+												<span
+													class="badge {getCategoryBadge(skill)}"
+													style="font-size: 0.82rem; padding: 0.35rem 0.75rem; border-radius: var(--radius-full); display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 500;"
+												>
+													<Check size={12} />
+													{skill}
+												</span>
+											{/each}
+										</div>
+									{:else}
+										<p
+											style="color: var(--text-muted); font-size: 0.88rem; font-style: italic; margin: 0;"
+										>
+											No specific skills listed yet.
+										</p>
+									{/if}
+								</div>
+							{/if}
+
 							<!-- Contact & Info Box -->
 							<div
 								class="card"
@@ -394,14 +492,36 @@
 								<div
 									style="display: flex; flex-direction: column; gap: 0.85rem; font-size: 0.9rem;"
 								>
+									{#if user.role === "worker"}
+										<div
+											style="display: flex; align-items: center; gap: 0.6rem;"
+										>
+											<Activity
+												size={16}
+												style="color: {user.availability_status === 'busy' ? '#f59e0b' : 'var(--success)'}; flex-shrink: 0;"
+											/>
+											<div>
+												<span
+													style="font-size: 0.75rem; color: var(--text-muted); display: block;"
+													>Availability Status</span
+												>
+												<strong
+													style="color: {user.availability_status === 'busy' ? '#f59e0b' : 'var(--success)'}; font-size: 0.9rem;"
+												>
+													{user.availability_status === 'busy' ? 'Busy / On Leave' : 'Available for Jobs'}
+												</strong>
+											</div>
+										</div>
+									{/if}
+
 									<div
 										style="display: flex; align-items: center; gap: 0.6rem;"
 									>
 										<Mail
 											size={16}
-											style="color: var(--text-muted);"
+											style="color: var(--text-muted); flex-shrink: 0;"
 										/>
-										<div>
+										<div style="min-width: 0; word-break: break-all;">
 											<span
 												style="font-size: 0.75rem; color: var(--text-muted); display: block;"
 												>Email</span
@@ -418,7 +538,7 @@
 									>
 										<Phone
 											size={16}
-											style="color: var(--text-muted);"
+											style="color: var(--text-muted); flex-shrink: 0;"
 										/>
 										<div>
 											<span
@@ -437,7 +557,7 @@
 									>
 										<MapPin
 											size={16}
-											style="color: var(--text-muted);"
+											style="color: var(--text-muted); flex-shrink: 0;"
 										/>
 										<div>
 											<span
@@ -457,7 +577,7 @@
 										>
 											<Calendar
 												size={16}
-												style="color: var(--text-muted);"
+												style="color: var(--text-muted); flex-shrink: 0;"
 											/>
 											<div>
 												<span

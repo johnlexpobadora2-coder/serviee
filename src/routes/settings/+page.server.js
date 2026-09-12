@@ -33,6 +33,25 @@ export const actions = {
 		const name = data.get('name')?.toString().trim();
 		const phone = data.get('phone')?.toString().trim();
 		const address = data.get('address')?.toString().trim();
+		const bio = data.get('bio')?.toString().trim() || '';
+		const availability_status = data.get('availability_status')?.toString().trim() || 'available';
+
+		let skills = [];
+		const skillsRaw = data.get('skills')?.toString();
+		if (skillsRaw) {
+			try {
+				const parsed = JSON.parse(skillsRaw);
+				if (Array.isArray(parsed)) {
+					skills = parsed.map(s => String(s).trim()).filter(Boolean);
+				} else {
+					skills = skillsRaw.split(',').map(s => s.trim()).filter(Boolean);
+				}
+			} catch {
+				skills = skillsRaw.split(',').map(s => s.trim()).filter(Boolean);
+			}
+		} else {
+			skills = data.getAll('skills').map(s => String(s).trim()).filter(Boolean);
+		}
 
 		if (!name) {
 			return fail(400, {
@@ -45,7 +64,10 @@ export const actions = {
 			const updated = await db.users.updateProfile(locals.user.id, {
 				name,
 				phone: phone || '',
-				address: address || ''
+				address: address || '',
+				bio,
+				skills,
+				availability_status
 			});
 
 			if (updated) {

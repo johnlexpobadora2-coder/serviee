@@ -17,7 +17,14 @@
 		Trash2, 
 		LogOut, 
 		UserPlus,
-		ShieldAlert
+		ShieldAlert,
+		Wrench,
+		Plus,
+		X,
+		FileText,
+		CheckCheck,
+		Sparkles,
+		Activity
 	} from 'lucide-svelte';
 	import { enhance } from '$app/forms';
 	import { getCurrentCoordinates, reverseGeocode } from '$lib/gpsUtils.js';
@@ -47,8 +54,52 @@
 	// svelte-ignore state_referenced_locally
 	let address = $state(data.user?.address || '');
 	// svelte-ignore state_referenced_locally
+	let bio = $state(data.user?.bio || '');
+	// svelte-ignore state_referenced_locally
+	let availability_status = $state(data.user?.availability_status || 'available');
+	// svelte-ignore state_referenced_locally
+	let skills = $state(Array.isArray(data.user?.skills) ? [...data.user.skills] : []);
+	let newSkillInput = $state('');
+	// svelte-ignore state_referenced_locally
 	let isAddressValid = $state(!!(data.user?.address));
 	let clientProfileError = $state('');
+
+	const POPULAR_SKILLS = [
+		'Plumbing / Tubero',
+		'Electrical / House Wiring',
+		'Carpentry / Karpintero',
+		'Appliance Repair',
+		'House Cleaning / Deep Clean',
+		'Painting / Pintura',
+		'Masonry / Mason',
+		'Roofing / Ayos Yero',
+		'Gardening & Landscaping',
+		'Excavation / Hukay Lupa',
+		'Welding & Steel Work',
+		'Aircon Cleaning & Repair',
+		'General Handyman / Labor',
+		'Pest Control'
+	];
+
+	function toggleSkill(skill) {
+		if (skills.includes(skill)) {
+			skills = skills.filter(s => s !== skill);
+		} else {
+			skills = [...skills, skill];
+		}
+	}
+
+	function addCustomSkill() {
+		const trimmed = newSkillInput.trim();
+		if (trimmed && !skills.includes(trimmed)) {
+			skills = [...skills, trimmed];
+			newSkillInput = '';
+		}
+	}
+
+	function removeSkill(skill) {
+		skills = skills.filter(s => s !== skill);
+	}
 
 	// GPS States
 	let detectingGps = $state(false);
@@ -63,6 +114,9 @@
 				name = u.name || '';
 				phone = u.phone || '';
 				address = u.address || '';
+				bio = u.bio || '';
+				availability_status = u.availability_status || 'available';
+				skills = Array.isArray(u.skills) ? [...u.skills] : [];
 				isAddressValid = !!(u.address);
 			}
 		}
@@ -349,6 +403,166 @@
 							</div>
 						{/if}
 					</div>
+
+					<!-- Bio / About Me (Maikling Pagpapakilala) -->
+					<div class="form-group">
+						<div style="display: flex; justify-content: space-between; align-items: center;">
+							<label for="bio" style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0;">
+								<FileText size={16} style="color: var(--accent);" />
+								Bio / About Me (Maikling Pagpapakilala)
+							</label>
+							<span style="font-size: 0.75rem; color: var(--text-muted);">
+								{bio.length}/500
+							</span>
+						</div>
+						<div class="textarea-wrapper">
+							<textarea
+								id="bio"
+								name="bio"
+								bind:value={bio}
+								rows="3"
+								maxlength="500"
+								placeholder={data.user.role === 'worker' 
+									? "e.g. 5 years experience sa plumbing at house wiring. May kumpletong tools at garantisadong pulido ang gawa."
+									: "e.g. Homeowner sa Davao City looking for reliable plumbers at electricians para sa regular home maintenance."}
+								class="custom-textarea"
+							></textarea>
+						</div>
+						<small class="field-hint">
+							{data.user.role === 'worker' 
+								? 'Maikling deskripsyon na makikita ng mga kliyente kapag binuksan ang iyong profile.' 
+								: 'Maikling pagpapakilala na makikita ng mga manggagawa sa iyong profile.'}
+						</small>
+					</div>
+
+					{#if data.user.role === 'worker'}
+						<!-- Availability Status Toggle (Para sa Workers) -->
+						<div class="form-group availability-section">
+							<label style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.35rem;">
+								<Activity size={16} style="color: {availability_status === 'available' ? 'var(--success)' : '#f59e0b'};" />
+								Availability Status (Pagtanggap ng Trabaho)
+							</label>
+							<div class="availability-cards-grid">
+								<button
+									type="button"
+									class="availability-select-card {availability_status === 'available' ? 'selected-available' : ''}"
+									onclick={() => (availability_status = 'available')}
+								>
+									<div class="status-pulse-dot available-pulse"></div>
+									<div class="availability-card-info">
+										<strong>Available for Jobs</strong>
+										<span>Tumatanggap ng trabaho • Pwede kang ma-hire</span>
+									</div>
+									{#if availability_status === 'available'}
+										<div class="check-badge available-badge">
+											<Check size={14} />
+										</div>
+									{/if}
+								</button>
+
+								<button
+									type="button"
+									class="availability-select-card {availability_status === 'busy' ? 'selected-busy' : ''}"
+									onclick={() => (availability_status = 'busy')}
+								>
+									<div class="status-pulse-dot busy-pulse"></div>
+									<div class="availability-card-info">
+										<strong>Busy / On Leave</strong>
+										<span>Pansamantalang hindi tumatanggap ng bagong trabaho</span>
+									</div>
+									{#if availability_status === 'busy'}
+										<div class="check-badge busy-badge">
+											<Check size={14} />
+										</div>
+									{/if}
+								</button>
+							</div>
+							<input type="hidden" name="availability_status" value={availability_status} />
+						</div>
+
+						<!-- Skills / Services Offered (Para sa Workers) -->
+						<div class="form-group skills-section">
+							<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.25rem;">
+								<label style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0;">
+									<Wrench size={16} style="color: var(--accent);" />
+									Skills & Services Offered (Mga Kayang Gawin)
+								</label>
+								<span class="skills-counter-badge">
+									{skills.length} {skills.length === 1 ? 'skill' : 'skills'} selected
+								</span>
+							</div>
+							<small class="field-hint" style="margin-bottom: 0.5rem; display: block;">
+								I-click ang mga tags o mag-type ng sariling skill para mas madaling mapili ng mga kliyente.
+							</small>
+
+							<!-- Popular Preset Chips -->
+							<div class="skills-chips-flow">
+								{#each POPULAR_SKILLS as presetSkill}
+									{@const isSelected = skills.includes(presetSkill)}
+									<button
+										type="button"
+										class="skill-chip-btn {isSelected ? 'chip-active' : ''}"
+										onclick={() => toggleSkill(presetSkill)}
+									>
+										{#if isSelected}
+											<Check size={13} class="chip-icon" />
+										{:else}
+											<Plus size={13} class="chip-icon" />
+										{/if}
+										<span>{presetSkill}</span>
+									</button>
+								{/each}
+							</div>
+
+							<!-- Custom Skill Adder Box -->
+							<div class="custom-skill-input-row">
+								<input
+									type="text"
+									placeholder="Mag-dagdag ng sariling skill (e.g. CCTV Setup, Tile Work)..."
+									bind:value={newSkillInput}
+									onkeydown={(e) => {
+										if (e.key === 'Enter') {
+											e.preventDefault();
+											addCustomSkill();
+										}
+									}}
+								/>
+								<button
+									type="button"
+									class="btn btn-secondary btn-sm add-skill-btn"
+									onclick={addCustomSkill}
+									disabled={!newSkillInput.trim()}
+								>
+									<Plus size={14} /> Add Skill
+								</button>
+							</div>
+
+							<!-- Active Selected Skills Box -->
+							{#if skills.length > 0}
+								<div class="active-skills-container">
+									<span class="active-skills-label">Your Active Skills on Profile:</span>
+									<div class="active-skills-tags">
+										{#each skills as skill}
+											<span class="active-skill-pill">
+												<span>{skill}</span>
+												<button
+													type="button"
+													class="remove-skill-tag-btn"
+													onclick={() => removeSkill(skill)}
+													aria-label={`Remove ${skill}`}
+													title="Remove skill"
+												>
+													<X size={12} />
+												</button>
+											</span>
+										{/each}
+									</div>
+								</div>
+							{/if}
+
+							<input type="hidden" name="skills" value={JSON.stringify(skills)} />
+						</div>
+					{/if}
 
 					<div class="form-actions">
 						<button type="submit" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;" disabled={profileSubmitting}>
@@ -973,7 +1187,265 @@
 		justify-content: flex-end;
 	}
 
+	.custom-textarea {
+		width: 100%;
+		padding: 0.75rem 0.85rem;
+		background-color: var(--bg-input);
+		border: 1px solid var(--border-color);
+		border-radius: var(--radius-md);
+		color: var(--text-primary);
+		font-family: inherit;
+		font-size: 0.9rem;
+		line-height: 1.5;
+		resize: vertical;
+		min-height: 80px;
+		transition: border-color var(--transition-fast);
+	}
+
+	.custom-textarea:focus {
+		outline: none;
+		border-color: var(--border-focus);
+		box-shadow: 0 0 0 2px var(--accent-light);
+	}
+
+	/* Availability Cards */
+	.availability-section {
+		padding: 1rem;
+		background: var(--bg-input);
+		border: 1px solid var(--border-color);
+		border-radius: var(--radius-md);
+	}
+
+	.availability-cards-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0.75rem;
+		margin-top: 0.35rem;
+	}
+
+	.availability-select-card {
+		display: flex;
+		align-items: center;
+		gap: 0.65rem;
+		padding: 0.85rem;
+		border-radius: var(--radius-md);
+		border: 1.5px solid var(--border-color);
+		background: var(--bg-card);
+		cursor: pointer;
+		text-align: left;
+		transition: all var(--transition-fast);
+	}
+
+	.availability-select-card:hover {
+		border-color: var(--text-muted);
+		transform: translateY(-1px);
+	}
+
+	.availability-select-card.selected-available {
+		border-color: var(--success);
+		background: var(--success-light);
+		box-shadow: 0 0 0 1px var(--success);
+	}
+
+	.availability-select-card.selected-busy {
+		border-color: #f59e0b;
+		background: rgba(245, 158, 11, 0.12);
+		box-shadow: 0 0 0 1px #f59e0b;
+	}
+
+	.status-pulse-dot {
+		width: 12px;
+		height: 12px;
+		border-radius: 50%;
+		flex-shrink: 0;
+	}
+
+	.available-pulse {
+		background: var(--success);
+		box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+	}
+
+	.busy-pulse {
+		background: #f59e0b;
+		box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25);
+	}
+
+	.availability-card-info {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.availability-card-info strong {
+		font-size: 0.88rem;
+		display: block;
+		margin-bottom: 0.15rem;
+		color: var(--text-primary);
+	}
+
+	.availability-card-info span {
+		font-size: 0.74rem;
+		color: var(--text-muted);
+		display: block;
+		line-height: 1.25;
+	}
+
+	.check-badge {
+		width: 22px;
+		height: 22px;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	.available-badge {
+		background: var(--success);
+		color: #ffffff;
+	}
+
+	.busy-badge {
+		background: #f59e0b;
+		color: #ffffff;
+	}
+
+	/* Skills Section */
+	.skills-section {
+		padding: 1rem;
+		background: var(--bg-input);
+		border: 1px solid var(--border-color);
+		border-radius: var(--radius-md);
+	}
+
+	.skills-counter-badge {
+		font-size: 0.75rem;
+		font-weight: 600;
+		padding: 0.15rem 0.55rem;
+		background: var(--accent-light);
+		color: var(--accent-hover);
+		border-radius: var(--radius-full);
+	}
+
+	.skills-chips-flow {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.45rem;
+		margin-bottom: 0.85rem;
+	}
+
+	.skill-chip-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		padding: 0.35rem 0.7rem;
+		font-size: 0.8rem;
+		border-radius: var(--radius-full);
+		border: 1px solid var(--border-color);
+		background: var(--bg-card);
+		color: var(--text-secondary);
+		cursor: pointer;
+		transition: all var(--transition-fast);
+		user-select: none;
+	}
+
+	.skill-chip-btn:hover {
+		border-color: var(--accent);
+		color: var(--accent-hover);
+		background: var(--bg-card-hover);
+	}
+
+	.skill-chip-btn.chip-active {
+		background: var(--accent);
+		color: #ffffff;
+		border-color: var(--accent);
+		font-weight: 500;
+		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+	}
+
+	.custom-skill-input-row {
+		display: flex;
+		gap: 0.5rem;
+		align-items: center;
+		margin-bottom: 0.85rem;
+	}
+
+	.custom-skill-input-row input {
+		flex: 1;
+		padding: 0.55rem 0.8rem;
+		background: var(--bg-card);
+		border: 1px solid var(--border-color);
+		border-radius: var(--radius-md);
+		color: var(--text-primary);
+		font-size: 0.85rem;
+		font-family: inherit;
+	}
+
+	.custom-skill-input-row input:focus {
+		outline: none;
+		border-color: var(--border-focus);
+	}
+
+	.active-skills-container {
+		margin-top: 0.5rem;
+		padding: 0.75rem;
+		background: var(--bg-card);
+		border: 1px solid var(--border-color);
+		border-radius: var(--radius-md);
+	}
+
+	.active-skills-label {
+		font-size: 0.72rem;
+		font-weight: 600;
+		color: var(--text-muted);
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		display: block;
+		margin-bottom: 0.4rem;
+	}
+
+	.active-skills-tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+	}
+
+	.active-skill-pill {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		padding: 0.25rem 0.6rem;
+		font-size: 0.8rem;
+		background: var(--accent-light);
+		color: var(--accent-hover);
+		border-radius: var(--radius-full);
+		font-weight: 500;
+		border: 1px solid rgba(0, 0, 0, 0.05);
+	}
+
+	.remove-skill-tag-btn {
+		background: none;
+		border: none;
+		color: var(--accent-hover);
+		cursor: pointer;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0.1rem;
+		border-radius: 50%;
+		opacity: 0.75;
+		transition: opacity var(--transition-fast);
+	}
+
+	.remove-skill-tag-btn:hover {
+		opacity: 1;
+		background: rgba(0, 0, 0, 0.1);
+	}
+
 	@media (max-width: 600px) {
+		.availability-cards-grid {
+			grid-template-columns: 1fr;
+		}
+
 		.settings-tabs .tab-btn {
 			padding: 0.65rem 0.25rem !important;
 			font-size: 0.78rem !important;

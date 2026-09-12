@@ -1,5 +1,5 @@
 <script>
-	import { ClipboardList, CheckCircle2, Trash2, Star, Mail, Phone, MapPin, ShieldCheck, User as UserIcon, Clock } from 'lucide-svelte';
+	import { ClipboardList, CheckCircle2, Trash2, Star, Mail, Phone, MapPin, ShieldCheck, User as UserIcon, Clock, FileText, Settings } from 'lucide-svelte';
 
 	let { 
 		user = {}, 
@@ -65,32 +65,67 @@
 
 	<!-- Main 2-Column Grid -->
 	<div class="profile-main-grid">
-		<!-- Left Column: Introduction / Details -->
-		<aside class="card" style="padding: 1.5rem;">
-			<h4 style="font-size: 1.15rem; margin-bottom: 1.25rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
-				<UserIcon size={18} style="color: var(--accent);" />
-				Account Details
-			</h4>
-			<div style="display: flex; flex-direction: column; gap: 1.1rem; font-size: 0.9rem;">
-				<div style="display: flex; align-items: flex-start; gap: 0.65rem;">
-					<Mail size={16} style="color: var(--text-muted); margin-top: 0.2rem; flex-shrink: 0;" />
-					<div style="min-width: 0; word-break: break-all;">
-						<span style="color: var(--text-muted); font-size: 0.75rem; display: block; text-transform: uppercase; font-weight: 600; letter-spacing: 0.04em;">Email Address</span>
-						<strong style="color: var(--text-primary); font-size: 0.88rem;">{user?.email || '—'}</strong>
-					</div>
+		<!-- Left Column: Details + Bio -->
+		<aside style="display: flex; flex-direction: column; gap: 1.25rem;">
+			<!-- Bio / About Me Card -->
+			<div class="card" style="padding: 1.25rem;">
+				<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+					<h4 style="font-size: 1.05rem; margin: 0; color: var(--text-primary); display: flex; align-items: center; gap: 0.4rem;">
+						<FileText size={16} style="color: var(--accent);" />
+						Bio / About Me
+					</h4>
+					<a href="/settings" style="font-size: 0.78rem; color: var(--accent-hover); display: inline-flex; align-items: center; gap: 0.25rem; text-decoration: none; font-weight: 500;">
+						Edit
+					</a>
 				</div>
-				<div style="display: flex; align-items: flex-start; gap: 0.65rem;">
-					<Phone size={16} style="color: var(--text-muted); margin-top: 0.2rem; flex-shrink: 0;" />
-					<div>
-						<span style="color: var(--text-muted); font-size: 0.75rem; display: block; text-transform: uppercase; font-weight: 600; letter-spacing: 0.04em;">Phone Number</span>
-						<strong style="color: var(--text-primary); font-size: 0.88rem;">{user?.phone || '—'}</strong>
+				{#if user?.bio && user.bio.trim()}
+					<p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; margin: 0; white-space: pre-line; background: var(--bg-input); padding: 0.75rem 0.85rem; border-radius: var(--radius-md);">
+						{user.bio.trim()}
+					</p>
+				{:else}
+					<div style="text-align: center; padding: 1rem; background: var(--bg-input); border-radius: var(--radius-md);">
+						<p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+							Wala ka pang nilalagay na bio.
+						</p>
+						<a href="/settings" class="btn btn-secondary btn-sm" style="font-size: 0.78rem; padding: 0.25rem 0.6rem;">
+							+ Maglagay ng Bio
+						</a>
 					</div>
+				{/if}
+			</div>
+
+			<!-- Account Details -->
+			<div class="card" style="padding: 1.25rem;">
+				<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+					<h4 style="font-size: 1.05rem; margin: 0; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+						<UserIcon size={17} style="color: var(--accent);" />
+						Account Details
+					</h4>
+					<a href="/settings" style="font-size: 0.78rem; color: var(--accent-hover); display: inline-flex; align-items: center; gap: 0.25rem; text-decoration: none; font-weight: 500;">
+						<Settings size={13} /> Settings
+					</a>
 				</div>
-				<div style="display: flex; align-items: flex-start; gap: 0.65rem;">
-					<MapPin size={16} style="color: var(--text-muted); margin-top: 0.2rem; flex-shrink: 0;" />
-					<div>
-						<span style="color: var(--text-muted); font-size: 0.75rem; display: block; text-transform: uppercase; font-weight: 600; letter-spacing: 0.04em;">City / Municipality</span>
-						<strong style="color: var(--text-primary); font-size: 0.88rem;">{user?.address || '—'}</strong>
+				<div style="display: flex; flex-direction: column; gap: 1rem; font-size: 0.9rem;">
+					<div style="display: flex; align-items: flex-start; gap: 0.65rem;">
+						<Mail size={16} style="color: var(--text-muted); margin-top: 0.2rem; flex-shrink: 0;" />
+						<div style="min-width: 0; word-break: break-all;">
+							<span style="color: var(--text-muted); font-size: 0.75rem; display: block; text-transform: uppercase; font-weight: 600; letter-spacing: 0.04em;">Email Address</span>
+							<strong style="color: var(--text-primary); font-size: 0.88rem;">{user?.email || '—'}</strong>
+						</div>
+					</div>
+					<div style="display: flex; align-items: flex-start; gap: 0.65rem;">
+						<Phone size={16} style="color: var(--text-muted); margin-top: 0.2rem; flex-shrink: 0;" />
+						<div>
+							<span style="color: var(--text-muted); font-size: 0.75rem; display: block; text-transform: uppercase; font-weight: 600; letter-spacing: 0.04em;">Phone Number</span>
+							<strong style="color: var(--text-primary); font-size: 0.88rem;">{user?.phone || '—'}</strong>
+						</div>
+					</div>
+					<div style="display: flex; align-items: flex-start; gap: 0.65rem;">
+						<MapPin size={16} style="color: var(--text-muted); margin-top: 0.2rem; flex-shrink: 0;" />
+						<div>
+							<span style="color: var(--text-muted); font-size: 0.75rem; display: block; text-transform: uppercase; font-weight: 600; letter-spacing: 0.04em;">City / Municipality</span>
+							<strong style="color: var(--text-primary); font-size: 0.88rem;">{user?.address || '—'}</strong>
+						</div>
 					</div>
 				</div>
 			</div>

@@ -11,6 +11,10 @@ declare global {
 				phone: string;
 				role: string;
 				address: string;
+				bio?: string;
+				skills?: string[];
+				availability_status?: string;
+				created_at?: string;
 			} | null;
 		}
 		// interface PageData {}

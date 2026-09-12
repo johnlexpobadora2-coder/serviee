@@ -87,6 +87,9 @@ export const db = {
 				phone,
 				role, // 'customer' or 'worker'
 				address,
+				bio: '',
+				skills: [],
+				availability_status: 'available',
 				password_hash: passwordHash,
 				created_at: new Date().toISOString()
 			};
@@ -190,12 +193,15 @@ export const db = {
 		},
 
 		async updateProfile(id, profile = {}) {
-			const { name, phone, address } = profile;
+			const { name, phone, address, bio, skills, availability_status } = profile;
 			const supabase = getSupabase();
 			const updates = {};
 			if (name !== undefined) updates.name = name;
 			if (phone !== undefined) updates.phone = phone;
 			if (address !== undefined) updates.address = address;
+			if (bio !== undefined) updates.bio = typeof bio === 'string' ? bio.trim() : '';
+			if (skills !== undefined) updates.skills = Array.isArray(skills) ? skills : [];
+			if (availability_status !== undefined) updates.availability_status = availability_status;
 
 			const { data, error } = await supabase
 				.from('users')
@@ -575,6 +581,10 @@ export const db = {
 							id: worker.id,
 							name: worker.name,
 							phone: worker.phone,
+							address: worker.address,
+							bio: worker.bio || '',
+							skills: worker.skills || [],
+							availability_status: worker.availability_status || 'available',
 							average_rating: stats.average_rating
 						};
 					}
@@ -590,6 +600,9 @@ export const db = {
 							name: worker.name,
 							phone: worker.phone,
 							address: worker.address,
+							bio: worker.bio || '',
+							skills: worker.skills || [],
+							availability_status: worker.availability_status || 'available',
 							average_rating: stats.average_rating,
 							completed_jobs_count: stats.completed_jobs_count
 						};
