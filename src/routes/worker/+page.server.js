@@ -64,14 +64,19 @@ export const actions = {
 			await db.jobs.apply(jobId, locals.user.id);
 			
 			// Send initial message
-			await db.messages.send({
+			const sentMessage = await db.messages.send({
 				job_id: jobId,
 				sender_id: locals.user.id,
 				receiver_id: customerId,
 				content: initialMessage
 			});
 
-			return { success: 'Inquiry sent! Opened chat thread with client.', activeTab: 'chat', activeConvId: `${jobId}_${customerId}` };
+			return { 
+				success: 'Inquiry sent! Opened chat thread with client.', 
+				activeTab: 'chat', 
+				activeConvId: `${jobId}_${customerId}`,
+				sentMessage 
+			};
 		} catch (error) {
 			return fail(400, { error: error.message || 'Could not send inquiry.' });
 		}

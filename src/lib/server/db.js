@@ -1093,7 +1093,7 @@ export const db = {
 					.select('*')
 					.or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
 					.order('created_at', { ascending: false })
-					.limit(60);
+					.limit(300);
 
 				if (error) {
 					console.error('Error fetching recent messages from Supabase:', error.message);

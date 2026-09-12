@@ -156,20 +156,6 @@
 							minute: "2-digit",
 						})}
 					</div>
-					{#if job.latitude && job.longitude}
-						<div>
-							<a 
-								href={getServieeMapUrl(job.latitude, job.longitude, job.title, job.location)} 
-								class="gps-badge"
-								onclick={(e) => {
-									e.preventDefault();
-									mapModal.openModal({ latitude: job.latitude, longitude: job.longitude, title: job.title, address: job.location });
-								}}
-							>
-								<MapPin size={12} /> View Map
-							</a>
-						</div>
-					{/if}
 				</div>
 
 				{#if job.latitude && job.longitude}

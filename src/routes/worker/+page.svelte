@@ -1,5 +1,5 @@
 <script>
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import ViewProfileModal from '$lib/ViewProfileModal.svelte';
 	import LocationPickerModal from '$lib/LocationPickerModal.svelte';
 	import ConfirmDeleteModal from '$lib/ConfirmDeleteModal.svelte';
@@ -52,9 +52,6 @@
 		!!searchQuery ||
 		sortBy !== 'newest'
 	);
-
-	let feedInitialMount = true;
-	let feedDebounceTimer = null;
 
 	async function fetchFeedJobs(offset = 0, append = false) {
 		if (append) {
@@ -112,24 +109,27 @@
 		}
 	}
 
+	let prevFilterKey = null;
+	let feedDebounceTimer = null;
+
 	// Trigger debounced feed search/filter when filter criteria changes
 	$effect(() => {
-		const _cat = searchCategory;
-		const _loc = searchLocation;
-		const _min = minBudget;
-		const _max = maxBudget;
-		const _q = searchQuery;
-		const _sort = sortBy;
+		const currentKey = `${searchCategory}::${searchLocation}::${minBudget}::${maxBudget}::${searchQuery.trim()}::${sortBy}`;
 
-		if (feedInitialMount) {
-			feedInitialMount = false;
+		if (prevFilterKey === null) {
+			prevFilterKey = currentKey;
 			return;
 		}
 
+		if (currentKey === prevFilterKey) return;
+		prevFilterKey = currentKey;
+
 		if (feedDebounceTimer) clearTimeout(feedDebounceTimer);
 		feedDebounceTimer = setTimeout(() => {
-			fetchFeedJobs(0, false);
-		}, 250);
+			untrack(() => {
+				fetchFeedJobs(0, false);
+			});
+		}, 300);
 	});
 
 	// --- ACTIVE JOBS TAB LAZY & PAGINATED STATE ---
@@ -198,9 +198,21 @@
 			if (res.ok) {
 				const result = await res.json();
 				if (result.conversations) {
-					conversations = result.conversations;
+					const existingMap = new Map(conversations.map(c => [c.id, c]));
+					conversations = result.conversations.map(newConv => {
+						const existing = existingMap.get(newConv.id);
+						if (existing && existing.messagesLoaded) {
+							return {
+								...newConv,
+								messages: existing.messages || [],
+								messagesLoaded: true,
+								hasMore: existing.hasMore
+							};
+						}
+						return newConv;
+					});
 					conversationsLoaded = true;
-					setSmartCache(`${data.user?.id}_conversations`, result.conversations);
+					setSmartCache(`${data.user?.id}_conversations`, conversations);
 				}
 			}
 		} catch (err) {
@@ -242,43 +254,46 @@
 
 	// --- TAB LAZY LOADER EFFECT WITH SMART CACHE ---
 	$effect(() => {
-		if (activeTab === 'my-jobs' && !activeJobsLoaded && !activeJobsLoading) {
-			const cached = getSmartCache(`${data.user?.id}_worker_active_jobs`);
-			if (cached.exists && cached.data) {
-				activeJobs = cached.data.jobs || [];
-				activeJobsTotalCount = cached.data.totalCount || 0;
-				activeJobsHasMore = cached.data.hasMore || false;
-				activeJobsLoaded = true;
-				if (cached.isStale) {
-					fetchActiveJobs(0, false, true);
+		const tab = activeTab;
+		untrack(() => {
+			if (tab === 'my-jobs') {
+				if (!activeJobsLoaded && !activeJobsLoading) {
+					const cached = getSmartCache(`${data.user?.id}_worker_active_jobs`, 5000);
+					if (cached.exists && cached.data) {
+						activeJobs = cached.data.jobs || [];
+						activeJobsTotalCount = cached.data.totalCount || 0;
+						activeJobsHasMore = cached.data.hasMore || false;
+						activeJobsLoaded = true;
+						if (cached.isStale) fetchActiveJobs(0, false, true);
+					} else {
+						fetchActiveJobs(0, false, false);
+					}
 				}
-			} else {
-				fetchActiveJobs(0, false, false);
-			}
-		} else if (activeTab === 'chat' && !conversationsLoaded && !conversationsLoading) {
-			const cached = getSmartCache(`${data.user?.id}_conversations`);
-			if (cached.exists && cached.data) {
-				conversations = cached.data;
-				conversationsLoaded = true;
-				if (cached.isStale) {
-					fetchConversations(true);
+			} else if (tab === 'chat') {
+				if (!conversationsLoaded && !conversationsLoading) {
+					const cached = getSmartCache(`${data.user?.id}_conversations`, 5000);
+					if (cached.exists && cached.data) {
+						conversations = cached.data;
+						conversationsLoaded = true;
+						fetchConversations(true);
+					} else {
+						fetchConversations(false);
+					}
 				}
-			} else {
-				fetchConversations(false);
-			}
-		} else if (activeTab === 'profile' && !profileLoaded && !profileLoading) {
-			const cached = getSmartCache(`${data.user?.id}_worker_profile`);
-			if (cached.exists && cached.data) {
-				profileStats = cached.data.stats || null;
-				profileCompletedJobs = cached.data.completedJobs || [];
-				profileLoaded = true;
-				if (cached.isStale) {
-					fetchProfileData(true);
+			} else if (tab === 'profile') {
+				if (!profileLoaded && !profileLoading) {
+					const cached = getSmartCache(`${data.user?.id}_worker_profile`);
+					if (cached.exists && cached.data) {
+						profileStats = cached.data.stats || null;
+						profileCompletedJobs = cached.data.completedJobs || [];
+						profileLoaded = true;
+						if (cached.isStale) fetchProfileData(true);
+					} else {
+						fetchProfileData(false);
+					}
 				}
-			} else {
-				fetchProfileData(false);
 			}
-		}
+		});
 	});
 
 	// Restore chat tab & active conversation on page refresh
@@ -299,22 +314,25 @@
 
 	// Sync chat tab & active conversation with sessionStorage
 	$effect(() => {
-		try {
-			if (activeTab === 'chat') {
-				sessionStorage.setItem('serviee_worker_tab', 'chat');
-				if (activeConvId) {
-					sessionStorage.setItem('serviee_worker_conv', activeConvId);
+		const tab = activeTab;
+		const convId = activeConvId;
+		untrack(() => {
+			try {
+				if (tab === 'chat') {
+					sessionStorage.setItem('serviee_worker_tab', 'chat');
+					if (convId) {
+						sessionStorage.setItem('serviee_worker_conv', convId);
+					} else {
+						sessionStorage.removeItem('serviee_worker_conv');
+					}
 				} else {
+					sessionStorage.removeItem('serviee_worker_tab');
 					sessionStorage.removeItem('serviee_worker_conv');
 				}
-			} else {
-				tempConversation = null;
-				sessionStorage.removeItem('serviee_worker_tab');
-				sessionStorage.removeItem('serviee_worker_conv');
+			} catch (e) {
+				console.error(e);
 			}
-		} catch (e) {
-			console.error(e);
-		}
+		});
 	});
 
 	// Real-Time Chat WebSocket States
@@ -380,13 +398,9 @@
 
 	async function loadConversationMessages(convId, force = false) {
 		if (!convId) return;
-		if (tempConversation && tempConversation.id === convId) {
-			tempConversation.messagesLoaded = true;
-			return;
-		}
-		const targetConv = conversations.find(c => c.id === convId);
+		const targetConv = conversations.find(c => c.id === convId) || (tempConversation?.id === convId ? tempConversation : null);
 		if (!targetConv) return;
-		if (targetConv.messagesLoaded && !force) return;
+		if (targetConv.messagesLoaded && !force && (targetConv.messages || []).length > 0) return;
 
 		loadingMessagesConvId = convId;
 		try {
@@ -394,6 +408,14 @@
 			if (res.ok) {
 				const result = await res.json();
 				if (result.messages) {
+					if (tempConversation && tempConversation.id === convId) {
+						tempConversation = {
+							...tempConversation,
+							messages: result.messages,
+							hasMore: result.hasMore,
+							messagesLoaded: true
+						};
+					}
 					conversations = conversations.map(c => {
 						if (c.id === convId) {
 							return {
@@ -405,6 +427,7 @@
 						}
 						return c;
 					});
+					setSmartCache(`${data.user?.id}_conversations`, conversations);
 					scrollToBottom(false);
 				}
 			}
@@ -521,27 +544,64 @@
 		showGpsDropup = false;
 	}
 
-	function openChat(jobId, customerId) {
+	function openChat(jobId, customerId, extraData = {}) {
 		const convKey = `${jobId}_${customerId}`;
 		let matchedConv = conversations.find(c => c.id === convKey);
 
+		const targetJob = feedJobs.find(j => j.id === jobId) || activeJobs.find(j => j.id === jobId);
+		const jobTitle = extraData.jobTitle || targetJob?.title || 'Sideline Job Inquiry';
+		const customerName = extraData.customerName || targetJob?.customerName || 'Client';
+
+		let initialMsgObj = extraData.sentMessage || null;
+		if (!initialMsgObj && extraData.initialMessage) {
+			initialMsgObj = {
+				id: 'init_' + Date.now(),
+				job_id: jobId,
+				sender_id: data.user.id,
+				receiver_id: customerId,
+				content: extraData.initialMessage,
+				created_at: new Date().toISOString()
+			};
+		}
+
+		if (initialMsgObj && realtimeControls) {
+			realtimeControls.sendBroadcastMessage(initialMsgObj);
+		}
+
 		if (!matchedConv) {
-			const targetJob = feedJobs.find(j => j.id === jobId) || activeJobs.find(j => j.id === jobId);
 			tempConversation = {
 				id: convKey,
 				job_id: jobId,
 				other_user_id: customerId,
-				job_title: targetJob?.title || 'Sideline Job Inquiry',
-				other_user_name: targetJob?.customerName || 'Client',
+				job_title: jobTitle,
+				other_user_name: customerName,
 				other_user_role: 'customer',
-				last_message: 'Inquired on post. Send a message...',
-				last_message_at: new Date().toISOString(),
-				messages: [],
-				messagesLoaded: true,
+				last_message: initialMsgObj ? formatMessagePreview(initialMsgObj.content) : 'Inquired on post. Send a message...',
+				last_message_at: initialMsgObj ? initialMsgObj.created_at : new Date().toISOString(),
+				messages: initialMsgObj ? [initialMsgObj] : [],
+				messagesLoaded: !!initialMsgObj,
 				hasMore: false
 			};
 		} else {
 			tempConversation = null;
+			if (initialMsgObj) {
+				const existingMsgs = matchedConv.messages || [];
+				if (!existingMsgs.some(m => m.id === initialMsgObj.id || m.content === initialMsgObj.content)) {
+					conversations = conversations.map(c => {
+						if (c.id === convKey) {
+							return {
+								...c,
+								last_message: formatMessagePreview(initialMsgObj.content),
+								last_message_at: initialMsgObj.created_at,
+								messages: [...(c.messages || []), initialMsgObj],
+								messagesLoaded: true
+							};
+						}
+						return c;
+					});
+					setSmartCache(`${data.user?.id}_conversations`, conversations);
+				}
+			}
 		}
 
 		activeConvId = convKey;
@@ -549,7 +609,8 @@
 		showGpsDropup = false;
 		unreadConvIds.delete(convKey);
 		unreadConvIds = new Set(unreadConvIds);
-		loadConversationMessages(convKey);
+		fetchConversations(true);
+		loadConversationMessages(convKey, true);
 		scrollToBottom(false);
 	}
 
@@ -604,12 +665,16 @@
 		showGpsDropup = false;
 		unreadConvIds.delete(tempConvId);
 		unreadConvIds = new Set(unreadConvIds);
+		loadConversationMessages(tempConvId, true);
 		scrollToBottom(false);
 	}
 
 	$effect(() => {
 		if (activeTab === 'chat' && activeConversation && !activeConversation.messagesLoaded && loadingMessagesConvId !== activeConversation.id) {
-			loadConversationMessages(activeConversation.id);
+			const targetId = activeConversation.id;
+			untrack(() => {
+				loadConversationMessages(targetId);
+			});
 		}
 	});
 
@@ -681,6 +746,8 @@
 				return c;
 			}).sort((a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime());
 
+			setSmartCache(`${data.user?.id}_conversations`, conversations);
+
 			if (msg.sender_id !== data.user?.id) {
 				playNotificationSound();
 				isOtherUserTyping = false;
@@ -707,6 +774,7 @@
 			...c,
 			messages: (c.messages || []).filter(m => m.id !== messageId)
 		}));
+		setSmartCache(`${data.user?.id}_conversations`, conversations);
 	}
 
 	let showDeleteConfirmModal = $state(false);
@@ -869,6 +937,7 @@
 			conversations = [updatedConv, ...conversations].sort((a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime());
 		}
 
+		setSmartCache(`${data.user?.id}_conversations`, conversations);
 		scrollToBottom(true);
 
 		if (realtimeControls) {
@@ -892,11 +961,12 @@
 					if (c.id === targetConv.id) {
 						return {
 							...c,
-							messages: c.messages.map(m => m.id === tempId ? result.message : m)
+							messages: (c.messages || []).map(m => m.id === tempId ? result.message : m)
 						};
 					}
 					return c;
 				});
+				setSmartCache(`${data.user?.id}_conversations`, conversations);
 			}
 		} catch (err) {
 			console.error('Failed to send message:', err);
@@ -914,14 +984,27 @@
 	}
 
 	// Refetch when form actions return
+	let lastHandledFormSuccess = null;
 	$effect(() => {
-		if (form?.success) {
-			removeSmartCache(`${data.user?.id}_worker_active_jobs`);
-			removeSmartCache(`${data.user?.id}_worker_feed_default`);
-			removeSmartCache(`${data.user?.id}_worker_profile`);
-			fetchActiveJobs(0, false);
-			fetchFeedJobs(0, false);
-			if (profileLoaded) fetchProfileData();
+		const successMsg = form?.success;
+		if (successMsg && successMsg !== lastHandledFormSuccess) {
+			lastHandledFormSuccess = successMsg;
+			untrack(() => {
+				if (form?.activeTab) {
+					activeTab = form.activeTab;
+				}
+				if (form?.activeConvId) {
+					activeConvId = form.activeConvId;
+				}
+				removeSmartCache(`${data.user?.id}_worker_active_jobs`);
+				removeSmartCache(`${data.user?.id}_worker_feed_default`);
+				removeSmartCache(`${data.user?.id}_worker_profile`);
+				removeSmartCache(`${data.user?.id}_conversations`);
+				fetchActiveJobs(0, false);
+				fetchFeedJobs(0, false);
+				fetchConversations(false);
+				if (profileLoaded) fetchProfileData();
+			});
 		}
 	});
 </script>

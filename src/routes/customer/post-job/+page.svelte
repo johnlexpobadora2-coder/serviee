@@ -112,6 +112,9 @@
 				cancel();
 				return;
 			}
+			try {
+				sessionStorage.clear();
+			} catch (e) {}
 			loading = true;
 			return async ({ update }) => {
 				loading = false;

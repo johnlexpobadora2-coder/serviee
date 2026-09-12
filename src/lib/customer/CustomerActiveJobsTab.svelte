@@ -116,24 +116,9 @@
 					<!-- Details Info -->
 					<p class="feed-job-desc">{job.description}</p>
 
-					<!-- Metadata details bar -->
 					<div class="metadata-bar">
 						<div><strong>Location:</strong> {job.location}</div>
 						<div><strong>Target Date:</strong> {new Date(job.target_date).toLocaleDateString('en-PH', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
-						{#if job.latitude && job.longitude}
-							<div>
-								<a 
-									href={getServieeMapUrl(job.latitude, job.longitude, job.title, job.location)} 
-									class="gps-badge"
-									onclick={(e) => {
-										e.preventDefault();
-										mapModal.openModal({ latitude: job.latitude, longitude: job.longitude, title: job.title, address: job.location });
-									}}
-								>
-									<MapPin size={12} /> View Map
-								</a>
-							</div>
-						{/if}
 					</div>
 
 					{#if job.latitude && job.longitude}

@@ -166,6 +166,9 @@
 					bind:value={searchLocation} 
 				>
 					<option value="">All Locations {availableLocations.length > 0 ? `(${availableLocations.length} active)` : ''}</option>
+					{#if searchLocation && !availableLocations.includes(searchLocation)}
+						<option value={searchLocation}>{searchLocation}</option>
+					{/if}
 					{#each availableLocations as city}
 						<option value={city}>{city}</option>
 					{/each}

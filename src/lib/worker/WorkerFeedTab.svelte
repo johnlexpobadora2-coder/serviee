@@ -167,6 +167,9 @@
 					bind:value={searchLocation}
 				>
 					<option value="">All Locations {availableLocations.length > 0 ? `(${availableLocations.length} active)` : ''}</option>
+					{#if searchLocation && !availableLocations.includes(searchLocation)}
+						<option value={searchLocation}>{searchLocation}</option>
+					{/if}
 					{#each availableLocations as city}
 						<option value={city}>{city}</option>
 					{/each}
@@ -419,10 +422,17 @@
 									action="?/inquireJob"
 									use:enhance={() => {
 										applyingJobId = job.id;
-										return async ({ update }) => {
+										const initMsg = `Hello! Inquiring po ako sa sideline job na ito: ${job.title}.`;
+										return async ({ update, result }) => {
 											applyingJobId = null;
 											await update();
-											onopenchat(job.id, job.customer_id);
+											const sentMessage = result?.type === 'success' && result?.data ? result.data.sentMessage : null;
+											onopenchat(job.id, job.customer_id, {
+												initialMessage: initMsg,
+												sentMessage,
+												jobTitle: job.title,
+												customerName: job.customerName
+											});
 										};
 									}}
 									style="display: inline-flex;"

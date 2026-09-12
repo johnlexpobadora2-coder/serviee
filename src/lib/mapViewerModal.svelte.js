@@ -23,7 +23,8 @@ class MapModalState {
 		this.open = true;
 
 		if (browser) {
-			window.history.pushState({ servieeMapModal: true }, '');
+			const currentState = window.history.state || {};
+			window.history.pushState({ ...currentState, servieeMapModal: true }, '');
 		}
 	}
 
