@@ -294,7 +294,7 @@
 							class="tab-btn {activeTab === 'reviews' ? 'active' : ''}"
 							onclick={() => (activeTab = "reviews")}
 						>
-							<Star size={16} fill="currentColor" /> Reviews & Feedback ({stats.reviews?.length || 0})
+							<Star size={16} fill="currentColor" /> Reviews & Feedback
 						</button>
 					{/if}
 					<button
@@ -305,7 +305,7 @@
 						<ClipboardList size={16} />
 						{user.role === "worker"
 							? "Service History"
-							: "Job History"} ({completedJobs.length})
+							: "Job History"}
 					</button>
 				</div>
 
@@ -318,7 +318,7 @@
 							<div class="modal-card full-span">
 								<h4 class="modal-card-title">
 									<FileText size={15} class="card-icon-accent" />
-									About / Pagpapakilala
+									About
 								</h4>
 								{#if user.bio && user.bio.trim()}
 									<p class="modal-bio-text">
@@ -477,18 +477,6 @@
 										</div>
 									{/if}
 								</div>
-
-								{#if canChat}
-									<div class="perf-chat-btn-wrap">
-										<button
-											type="button"
-											class="btn btn-primary chat-direct-btn"
-											onclick={handleMessageClick}
-										>
-											<MessageSquare size={15} /> Send Direct Message
-										</button>
-									</div>
-								{/if}
 							</div>
 						</div>
 					{/if}
@@ -551,14 +539,14 @@
 										class="tab-btn {customerSubTab === 'posted' ? 'active' : ''}"
 										onclick={() => (customerSubTab = "posted")}
 									>
-										<ClipboardList size={15} /> Job Posted ({allPosts.length})
+										<ClipboardList size={15} /> Job Posted
 									</button>
 									<button
 										type="button"
 										class="tab-btn {customerSubTab === 'completed' ? 'active' : ''}"
 										onclick={() => (customerSubTab = "completed")}
 									>
-										<CheckCircle2 size={15} /> Completed Jobs ({completedJobs.length})
+										<CheckCircle2 size={15} /> Completed Jobs
 									</button>
 								</div>
 
@@ -739,7 +727,7 @@
 	}
 
 	.profile-modal-content {
-		max-width: 680px;
+		max-width: 720px;
 		width: 100%;
 		max-height: 90vh;
 		overflow-y: auto;
@@ -788,66 +776,89 @@
 	}
 
 	.modal-cover-banner {
-		height: 120px;
+		height: 135px;
 		background: linear-gradient(135deg, hsl(230, 40%, 15%) 0%, hsl(260, 50%, 20%) 50%, hsl(280, 45%, 15%) 100%);
 		position: relative;
+		overflow: hidden;
+	}
+
+	.modal-cover-banner::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+		background-size: 20px 20px;
+		opacity: 0.35;
+		pointer-events: none;
+	}
+
+	.modal-cover-banner::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: radial-gradient(circle at 85% 25%, rgba(139, 92, 246, 0.35), transparent 60%),
+		            radial-gradient(circle at 10% 75%, rgba(59, 130, 246, 0.25), transparent 50%);
+		pointer-events: none;
 	}
 
 	.modal-header-content {
-		padding: 0 1.25rem 1.15rem 1.25rem;
+		padding: 0 1.5rem 1.25rem 1.5rem;
 		position: relative;
 	}
 
 	.modal-header-row {
 		display: flex;
 		justify-content: space-between;
-		align-items: flex-end;
-		gap: 1rem;
+		align-items: center;
+		gap: 1.25rem;
 		flex-wrap: wrap;
 	}
 
 	.modal-user-left {
 		display: flex;
-		align-items: flex-end;
-		gap: 1rem;
-		margin-top: -42px;
+		align-items: center;
+		gap: 1.25rem;
+		margin-top: -46px;
+		min-width: 0;
+		flex: 1;
 	}
 
 	.modal-avatar {
-		width: 82px;
-		height: 82px;
+		width: 88px;
+		height: 88px;
 		border-radius: var(--radius-full);
 		border: 4px solid var(--bg-card);
 		background: linear-gradient(135deg, var(--accent) 0%, hsl(265, 75%, 45%) 100%);
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		font-size: 2rem;
+		font-size: 2.2rem;
 		font-weight: 800;
 		color: #ffffff;
-		box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--border-color);
 		z-index: 2;
 		flex-shrink: 0;
 	}
 
 	.modal-user-text {
+		padding-top: 46px;
 		display: flex;
 		flex-direction: column;
-		gap: 0.35rem;
+		gap: 0.45rem;
 		min-width: 0;
 	}
 
 	.modal-user-name-row {
 		display: flex;
 		align-items: center;
-		gap: 0.45rem;
+		gap: 0.5rem;
 		flex-wrap: wrap;
 	}
 
 	.modal-user-name {
-		font-size: 1.35rem;
+		font-size: 1.45rem;
 		font-weight: 700;
-		line-height: 1.2;
+		line-height: 1.25;
 		margin: 0;
 		color: var(--text-primary);
 		word-break: break-word;
@@ -856,7 +867,7 @@
 	.modal-self-badge {
 		font-size: 0.72rem;
 		font-weight: 600;
-		padding: 0.12rem 0.45rem;
+		padding: 0.15rem 0.5rem;
 		background: var(--accent-light);
 		color: var(--accent-hover);
 		border-radius: var(--radius-full);
@@ -865,7 +876,7 @@
 	.modal-user-badges {
 		display: flex;
 		align-items: center;
-		gap: 0.4rem;
+		gap: 0.5rem;
 		flex-wrap: wrap;
 	}
 
@@ -905,17 +916,19 @@
 	}
 
 	.modal-user-location {
-		font-size: 0.78rem;
+		font-size: 0.8rem;
 		color: var(--text-muted);
 		display: inline-flex;
 		align-items: center;
-		gap: 0.2rem;
+		gap: 0.25rem;
 	}
 
 	.modal-stats-group {
 		display: flex;
-		gap: 0.5rem;
+		gap: 0.6rem;
 		align-items: center;
+		padding-top: 46px;
+		flex-shrink: 0;
 	}
 
 	.modal-stat-item {
@@ -925,13 +938,13 @@
 		justify-content: center;
 		background: var(--bg-input);
 		border: 1px solid var(--border-color);
-		padding: 0.4rem 0.8rem;
+		padding: 0.45rem 0.9rem;
 		border-radius: var(--radius-md);
 		min-width: 85px;
 	}
 
 	.modal-stat-value {
-		font-size: 1.15rem;
+		font-size: 1.2rem;
 		font-weight: 800;
 		color: var(--text-primary);
 		line-height: 1.2;
@@ -946,8 +959,8 @@
 		color: var(--text-muted);
 		font-weight: 600;
 		text-transform: uppercase;
-		letter-spacing: 0.04em;
-		margin-top: 0.15rem;
+		letter-spacing: 0.05em;
+		margin-top: 0.2rem;
 	}
 
 	/* Modal Navigation Tabs */
@@ -955,6 +968,7 @@
 		padding: 0.65rem 1.25rem 0 1.25rem;
 		background: var(--bg-card);
 		border-bottom: 1px solid var(--border-color);
+		margin-bottom: 0 !important;
 		display: flex;
 		gap: 0.35rem;
 		overflow-x: auto;
@@ -975,7 +989,7 @@
 
 	/* Modal Body Container */
 	.modal-body-container {
-		padding: 1.25rem;
+		padding: 1rem 1.25rem 1.25rem 1.25rem;
 		display: flex;
 		flex-direction: column;
 		gap: 1.15rem;
@@ -1238,6 +1252,7 @@
 
 	/* Subtabs */
 	.subtabs-header {
+		margin-bottom: 0.85rem !important;
 		display: flex;
 		gap: 0.35rem;
 		border-bottom: 1px solid var(--border-color);
@@ -1421,26 +1436,29 @@
 			flex-direction: column;
 			align-items: center;
 			text-align: center;
-			gap: 0.65rem;
+			gap: 0.5rem;
 		}
 
 		.modal-user-left {
 			flex-direction: column;
 			align-items: center;
 			margin-top: -38px;
-			gap: 0.5rem;
+			gap: 0.4rem;
 			width: 100%;
 		}
 
 		.modal-avatar {
-			width: 74px;
-			height: 74px;
-			font-size: 1.75rem;
-			border-width: 3px;
+			width: 76px;
+			height: 76px;
+			font-size: 1.8rem;
+			border-width: 3.5px;
 		}
 
 		.modal-user-text {
+			padding-top: 0 !important;
 			align-items: center;
+			text-align: center;
+			gap: 0.35rem;
 			width: 100%;
 		}
 
@@ -1449,25 +1467,27 @@
 		}
 
 		.modal-user-name {
-			font-size: 1.18rem;
+			font-size: 1.2rem;
 		}
 
 		.modal-user-badges {
 			justify-content: center;
+			gap: 0.35rem;
 		}
 
 		.modal-stats-group {
 			width: 100%;
+			padding-top: 0 !important;
 			justify-content: center;
-			gap: 0.45rem;
-			margin-top: 0.15rem;
+			gap: 0.5rem;
+			margin-top: 0.25rem;
 		}
 
 		.modal-stat-item {
 			flex: 1;
 			max-width: 140px;
 			min-width: 0;
-			padding: 0.35rem 0.5rem;
+			padding: 0.4rem 0.55rem;
 		}
 
 		.modal-stat-value {
