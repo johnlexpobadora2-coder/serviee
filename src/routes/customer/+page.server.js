@@ -11,8 +11,8 @@ export async function load({ locals }) {
 
 	const userLocation = locals.user.address || '';
 	const [initialFeed, availableLocations] = await Promise.all([
-		db.jobs.listFeedPaginated({ limit: 10, offset: 0, location: userLocation }),
-		db.jobs.getAvailableLocations()
+		db.jobs.listFeedPaginated({ limit: 10, offset: 0, status: 'open', location: userLocation }),
+		db.jobs.getAvailableLocations('open')
 	]);
 
 	return {

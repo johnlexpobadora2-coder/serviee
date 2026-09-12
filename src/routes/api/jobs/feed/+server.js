@@ -15,9 +15,9 @@ export async function GET({ url, locals }) {
 	const search = url.searchParams.get('search') || '';
 	const sortBy = url.searchParams.get('sortBy') || 'newest';
 
-	// Workers only see 'open' jobs in feed
+	// Feed only shows 'open' jobs (assigned, in_progress, completed jobs are hidden from feed)
 	const isWorker = locals.user.role === 'worker';
-	const status = isWorker ? 'open' : null;
+	const status = 'open';
 
 	try {
 		const result = await db.jobs.listFeedPaginated({
