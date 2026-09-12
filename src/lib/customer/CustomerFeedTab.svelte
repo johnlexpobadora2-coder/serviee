@@ -1,8 +1,30 @@
 <script>
-	import { SlidersHorizontal, ChevronUp, ChevronDown, Search, X, Trash2, MapPin, ExternalLink, User, Calendar, Clock, RotateCcw, Loader2, Settings } from 'lucide-svelte';
+	import { 
+		SlidersHorizontal, 
+		ChevronUp, 
+		ChevronDown, 
+		Search, 
+		X, 
+		Trash2, 
+		MapPin, 
+		ExternalLink, 
+		User, 
+		Calendar, 
+		Clock, 
+		RotateCcw, 
+		Loader2, 
+		Settings,
+		Bookmark,
+		Share2
+	} from 'lucide-svelte';
 	import { getGoogleMapsUrl, getServieeMapUrl, getEmbedMapUrl } from '$lib/gpsUtils.js';
 	import { mapModal } from '$lib/mapViewerModal.svelte.js';
 	import FeedRefreshSpeedDial from '$lib/FeedRefreshSpeedDial.svelte';
+	import FeedViewToggle from '$lib/FeedViewToggle.svelte';
+	import ShareJobModal from '$lib/ShareJobModal.svelte';
+	import SavedJobsDrawer from '$lib/SavedJobsDrawer.svelte';
+	import JobFeedMapView from '$lib/JobFeedMapView.svelte';
+	import { savedJobs } from '$lib/savedJobs.svelte.js';
 
 	let { 
 		jobs = [], 
@@ -24,6 +46,21 @@
 		onopenviewprofile, 
 		onopendeletejob 
 	} = $props();
+
+	let viewMode = $state('list'); // 'list' | 'map'
+	let shareModalOpen = $state(false);
+	let shareTargetJob = $state(null);
+
+	function handleOpenShare(job) {
+		shareTargetJob = job;
+		shareModalOpen = true;
+	}
+
+	const mappedJobsCount = $derived(
+		(jobs || []).filter(
+			(j) => j && j.latitude && j.longitude && !isNaN(parseFloat(j.latitude)) && !isNaN(parseFloat(j.longitude))
+		).length
+	);
 
 	function clearFilters() {
 		searchCategory = '';
@@ -47,7 +84,7 @@
 	}
 
 	function handleWindowScroll() {
-		if (typeof window === 'undefined' || loading || loadingMore || !hasMore) return;
+		if (typeof window === 'undefined' || loading || loadingMore || !hasMore || viewMode === 'map') return;
 		const scrollPosition = window.innerHeight + window.scrollY;
 		const threshold = document.documentElement.scrollHeight - 300;
 		if (scrollPosition >= threshold) {
@@ -268,161 +305,228 @@
 		</div>
 
 		<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
-			<h2 style="font-size: 1.4rem;">
-				All Available Postings ({totalCount || jobs.length})
-			</h2>
-			<a href="/customer/post-job" class="btn btn-primary" style="width: auto; padding: 0.5rem 1.25rem;">
-				+ Post a Job
-			</a>
+			<div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+				<h2 style="font-size: 1.35rem; margin: 0;">
+					All Available Postings ({totalCount || jobs.length})
+				</h2>
+				<button 
+					type="button" 
+					class="feed-saved-trigger-btn {savedJobs.count > 0 ? 'has-saved' : ''}"
+					onclick={() => savedJobs.openDrawer()}
+					title="View Saved Jobs"
+				>
+					<Bookmark size={14} style={savedJobs.count > 0 ? 'fill: currentColor;' : ''} />
+					<span>Saved {savedJobs.count > 0 ? `(${savedJobs.count})` : ''}</span>
+				</button>
+			</div>
+
+			<div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+				<FeedViewToggle bind:viewMode={viewMode} />
+				<a href="/customer/post-job" class="btn btn-primary" style="width: auto; padding: 0.45rem 1.1rem; font-size: 0.85rem;">
+					+ Post a Job
+				</a>
+			</div>
 		</div>
 
-		{#if loading && jobs.length > 0}
-			<div class="card" style="display: flex; align-items: center; justify-content: center; gap: 0.6rem; padding: 0.65rem 1rem; border-color: var(--accent); background: rgba(59, 130, 246, 0.05); font-size: 0.88rem; color: var(--accent); font-weight: 500;">
-				<Settings size={16} class="animate-spin" />
-				<span>Updating filter results...</span>
-			</div>
-		{/if}
-
-		{#if loading && jobs.length === 0}
-			<div class="card" style="text-align: center; padding: 4rem 2rem;">
-				<Settings size={36} class="animate-spin" style="margin: 0 auto 1rem auto; color: var(--accent);" />
-				<p style="color: var(--text-secondary); font-size: 0.95rem;">Fetching & filtering job postings...</p>
-			</div>
-		{:else if jobs.length === 0}
-			<div class="card" style="text-align: center; padding: 4rem 2rem; border-style: dashed;">
-				<h4 style="font-size: 1.25rem; margin-bottom: 0.5rem;">No job postings found.</h4>
-				<p style="color: var(--text-secondary); font-size: 0.9rem;">
-					Try modifying your filters or check back later for new job postings.
-				</p>
-			</div>
+		{#if viewMode === 'map'}
+			<JobFeedMapView 
+				{jobs} 
+				onopenchat={() => {}} 
+				{onopenviewprofile} 
+				onopenshare={handleOpenShare} 
+			/>
 		{:else}
-			{#each jobs as job (job.id)}
-				<div class="card feed-job-card">
-					<div class="feed-job-header">
-						<!-- Top Row: Badges on left -->
-						<div class="feed-job-top-bar">
-							<div class="feed-job-badges">
-								<span class="badge {getCategoryBadge(job.category)}">{job.category}</span>
-								<span class="status status-{job.status}">
-									{#if job.status === 'open'} Open
-									{:else if job.status === 'assigned'} Assigned
-									{:else if job.status === 'in_progress'} In Progress
-									{:else} Completed
+			{#if loading && jobs.length > 0}
+				<div class="card" style="display: flex; align-items: center; justify-content: center; gap: 0.6rem; padding: 0.65rem 1rem; border-color: var(--accent); background: rgba(59, 130, 246, 0.05); font-size: 0.88rem; color: var(--accent); font-weight: 500;">
+					<Settings size={16} class="animate-spin" />
+					<span>Updating filter results...</span>
+				</div>
+			{/if}
+
+			{#if loading && jobs.length === 0}
+				<div class="card" style="text-align: center; padding: 4rem 2rem;">
+					<Settings size={36} class="animate-spin" style="margin: 0 auto 1rem auto; color: var(--accent);" />
+					<p style="color: var(--text-secondary); font-size: 0.95rem;">Fetching & filtering job postings...</p>
+				</div>
+			{:else if jobs.length === 0}
+				<div class="card" style="text-align: center; padding: 4rem 2rem; border-style: dashed;">
+					<h4 style="font-size: 1.25rem; margin-bottom: 0.5rem;">No job postings found.</h4>
+					<p style="color: var(--text-secondary); font-size: 0.9rem;">
+						Try modifying your filters or check back later for new job postings.
+					</p>
+				</div>
+			{:else}
+				{#each jobs as job (job.id)}
+					<div class="card feed-job-card">
+						<div class="feed-job-header">
+							<!-- Top Row: Badges on left, Action buttons on right -->
+							<div class="feed-job-top-bar">
+								<div class="feed-job-badges">
+									<span class="badge {getCategoryBadge(job.category)}">{job.category}</span>
+									<span class="status status-{job.status}">
+										{#if job.status === 'open'} Open
+										{:else if job.status === 'assigned'} Assigned
+										{:else if job.status === 'in_progress'} In Progress
+										{:else} Completed
+										{/if}
+									</span>
+								</div>
+								<div class="feed-job-card-actions">
+									<button 
+										type="button" 
+										class="feed-job-action-btn"
+										onclick={(e) => {
+											e.stopPropagation();
+											handleOpenShare(job);
+										}}
+										title="Share Job"
+										aria-label="Share Job"
+									>
+										<Share2 size={16} />
+									</button>
+									<button 
+										type="button" 
+										class="feed-job-action-btn {savedJobs.isSaved(job.id) ? 'saved' : ''}"
+										onclick={(e) => {
+											e.stopPropagation();
+											savedJobs.toggle(job);
+										}}
+										title={savedJobs.isSaved(job.id) ? 'Remove from Saved Jobs' : 'Save Job for Later'}
+										aria-label={savedJobs.isSaved(job.id) ? 'Remove from Saved Jobs' : 'Save Job for Later'}
+									>
+										<Bookmark size={16} style={savedJobs.isSaved(job.id) ? 'fill: currentColor;' : ''} />
+									</button>
+								</div>
+							</div>
+
+							<!-- Title Row -->
+							<h3 class="feed-job-title">{job.title}</h3>
+
+							<!-- Posted By Row -->
+							<div class="feed-job-posted-by">
+								<div style="display: inline-flex; align-items: center; gap: 0.35rem; min-width: 0;">
+									<User size={13} style="color: var(--accent); flex-shrink: 0;" />
+									<span>Posted by:</span>
+									{#if job.customer_id !== currentUserId}
+										<button 
+											type="button" 
+											class="posted-by-link"
+											onclick={() => onopenviewprofile(job.customer_id)}
+										>
+											{job.customerName}
+										</button>
+									{:else}
+										<strong class="posted-by-self">{job.customerName} (You)</strong>
 									{/if}
+								</div>
+								<span class="feed-job-date">
+									<Clock size={12} />
+									{new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
 								</span>
 							</div>
 						</div>
 
-						<!-- Title Row -->
-						<h3 class="feed-job-title">{job.title}</h3>
+						<div class="feed-job-divider"></div>
 
-						<!-- Posted By Row -->
-						<div class="feed-job-posted-by">
-							<div style="display: inline-flex; align-items: center; gap: 0.35rem; min-width: 0;">
-								<User size={13} style="color: var(--accent); flex-shrink: 0;" />
-								<span>Posted by:</span>
-								{#if job.customer_id !== currentUserId}
-									<button 
-										type="button" 
-										class="posted-by-link"
-										onclick={() => onopenviewprofile(job.customer_id)}
+						<p class="feed-job-desc">
+							{job.description}
+						</p>
+
+						<div class="metadata-bar feed-job-meta">
+							<div style="display: flex; align-items: center; gap: 0.4rem;">
+								<MapPin size={15} style="color: #38bdf8; flex-shrink: 0;" />
+								<span><strong style="color: var(--text-primary);">Location:</strong> {job.location}</span>
+							</div>
+							<div style="display: flex; align-items: center; gap: 0.4rem;">
+								<Calendar size={15} style="color: #a78bfa; flex-shrink: 0;" />
+								<span><strong style="color: var(--text-primary);">Schedule:</strong> {new Date(job.target_date).toLocaleDateString('en-PH', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+							</div>
+						</div>
+
+						{#if job.latitude && job.longitude}
+							<div class="feed-job-map-preview">
+								<div class="feed-job-map-header">
+									<div class="feed-job-map-title-wrap">
+										<span class="feed-job-map-pin-icon"><MapPin size={13} /></span>
+										<span class="feed-job-map-title-text">Pinned GPS Location ({job.latitude}, {job.longitude})</span>
+									</div>
+									<a 
+										href={getServieeMapUrl(job.latitude, job.longitude, job.title, job.location)} 
+										class="feed-job-directions-link"
+										onclick={(e) => {
+											e.preventDefault();
+											mapModal.openModal({ latitude: job.latitude, longitude: job.longitude, title: job.title, address: job.location });
+										}}
+										title="View Map"
+										aria-label="View Map"
 									>
-										{job.customerName}
-									</button>
-								{:else}
-									<strong class="posted-by-self">{job.customerName} (You)</strong>
-								{/if}
-							</div>
-							<span class="feed-job-date">
-								<Clock size={12} />
-								{new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
-							</span>
-						</div>
-					</div>
-
-					<div class="feed-job-divider"></div>
-
-					<p class="feed-job-desc">
-						{job.description}
-					</p>
-
-					<div class="metadata-bar feed-job-meta">
-						<div style="display: flex; align-items: center; gap: 0.4rem;">
-							<MapPin size={15} style="color: #38bdf8; flex-shrink: 0;" />
-							<span><strong style="color: var(--text-primary);">Location:</strong> {job.location}</span>
-						</div>
-						<div style="display: flex; align-items: center; gap: 0.4rem;">
-							<Calendar size={15} style="color: #a78bfa; flex-shrink: 0;" />
-							<span><strong style="color: var(--text-primary);">Schedule:</strong> {new Date(job.target_date).toLocaleDateString('en-PH', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
-						</div>
-					</div>
-
-					{#if job.latitude && job.longitude}
-						<div class="feed-job-map-preview">
-							<div class="feed-job-map-header">
-								<div class="feed-job-map-title-wrap">
-									<span class="feed-job-map-pin-icon"><MapPin size={13} /></span>
-									<span class="feed-job-map-title-text">Pinned GPS Location ({job.latitude}, {job.longitude})</span>
+										<MapPin size={14} class="feed-job-map-btn-icon" />
+										<span class="feed-job-map-btn-text">View Map</span>
+									</a>
 								</div>
-								<a 
-									href={getServieeMapUrl(job.latitude, job.longitude, job.title, job.location)} 
-									class="feed-job-directions-link"
-									onclick={(e) => {
-										e.preventDefault();
-										mapModal.openModal({ latitude: job.latitude, longitude: job.longitude, title: job.title, address: job.location });
-									}}
-									title="View Map"
-									aria-label="View Map"
-								>
-									<MapPin size={14} class="feed-job-map-btn-icon" />
-									<span class="feed-job-map-btn-text">View Map</span>
-								</a>
+								<div class="feed-job-map-iframe-container">
+									<iframe 
+										title="Pinned Job Location Map"
+										src={getEmbedMapUrl(job.latitude, job.longitude)}
+										loading="lazy"
+									></iframe>
+								</div>
 							</div>
-							<div class="feed-job-map-iframe-container">
-								<iframe 
-									title="Pinned Job Location Map"
-									src={getEmbedMapUrl(job.latitude, job.longitude)}
-									loading="lazy"
-								></iframe>
-							</div>
-						</div>
-					{/if}
-
-					<!-- Bottom Price & Action Footer -->
-					<div class="feed-job-footer">
-						<div class="feed-job-budget-wrap">
-							<span class="feed-job-budget-label">Budget</span>
-							<strong class="feed-job-budget">₱{job.budget.toLocaleString()}</strong>
-						</div>
-						{#if job.customer_id === currentUserId}
-							<button
-								type="button"
-								class="btn btn-outline feed-job-delete-btn"
-								onclick={() => onopendeletejob(job)}
-								title="Delete Your Job Post"
-							>
-								<Trash2 size={13} />
-								<span>Delete</span>
-							</button>
 						{/if}
-					</div>
-				</div>
-			{/each}
 
-			<!-- Infinite Scroll Loading Indicator & End of Feed Indicator -->
-			{#if loadingMore}
-				<div style="display: flex; justify-content: center; align-items: center; padding: 1.5rem; gap: 0.5rem; color: var(--text-secondary);">
-					<Loader2 size={20} class="animate-spin" style="color: var(--accent);" />
-					<span style="font-size: 0.9rem;">Loading more jobs...</span>
-				</div>
-			{:else if !hasMore && jobs.length > 0}
-				<div style="text-align: center; padding: 2rem 1rem; color: var(--text-muted); font-size: 0.85rem; border-top: 1px dashed var(--border);">
-					✓ You have viewed all available job postings ({jobs.length} total)
-				</div>
+						<!-- Bottom Price & Action Footer -->
+						<div class="feed-job-footer">
+							<div class="feed-job-budget-wrap">
+								<span class="feed-job-budget-label">Budget</span>
+								<strong class="feed-job-budget">₱{job.budget.toLocaleString()}</strong>
+							</div>
+							{#if job.customer_id === currentUserId}
+								<button
+									type="button"
+									class="btn btn-outline feed-job-delete-btn"
+									onclick={() => onopendeletejob(job)}
+									title="Delete Your Job Post"
+								>
+									<Trash2 size={13} />
+									<span>Delete</span>
+								</button>
+							{/if}
+						</div>
+					</div>
+				{/each}
+
+				<!-- Infinite Scroll Loading Indicator & End of Feed Indicator -->
+				{#if loadingMore}
+					<div style="display: flex; justify-content: center; align-items: center; padding: 1.5rem; gap: 0.5rem; color: var(--text-secondary);">
+						<Loader2 size={20} class="animate-spin" style="color: var(--accent);" />
+						<span style="font-size: 0.9rem;">Loading more jobs...</span>
+					</div>
+				{:else if !hasMore && jobs.length > 0}
+					<div style="text-align: center; padding: 2rem 1rem; color: var(--text-muted); font-size: 0.85rem; border-top: 1px dashed var(--border);">
+						✓ You have viewed all available job postings ({jobs.length} total)
+					</div>
+				{/if}
 			{/if}
 		{/if}
 	</section>
 
 	<!-- Feed Refresh Speed Dial (Floating Action Button) -->
 	<FeedRefreshSpeedDial />
+
+	<!-- Share Job Modal -->
+	<ShareJobModal 
+		isOpen={shareModalOpen} 
+		job={shareTargetJob} 
+		onClose={() => {
+			shareModalOpen = false;
+			shareTargetJob = null;
+		}} 
+	/>
+
+	<!-- Saved Jobs Drawer -->
+	<SavedJobsDrawer 
+		onopenchat={() => {}}
+		{onopenviewprofile} 
+		onopenshare={handleOpenShare} 
+	/>
 </div>

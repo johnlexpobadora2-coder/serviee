@@ -11,7 +11,9 @@
 	import {
 		searchPhilippineLocations,
 		isValidPhilippineLocation,
+		getPhilippineCityCoordinates
 	} from "$lib/philippinesLocations.js";
+
 
 	/**
 	 * @type {{
@@ -21,7 +23,7 @@
 	 *   placeholder?: string,
 	 *   required?: boolean,
 	 *   isValid?: boolean,
-	 *   onselect?: (selected: { city: string, province: string, displayName: string }) => void
+	 *   onselect?: (selected: { city: string, province: string, displayName: string, coords?: { latitude: number, longitude: number } | null }) => void
 	 * }}
 	 */
 	let {
@@ -107,7 +109,8 @@
 		isOpen = false;
 		suggestions = [];
 		selectedIndex = -1;
-		if (onselect) onselect(item);
+		const coords = getPhilippineCityCoordinates(item.city);
+		if (onselect) onselect({ ...item, coords });
 	}
 
 	function handleKeyDown(e) {

@@ -667,3 +667,109 @@ export function isValidPhilippineLocation(city) {
 		return cleanNorm === fullNorm || cleanNorm === baseNorm || cleanNorm.startsWith(fullNorm) || cleanNorm.startsWith(baseNorm);
 	});
 }
+
+/**
+ * Centroid coordinate map for major Philippine cities and municipalities
+ */
+const CITY_COORDINATES = {
+	'manila': { lat: 14.5995, lng: 120.9842 },
+	'quezon city': { lat: 14.6760, lng: 121.0437 },
+	'makati': { lat: 14.5547, lng: 121.0244 },
+	'pasig': { lat: 14.5764, lng: 121.0851 },
+	'taguig': { lat: 14.5176, lng: 121.0509 },
+	'mandaluyong': { lat: 14.5794, lng: 121.0359 },
+	'marikina': { lat: 14.6507, lng: 121.1029 },
+	'caloocan': { lat: 14.6571, lng: 120.9841 },
+	'las pinas': { lat: 14.4445, lng: 120.9939 },
+	'las piñas': { lat: 14.4445, lng: 120.9939 },
+	'paranaque': { lat: 14.4793, lng: 121.0198 },
+	'parañaque': { lat: 14.4793, lng: 121.0198 },
+	'pasay': { lat: 14.5378, lng: 121.0014 },
+	'muntinlupa': { lat: 14.4081, lng: 121.0415 },
+	'valenzuela': { lat: 14.7011, lng: 120.9830 },
+	'malabon': { lat: 14.6625, lng: 120.9567 },
+	'navotas': { lat: 14.6667, lng: 120.9417 },
+	'san juan': { lat: 14.6019, lng: 121.0355 },
+	'pateros': { lat: 14.5454, lng: 121.0686 },
+	'antipolo': { lat: 14.5842, lng: 121.1763 },
+	'taytay': { lat: 14.5667, lng: 121.1333 },
+	'cainta': { lat: 14.5786, lng: 121.1222 },
+	'san mateo': { lat: 14.6969, lng: 121.1219 },
+	'rodriguez': { lat: 14.7500, lng: 121.1500 },
+	'angono': { lat: 14.5244, lng: 121.1544 },
+	'binangonan': { lat: 14.4644, lng: 121.1925 },
+	'bacoor': { lat: 14.4624, lng: 120.9647 },
+	'imus': { lat: 14.4296, lng: 120.9367 },
+	'dasmarinas': { lat: 14.3294, lng: 120.9367 },
+	'dasmariñas': { lat: 14.3294, lng: 120.9367 },
+	'general trias': { lat: 14.3872, lng: 120.8808 },
+	'cavite': { lat: 14.4831, lng: 120.9000 },
+	'tagaytay': { lat: 14.1153, lng: 120.9621 },
+	'santa rosa': { lat: 14.3122, lng: 121.1114 },
+	'calamba': { lat: 14.2117, lng: 121.1656 },
+	'binan': { lat: 14.3389, lng: 121.0806 },
+	'biñan': { lat: 14.3389, lng: 121.0806 },
+	'cabuyao': { lat: 14.2783, lng: 121.1250 },
+	'san pedro': { lat: 14.3594, lng: 121.0506 },
+	'los banos': { lat: 14.1706, lng: 121.2431 },
+	'los baños': { lat: 14.1706, lng: 121.2431 },
+	'san jose del monte': { lat: 14.8139, lng: 121.0453 },
+	'malolos': { lat: 14.8433, lng: 120.8114 },
+	'meycauayan': { lat: 14.7369, lng: 120.9606 },
+	'angeles': { lat: 15.1450, lng: 120.5887 },
+	'san fernando': { lat: 15.0342, lng: 120.6844 },
+	'mabalacat': { lat: 15.2217, lng: 120.5739 },
+	'batangas': { lat: 13.7565, lng: 121.0583 },
+	'lipa': { lat: 13.9419, lng: 121.1624 },
+	'baguio': { lat: 16.4023, lng: 120.5960 },
+	'dagupan': { lat: 16.0433, lng: 120.3342 },
+	'olongapo': { lat: 14.8294, lng: 120.2828 },
+	'tarlac': { lat: 15.4802, lng: 120.5979 },
+	'lucena': { lat: 13.9372, lng: 121.6172 },
+	'puerto princesa': { lat: 9.7392, lng: 118.7353 },
+	'naga': { lat: 13.6218, lng: 123.1948 },
+	'legazpi': { lat: 13.1391, lng: 123.7438 },
+	'cebu': { lat: 10.3157, lng: 123.8854 },
+	'mandaue': { lat: 10.3333, lng: 123.9333 },
+	'lapu-lapu': { lat: 10.3103, lng: 123.9494 },
+	'lapu lapu': { lat: 10.3103, lng: 123.9494 },
+	'talisay': { lat: 10.2447, lng: 123.8492 },
+	'iloilo': { lat: 10.7202, lng: 122.5621 },
+	'bacolod': { lat: 10.6765, lng: 122.9509 },
+	'tacloban': { lat: 11.2442, lng: 125.0039 },
+	'tagbilaran': { lat: 9.6444, lng: 123.8544 },
+	'dumaguete': { lat: 9.3068, lng: 123.3054 },
+	'davao': { lat: 7.1907, lng: 125.4553 },
+	'cagayan de oro': { lat: 8.4542, lng: 124.6319 },
+	'general santos': { lat: 6.1164, lng: 125.1716 },
+	'zamboanga': { lat: 6.9214, lng: 122.0790 },
+	'butuan': { lat: 8.9475, lng: 125.5406 },
+	'iligan': { lat: 8.2280, lng: 124.2452 },
+	'cotabato': { lat: 7.2236, lng: 124.2464 },
+	'tagum': { lat: 7.4478, lng: 125.8078 },
+	'koronadal': { lat: 6.5028, lng: 124.8467 }
+};
+
+/**
+ * Gets approximate centroid coordinates for a Philippine city/location
+ * @param {string} locationName
+ * @returns {{ latitude: number, longitude: number } | null}
+ */
+export function getPhilippineCityCoordinates(locationName) {
+	if (!locationName || typeof locationName !== 'string') return null;
+	const clean = locationName.toLowerCase()
+		.replace(/ city$/i, '')
+		.replace(/,/g, '')
+		.replace(/metro manila/g, '')
+		.replace(/philippines/g, '')
+		.trim();
+
+	for (const [key, coords] of Object.entries(CITY_COORDINATES)) {
+		if (clean === key || clean.includes(key) || key.includes(clean)) {
+			return { latitude: coords.lat, longitude: coords.lng };
+		}
+	}
+
+	return null;
+}
+

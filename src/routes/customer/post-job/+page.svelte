@@ -161,6 +161,12 @@
 						id="location"
 						placeholder="Search city/municipality (e.g. Davao City, Cebu City, Makati)..."
 						required={true}
+						onselect={(item) => {
+							if (item && item.coords && (!latitude || !longitude)) {
+								latitude = String(item.coords.latitude);
+								longitude = String(item.coords.longitude);
+							}
+						}}
 					/>
 				</div>
 			</div>

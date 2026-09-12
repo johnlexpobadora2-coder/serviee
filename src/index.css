@@ -660,6 +660,72 @@ select {
 	white-space: nowrap;
 }
 
+.feed-job-card-actions {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	flex-shrink: 0;
+}
+
+.feed-job-action-btn {
+	background: transparent;
+	border: 1px solid transparent;
+	color: var(--text-muted);
+	cursor: pointer;
+	padding: 0.35rem 0.45rem;
+	border-radius: 8px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+	line-height: 1;
+}
+
+.feed-job-action-btn:hover {
+	color: var(--text-primary);
+	background: rgba(255, 255, 255, 0.08);
+	border-color: var(--border-color);
+}
+
+.feed-job-action-btn.saved {
+	color: #f59e0b;
+	background: rgba(245, 158, 11, 0.12);
+	border-color: rgba(245, 158, 11, 0.3);
+}
+
+.feed-job-action-btn.saved:hover {
+	background: rgba(245, 158, 11, 0.2);
+}
+
+.feed-saved-trigger-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	padding: 0.4rem 0.85rem;
+	border-radius: var(--radius-md, 6px);
+	background: var(--bg-card, #1e293b);
+	border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12));
+	color: var(--text-secondary);
+	font-size: 0.82rem;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.15s ease;
+}
+
+.feed-saved-trigger-btn:hover {
+	color: var(--text-primary);
+	border-color: var(--accent);
+	background: rgba(255, 255, 255, 0.05);
+}
+
+.feed-saved-trigger-btn.has-saved {
+	color: #f59e0b;
+	border-color: rgba(245, 158, 11, 0.35);
+	background: rgba(245, 158, 11, 0.08);
+}
+
+
+
 .feed-job-title {
 	font-size: 1.35rem;
 	font-weight: 700;

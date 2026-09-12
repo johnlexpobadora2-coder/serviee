@@ -1,6 +1,7 @@
 import { env } from '$env/dynamic/public';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
+import { getPhilippineCityCoordinates } from '$lib/philippinesLocations.js';
 
 let supabaseInstance = null;
 
@@ -380,6 +381,18 @@ export const db = {
 
 	jobs: {
 		async create({ customer_id, title, category, description, location, latitude, longitude, budget, target_date }) {
+			let finalLat = latitude !== undefined && latitude !== null && latitude !== '' ? parseFloat(latitude) : null;
+			let finalLng = longitude !== undefined && longitude !== null && longitude !== '' ? parseFloat(longitude) : null;
+
+			// Fallback: Resolve centroid coordinates from city / municipality if not manually set
+			if ((finalLat === null || isNaN(finalLat) || finalLng === null || isNaN(finalLng)) && location) {
+				const cityCoords = getPhilippineCityCoordinates(location);
+				if (cityCoords) {
+					finalLat = cityCoords.latitude;
+					finalLng = cityCoords.longitude;
+				}
+			}
+
 			const newJob = {
 				id: crypto.randomUUID(),
 				customer_id,
@@ -388,8 +401,8 @@ export const db = {
 				category,
 				description,
 				location,
-				latitude: latitude !== undefined && latitude !== null && latitude !== '' ? parseFloat(latitude) : null,
-				longitude: longitude !== undefined && longitude !== null && longitude !== '' ? parseFloat(longitude) : null,
+				latitude: finalLat,
+				longitude: finalLng,
 				budget: parseFloat(budget) || 0,
 				status: 'open', // 'open' | 'assigned' | 'in_progress' | 'completed'
 				target_date: target_date || new Date().toISOString(),
@@ -525,8 +538,21 @@ export const db = {
 
 			const hydratedJobs = jobList.map(job => {
 				const customer = customerMap.get(job.customer_id);
+				let lat = job.latitude !== null && job.latitude !== undefined && job.latitude !== '' ? parseFloat(job.latitude) : null;
+				let lng = job.longitude !== null && job.longitude !== undefined && job.longitude !== '' ? parseFloat(job.longitude) : null;
+
+				if ((lat === null || isNaN(lat) || lng === null || isNaN(lng)) && job.location) {
+					const cityCoords = getPhilippineCityCoordinates(job.location);
+					if (cityCoords) {
+						lat = cityCoords.latitude;
+						lng = cityCoords.longitude;
+					}
+				}
+
 				return {
 					...job,
+					latitude: lat,
+					longitude: lng,
 					customerName: customer ? customer.name : (workerId ? 'Anonymous Client' : 'Client'),
 					hasApplied: workerId ? (job.applicants || []).includes(workerId) : false
 				};
@@ -609,8 +635,20 @@ export const db = {
 					})
 					.filter(Boolean);
 
+				let lat = post.latitude !== null && post.latitude !== undefined && post.latitude !== '' ? parseFloat(post.latitude) : null;
+				let lng = post.longitude !== null && post.longitude !== undefined && post.longitude !== '' ? parseFloat(post.longitude) : null;
+				if ((lat === null || isNaN(lat) || lng === null || isNaN(lng)) && post.location) {
+					const cityCoords = getPhilippineCityCoordinates(post.location);
+					if (cityCoords) {
+						lat = cityCoords.latitude;
+						lng = cityCoords.longitude;
+					}
+				}
+
 				return {
 					...post,
+					latitude: lat,
+					longitude: lng,
 					assignedWorker,
 					applicants
 				};
@@ -1297,6 +1335,168 @@ export const db = {
 			return conversations.sort(
 				(a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
 			);
+		}
+	},
+
+	savedJobs: {
+		async listByUser(userId) {
+			if (!userId) return [];
+			const supabase = getSupabase();
+			try {
+				const { data, error } = await supabase
+					.from('saved_jobs')
+					.select('job_id, created_at')
+					.eq('user_id', userId)
+					.order('created_at', { ascending: false });
+
+				if (error) {
+					console.error('Error fetching saved_jobs from Supabase:', error.message);
+					throw new Error(error.message);
+				}
+
+				if (!data || data.length === 0) return [];
+				const jobIds = Array.from(new Set(data.map(d => d.job_id).filter(Boolean)));
+				if (jobIds.length === 0) return [];
+
+				const jobMap = await db.jobs.findByIds(jobIds);
+				const customerIds = Array.from(new Set(Array.from(jobMap.values()).map(j => j.customer_id).filter(Boolean)));
+				const customerMap = await db.users.findByIds(customerIds);
+
+				const savedList = [];
+				for (const item of data) {
+					const job = jobMap.get(item.job_id);
+					if (job) {
+						const customer = customerMap.get(job.customer_id);
+						let lat = job.latitude !== null && job.latitude !== undefined && job.latitude !== '' ? parseFloat(job.latitude) : null;
+						let lng = job.longitude !== null && job.longitude !== undefined && job.longitude !== '' ? parseFloat(job.longitude) : null;
+						if ((lat === null || isNaN(lat) || lng === null || isNaN(lng)) && job.location) {
+							const cityCoords = getPhilippineCityCoordinates(job.location);
+							if (cityCoords) {
+								lat = cityCoords.latitude;
+								lng = cityCoords.longitude;
+							}
+						}
+
+						savedList.push({
+							...job,
+							latitude: lat,
+							longitude: lng,
+							customerName: customer ? customer.name : 'Client',
+							savedAt: new Date(item.created_at).getTime()
+						});
+					}
+				}
+				return savedList;
+			} catch (err) {
+				console.error('Error in db.savedJobs.listByUser:', err.message);
+				throw err;
+			}
+		},
+
+		async isSaved(userId, jobId) {
+			if (!userId || !jobId) return false;
+			const supabase = getSupabase();
+			try {
+				const { data, error } = await supabase
+					.from('saved_jobs')
+					.select('id')
+					.eq('user_id', userId)
+					.eq('job_id', jobId)
+					.maybeSingle();
+
+				if (error || !data) return false;
+				return true;
+			} catch (e) {
+				return false;
+			}
+		},
+
+		async toggle(userId, job) {
+			if (!userId || !job || !job.id) return { isSaved: false };
+			const supabase = getSupabase();
+			const jobId = job.id;
+
+			try {
+				const { data: existing, error: checkError } = await supabase
+					.from('saved_jobs')
+					.select('id')
+					.eq('user_id', userId)
+					.eq('job_id', jobId)
+					.maybeSingle();
+
+				if (checkError) {
+					console.error('Error checking saved_jobs in DB:', checkError.message);
+					throw new Error(checkError.message);
+				}
+
+				if (existing) {
+					const { error: delError } = await supabase
+						.from('saved_jobs')
+						.delete()
+						.eq('user_id', userId)
+						.eq('job_id', jobId);
+
+					if (delError) {
+						console.error('Error deleting saved_job in DB:', delError.message);
+						throw new Error(delError.message);
+					}
+					return { isSaved: false };
+				} else {
+					const { error: insError } = await supabase
+						.from('saved_jobs')
+						.insert({
+							id: crypto.randomUUID(),
+							user_id: userId,
+							job_id: jobId,
+							created_at: new Date().toISOString()
+						});
+
+					if (insError) {
+						if (insError.code === '23505' || insError.message?.includes('duplicate key') || insError.message?.includes('unique')) {
+							// Already exists from a concurrent click, delete to untoggle
+							await supabase.from('saved_jobs').delete().eq('user_id', userId).eq('job_id', jobId);
+							return { isSaved: false };
+						}
+						console.error('Error inserting saved_job in DB:', insError.message);
+						throw new Error(insError.message);
+					}
+					return { isSaved: true };
+				}
+			} catch (err) {
+				console.error('Error toggling saved job in DB:', err.message);
+				throw err;
+			}
+		},
+
+		async remove(userId, jobId) {
+			if (!userId || !jobId) return;
+			const supabase = getSupabase();
+			try {
+				const { error } = await supabase
+					.from('saved_jobs')
+					.delete()
+					.eq('user_id', userId)
+					.eq('job_id', jobId);
+				if (error) throw new Error(error.message);
+			} catch (err) {
+				console.error('Error removing saved job:', err.message);
+				throw err;
+			}
+		},
+
+		async clearByUser(userId) {
+			if (!userId) return;
+			const supabase = getSupabase();
+			try {
+				const { error } = await supabase
+					.from('saved_jobs')
+					.delete()
+					.eq('user_id', userId);
+				if (error) throw new Error(error.message);
+			} catch (err) {
+				console.error('Error clearing saved jobs:', err.message);
+				throw err;
+			}
 		}
 	}
 };

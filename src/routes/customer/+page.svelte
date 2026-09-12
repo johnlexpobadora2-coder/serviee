@@ -18,6 +18,7 @@
 	import CustomerImagePreviewModal from '$lib/customer/CustomerImagePreviewModal.svelte';
 
 	import { getSmartCache, setSmartCache, removeSmartCache } from '$lib/smartCache.js';
+	import { savedJobs } from '$lib/savedJobs.svelte.js';
 
 	let { data, form } = $props();
 
@@ -299,9 +300,10 @@
 		});
 	});
 
-	// Restore chat tab & active conversation on page refresh
+	// Restore chat tab & active conversation on page refresh, and init saved jobs
 	onMount(() => {
 		try {
+			savedJobs.init(data.user?.id, data.initialSavedJobs);
 			const savedTab = sessionStorage.getItem('serviee_customer_tab');
 			if (savedTab === 'chat') {
 				activeTab = 'chat';

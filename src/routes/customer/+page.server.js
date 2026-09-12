@@ -10,9 +10,13 @@ export async function load({ locals }) {
 	}
 
 	const userLocation = locals.user.address || '';
-	const [initialFeed, availableLocations] = await Promise.all([
+	const [initialFeed, availableLocations, initialSavedJobs] = await Promise.all([
 		db.jobs.listFeedPaginated({ limit: 10, offset: 0, status: 'open', location: userLocation }),
-		db.jobs.getAvailableLocations('open')
+		db.jobs.getAvailableLocations('open'),
+		db.savedJobs.listByUser(locals.user.id).catch((err) => {
+			console.warn('Error loading saved jobs in server load:', err.message);
+			return [];
+		})
 	]);
 
 	return {
@@ -20,6 +24,7 @@ export async function load({ locals }) {
 		initialFeedTotalCount: initialFeed.totalCount,
 		initialFeedHasMore: initialFeed.hasMore,
 		availableLocations,
+		initialSavedJobs: initialSavedJobs || [],
 		user: locals.user
 	};
 }

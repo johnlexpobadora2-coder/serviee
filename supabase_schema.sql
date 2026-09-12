@@ -81,6 +81,15 @@ CREATE TABLE IF NOT EXISTS public.conversation_deletions (
     CONSTRAINT conv_deletions_unique UNIQUE (job_id, user_id, other_user_id)
 );
 
+-- Create saved_jobs table for bookmarking job listings
+CREATE TABLE IF NOT EXISTS public.saved_jobs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES public.users(id) ON DELETE CASCADE NOT NULL,
+    job_id UUID REFERENCES public.job_posts(id) ON DELETE CASCADE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    CONSTRAINT saved_jobs_user_job_unique UNIQUE (user_id, job_id)
+);
+
 -- Disable Row Level Security (RLS) for testing and ease of use with the anon key
 ALTER TABLE public.users DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.job_posts DISABLE ROW LEVEL SECURITY;
@@ -88,6 +97,7 @@ ALTER TABLE public.ratings_reviews DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.otps DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.conversation_deletions DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.saved_jobs DISABLE ROW LEVEL SECURITY;
 
 -- Fallback permissive RLS policies in case RLS is enabled on Supabase Dashboard
 DROP POLICY IF EXISTS "Allow anon all on users" ON public.users;
@@ -108,6 +118,9 @@ CREATE POLICY "Allow anon all on messages" ON public.messages FOR ALL USING (tru
 DROP POLICY IF EXISTS "Allow anon all on conversation_deletions" ON public.conversation_deletions;
 CREATE POLICY "Allow anon all on conversation_deletions" ON public.conversation_deletions FOR ALL USING (true) WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Allow anon all on saved_jobs" ON public.saved_jobs;
+CREATE POLICY "Allow anon all on saved_jobs" ON public.saved_jobs FOR ALL USING (true) WITH CHECK (true);
+
 -- Performance Indexes
 CREATE INDEX IF NOT EXISTS idx_job_posts_customer_id ON public.job_posts(customer_id);
 CREATE INDEX IF NOT EXISTS idx_job_posts_worker_id ON public.job_posts(worker_id);
@@ -125,6 +138,9 @@ CREATE INDEX IF NOT EXISTS idx_conv_del_job ON public.conversation_deletions(job
 CREATE INDEX IF NOT EXISTS idx_ratings_reviews_worker_id ON public.ratings_reviews(worker_id);
 CREATE INDEX IF NOT EXISTS idx_ratings_reviews_customer_id ON public.ratings_reviews(customer_id);
 
+CREATE INDEX IF NOT EXISTS idx_saved_jobs_user_id ON public.saved_jobs(user_id);
+CREATE INDEX IF NOT EXISTS idx_saved_jobs_job_id ON public.saved_jobs(job_id);
+
 -- Enable Supabase Realtime on messages table
 ALTER TABLE public.messages REPLICA IDENTITY FULL;
 
@@ -134,4 +150,3 @@ BEGIN
     ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
   END IF;
 END $$;
-
