@@ -215,40 +215,14 @@
 													{/if}
 												</div>
 
-												<div class="applicant-meta-row" style="margin-top: 0.25rem;">
-													<span class="rating-badge {applicant.average_rating > 0 ? 'rating-badge-positive' : applicant.average_rating < 0 ? 'rating-badge-negative' : 'rating-badge-zero'}" style="display: inline-flex; align-items: center; gap: 0.2rem;">
-														<Star size={11} fill="currentColor" /> {applicant.average_rating > 0 ? `+${applicant.average_rating}` : applicant.average_rating} rating
-													</span>
-													<span>•</span>
-													<span>Completed: {applicant.completed_jobs_count}</span>
-													<span>•</span>
-													<span>Phone: {applicant.phone}</span>
+												<div style="margin-top: 0.25rem; font-size: 0.85rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 0.15rem;">
+													{#if applicant.phone}
+														<span>Phone: <strong style="color: var(--text-primary); font-weight: 500;">{applicant.phone}</strong></span>
+													{/if}
+													{#if applicant.address}
+														<span style="font-size: 0.8rem; color: var(--text-muted);">Address: {applicant.address}</span>
+													{/if}
 												</div>
-
-												{#if applicant.bio}
-													<p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0.3rem 0 0 0; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-														{applicant.bio}
-													</p>
-												{/if}
-
-												{#if applicant.skills && applicant.skills.length > 0}
-													<div style="display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.35rem;">
-														{#each applicant.skills.slice(0, 3) as skill}
-															<span class="badge {getCategoryBadge(skill)}" style="font-size: 0.72rem; padding: 0.15rem 0.45rem; border-radius: var(--radius-full);">
-																{skill}
-															</span>
-														{/each}
-														{#if applicant.skills.length > 3}
-															<span style="font-size: 0.72rem; color: var(--text-muted); align-self: center;">
-																+{applicant.skills.length - 3} more
-															</span>
-														{/if}
-													</div>
-												{/if}
-
-												{#if applicant.address}
-													<span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">Address: {applicant.address}</span>
-												{/if}
 											</div>
 											<div class="applicant-actions">
 												<button 

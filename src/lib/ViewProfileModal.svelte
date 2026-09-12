@@ -107,16 +107,13 @@
 {#if show}
 	<!-- Modal Backdrop -->
 	<div
-		class="modal-backdrop"
+		class="modal-backdrop profile-modal-backdrop"
 		onclick={handleBackdropClick}
 		role="button"
 		tabindex="0"
 		onkeydown={(e) => e.key === "Escape" && closeModal()}
 	>
-		<div
-			class="modal-content profile-modal-content"
-			style="max-width: 720px; width: 95%; max-height: 90vh; overflow-y: auto; padding: 0; border-radius: var(--radius-lg);"
-		>
+		<div class="modal-content profile-modal-content">
 			<!-- Close Button Floating Header -->
 			<button
 				type="button"
@@ -178,52 +175,31 @@
 				{@const canChat = Boolean(onopenchat && !isSelf && !isClientViewingClient && !isWorkerViewingWorker)}
 
 				<!-- Header Cover & Avatar Section -->
-				<div
-					class="profile-header-card"
-					style="border: none; border-radius: 0;"
-				>
-					<div
-						class="profile-cover-banner"
-						style="height: 140px;"
-					></div>
-					<div
-						class="profile-header-content"
-						style="padding: 0 1.5rem 1.25rem 1.5rem;"
-					>
-						<div class="profile-header-row">
+				<div class="modal-profile-header">
+					<div class="modal-cover-banner"></div>
+					<div class="modal-header-content">
+						<div class="modal-header-row">
 							<!-- User Avatar & Core Header Info -->
-							<div
-								class="profile-user-left"
-								style="margin-top: -45px;"
-							>
-								<div
-									class="profile-avatar-wrapper"
-									style="width: 90px; height: 90px; font-size: 2.25rem;"
-								>
+							<div class="modal-user-left">
+								<div class="modal-avatar">
 									{user.name
 										? user.name.charAt(0).toUpperCase()
 										: "U"}
 								</div>
-								<div class="profile-user-text">
-									<h2
-										style="font-size: 1.5rem; margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;"
-									>
-										{user.name}
+								<div class="modal-user-text">
+									<div class="modal-user-name-row">
+										<h2 class="modal-user-name">
+											{user.name}
+										</h2>
 										{#if isSelf}
-											<span
-												style="font-size: 0.75rem; font-weight: 500; padding: 0.15rem 0.5rem; background: var(--accent-light); color: var(--accent-hover); border-radius: var(--radius-full);"
-												>You</span
-											>
+											<span class="modal-self-badge">You</span>
 										{/if}
-									</h2>
-									<div
-										style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;"
-									>
+									</div>
+									<div class="modal-user-badges">
 										<span
 											class="badge {user.role === 'worker'
 												? 'badge-gardening'
 												: 'badge-roofing'}"
-											style="font-size: 0.78rem;"
 										>
 											{user.role === "worker"
 												? "Handyman / Worker"
@@ -232,42 +208,34 @@
 										{#if user.role === "worker"}
 											{#if user.availability_status === 'busy'}
 												<span
-													class="badge"
-													style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); font-size: 0.76rem; display: inline-flex; align-items: center; gap: 0.35rem;"
+													class="badge badge-status-busy"
 												>
-													<span style="width: 7px; height: 7px; border-radius: 50%; background: #f59e0b;"></span>
+													<span class="status-dot-busy"></span>
 													Busy / On Leave
 												</span>
 											{:else}
 												<span
-													class="badge"
-													style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.76rem; display: inline-flex; align-items: center; gap: 0.35rem;"
+													class="badge badge-status-available"
 												>
-													<span style="width: 7px; height: 7px; border-radius: 50%; background: #10b981; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);"></span>
+													<span class="status-dot-available"></span>
 													Available for Jobs
 												</span>
 											{/if}
 										{/if}
-										<span
-											style="font-size: 0.8rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 0.25rem;"
-										>
-											<MapPin size={13} />
-											{user.address}
-										</span>
+										{#if user.address}
+											<span class="modal-user-location">
+												<MapPin size={12} />
+												{user.address}
+											</span>
+										{/if}
 									</div>
 								</div>
 							</div>
 
 							<!-- Quick Stat Pills -->
-							<div
-								class="profile-stats-group"
-								style="gap: 0.75rem;"
-							>
+							<div class="modal-stats-group">
 								{#if user.role === "worker"}
-									<div
-										class="profile-stat-item"
-										style="padding: 0.5rem 0.85rem; min-width: 90px;"
-									>
+									<div class="modal-stat-item">
 										<span
 											class="rating-badge {stats.average_rating >
 											0
@@ -275,70 +243,35 @@
 												: stats.average_rating < 0
 													? 'rating-badge-negative'
 													: 'rating-badge-zero'}"
-											style="font-size: 0.95rem; padding: 0.15rem 0.5rem;"
 										>
 											<Star
-												size={13}
+												size={12}
 												fill="currentColor"
 											/>
 											{stats.average_rating > 0
 												? `+${stats.average_rating}`
-												: stats.average_rating}
+												: stats.average_rating || 0}
 										</span>
-										<span
-											class="profile-stat-label"
-											style="font-size: 0.68rem;"
-											>Rating</span
-										>
+										<span class="modal-stat-label">Rating</span>
 									</div>
-									<div
-										class="profile-stat-item"
-										style="padding: 0.5rem 0.85rem; min-width: 90px;"
-									>
-										<span
-											class="profile-stat-value"
-											style="color: var(--success); font-size: 1.25rem;"
-											>{stats.completed_jobs_count ||
-												0}</span
-										>
-										<span
-											class="profile-stat-label"
-											style="font-size: 0.68rem;"
-											>Completed</span
-										>
+									<div class="modal-stat-item">
+										<span class="modal-stat-value success-val">
+											{stats.completed_jobs_count || 0}
+										</span>
+										<span class="modal-stat-label">Completed</span>
 									</div>
 								{:else}
-									<div
-										class="profile-stat-item"
-										style="padding: 0.5rem 0.85rem; min-width: 90px;"
-									>
-										<span
-											class="profile-stat-value"
-											style="font-size: 1.25rem;"
-											>{stats.total_posts_count ||
-												0}</span
-										>
-										<span
-											class="profile-stat-label"
-											style="font-size: 0.68rem;"
-											>Total Posts</span
-										>
+									<div class="modal-stat-item">
+										<span class="modal-stat-value">
+											{stats.total_posts_count || 0}
+										</span>
+										<span class="modal-stat-label">Total Posts</span>
 									</div>
-									<div
-										class="profile-stat-item"
-										style="padding: 0.5rem 0.85rem; min-width: 90px;"
-									>
-										<span
-											class="profile-stat-value"
-											style="color: var(--success); font-size: 1.25rem;"
-											>{stats.completed_jobs_count ||
-												0}</span
-										>
-										<span
-											class="profile-stat-label"
-											style="font-size: 0.68rem;"
-											>Done Jobs</span
-										>
+									<div class="modal-stat-item">
+										<span class="modal-stat-value success-val">
+											{stats.completed_jobs_count || 0}
+										</span>
+										<span class="modal-stat-label">Done Jobs</span>
 									</div>
 								{/if}
 							</div>
@@ -347,43 +280,28 @@
 				</div>
 
 				<!-- Navigation Tabs within Modal -->
-				<div
-					style="padding: 0.5rem 1rem 0 1rem; border-bottom: 1px solid var(--border-color); background: var(--bg-card); overflow-x: auto;"
-				>
-					<div
-						class="tabs-header"
-						style="margin-bottom: 0; border-bottom: none; gap: 0.35rem; padding: 0.25rem 0.25rem 0 0.25rem;"
-					>
+				<div class="modal-tabs-wrapper">
+					<div class="modal-tabs-nav">
 						<button
 							type="button"
-							class="tab-btn {activeTab === 'overview'
-								? 'active'
-								: ''}"
+							class="modal-tab-btn {activeTab === 'overview' ? 'active' : ''}"
 							onclick={() => (activeTab = "overview")}
-							style="padding: 0.6rem 0.9rem; font-size: 0.85rem;"
 						>
 							About Profile
 						</button>
 						{#if user.role === "worker"}
 							<button
 								type="button"
-								class="tab-btn {activeTab === 'reviews'
-									? 'active'
-									: ''}"
+								class="modal-tab-btn {activeTab === 'reviews' ? 'active' : ''}"
 								onclick={() => (activeTab = "reviews")}
-								style="padding: 0.6rem 0.9rem; font-size: 0.85rem;"
 							>
-								Reviews & Feedback ({stats.reviews?.length ||
-									0})
+								Reviews & Feedback ({stats.reviews?.length || 0})
 							</button>
 						{/if}
 						<button
 							type="button"
-							class="tab-btn {activeTab === 'history'
-								? 'active'
-								: ''}"
+							class="modal-tab-btn {activeTab === 'history' ? 'active' : ''}"
 							onclick={() => (activeTab = "history")}
-							style="padding: 0.6rem 0.9rem; font-size: 0.85rem;"
 						>
 							{user.role === "worker"
 								? "Service History"
@@ -393,37 +311,22 @@
 				</div>
 
 				<!-- Tab Content Container -->
-				<div
-					style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem;"
-				>
+				<div class="modal-body-container">
 					<!-- TAB 1: OVERVIEW & CONTACT -->
 					{#if activeTab === "overview"}
-						<div
-							style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;"
-						>
+						<div class="overview-grid">
 							<!-- Bio / About Me Card -->
-							<div
-								class="card"
-								style="padding: 1.25rem; background: var(--bg-input); grid-column: 1 / -1;"
-							>
-								<h4
-									style="font-size: 1rem; margin-bottom: 0.6rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.4rem;"
-								>
-									<FileText
-										size={16}
-										style="color: var(--accent);"
-									/> About / Pagpapakilala
+							<div class="modal-card full-span">
+								<h4 class="modal-card-title">
+									<FileText size={15} class="card-icon-accent" />
+									About / Pagpapakilala
 								</h4>
 								{#if user.bio && user.bio.trim()}
-									<p
-										style="color: var(--text-primary); font-size: 0.92rem; line-height: 1.6; white-space: pre-line; margin: 0; background: var(--bg-card); padding: 0.85rem 1rem; border-radius: var(--radius-md);"
-									>
+									<p class="modal-bio-text">
 										{user.bio.trim()}
 									</p>
 								{:else}
-									<p
-										style="color: var(--text-muted); font-size: 0.88rem; font-style: italic; margin: 0;"
-									>
+									<p class="modal-empty-text">
 										No bio provided yet.
 									</p>
 								{/if}
@@ -431,45 +334,31 @@
 
 							{#if user.role === "worker"}
 								<!-- Skills & Services Offered Card -->
-								<div
-									class="card"
-									style="padding: 1.25rem; background: var(--bg-input); grid-column: 1 / -1;"
-								>
-									<h4
-										style="font-size: 1rem; margin-bottom: 0.75rem; color: var(--text-primary); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;"
-									>
-										<span style="display: flex; align-items: center; gap: 0.4rem;">
-											<Wrench
-												size={16}
-												style="color: var(--accent);"
-											/> Skills & Services Offered
-										</span>
+								<div class="modal-card full-span">
+									<div class="modal-card-header-flex">
+										<h4 class="modal-card-title">
+											<Wrench size={15} class="card-icon-accent" />
+											Skills & Services Offered
+										</h4>
 										{#if user.skills && user.skills.length > 0}
-											<span
-												style="font-size: 0.75rem; color: var(--accent-hover); font-weight: 600; background: var(--accent-light); padding: 0.15rem 0.55rem; border-radius: var(--radius-full);"
-											>
+											<span class="service-count-pill">
 												{user.skills.length} {user.skills.length === 1 ? 'service' : 'services'}
 											</span>
 										{/if}
-									</h4>
+									</div>
 									{#if user.skills && user.skills.length > 0}
-										<div
-											style="display: flex; flex-wrap: wrap; gap: 0.45rem;"
-										>
+										<div class="modal-skills-wrap">
 											{#each user.skills as skill}
 												<span
-													class="badge {getCategoryBadge(skill)}"
-													style="font-size: 0.82rem; padding: 0.35rem 0.75rem; border-radius: var(--radius-full); display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 500;"
+													class="badge {getCategoryBadge(skill)} skill-pill"
 												>
-													<Check size={12} />
+													<Check size={11} />
 													{skill}
 												</span>
 											{/each}
 										</div>
 									{:else}
-										<p
-											style="color: var(--text-muted); font-size: 0.88rem; font-style: italic; margin: 0;"
-										>
+										<p class="modal-empty-text">
 											No specific skills listed yet.
 										</p>
 									{/if}
@@ -477,36 +366,23 @@
 							{/if}
 
 							<!-- Contact & Info Box -->
-							<div
-								class="card"
-								style="padding: 1.25rem; background: var(--bg-input);"
-							>
-								<h4
-									style="font-size: 1rem; margin-bottom: 1rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.4rem;"
-								>
-									<UserCheck
-										size={16}
-										style="color: var(--accent);"
-									/> User Details
+							<div class="modal-card">
+								<h4 class="modal-card-title">
+									<UserCheck size={15} class="card-icon-accent" />
+									User Details
 								</h4>
-								<div
-									style="display: flex; flex-direction: column; gap: 0.85rem; font-size: 0.9rem;"
-								>
+								<div class="details-list">
 									{#if user.role === "worker"}
-										<div
-											style="display: flex; align-items: center; gap: 0.6rem;"
-										>
+										<div class="detail-row">
 											<Activity
-												size={16}
+												size={15}
 												style="color: {user.availability_status === 'busy' ? '#f59e0b' : 'var(--success)'}; flex-shrink: 0;"
 											/>
-											<div>
-												<span
-													style="font-size: 0.75rem; color: var(--text-muted); display: block;"
-													>Availability Status</span
-												>
+											<div class="detail-info">
+												<span class="detail-label">Availability Status</span>
 												<strong
-													style="color: {user.availability_status === 'busy' ? '#f59e0b' : 'var(--success)'}; font-size: 0.9rem;"
+													class="detail-value"
+													style="color: {user.availability_status === 'busy' ? '#f59e0b' : 'var(--success)'};"
 												>
 													{user.availability_status === 'busy' ? 'Busy / On Leave' : 'Available for Jobs'}
 												</strong>
@@ -514,88 +390,40 @@
 										</div>
 									{/if}
 
-									<div
-										style="display: flex; align-items: center; gap: 0.6rem;"
-									>
-										<Mail
-											size={16}
-											style="color: var(--text-muted); flex-shrink: 0;"
-										/>
-										<div style="min-width: 0; word-break: break-all;">
-											<span
-												style="font-size: 0.75rem; color: var(--text-muted); display: block;"
-												>Email</span
-											>
-											<strong
-												style="color: var(--text-primary);"
-												>{user.email}</strong
-											>
+									<div class="detail-row">
+										<Mail size={15} class="detail-icon" />
+										<div class="detail-info">
+											<span class="detail-label">Email</span>
+											<strong class="detail-value">{user.email || "Not provided"}</strong>
 										</div>
 									</div>
 
-									<div
-										style="display: flex; align-items: center; gap: 0.6rem;"
-									>
-										<Phone
-											size={16}
-											style="color: var(--text-muted); flex-shrink: 0;"
-										/>
-										<div>
-											<span
-												style="font-size: 0.75rem; color: var(--text-muted); display: block;"
-												>Phone Number</span
-											>
-											<strong
-												style="color: var(--accent-hover); font-family: monospace; font-size: 1rem;"
-												>{user.phone}</strong
-											>
+									<div class="detail-row">
+										<Phone size={15} class="detail-icon" />
+										<div class="detail-info">
+											<span class="detail-label">Phone Number</span>
+											<strong class="detail-value phone-value">{user.phone || "Not provided"}</strong>
 										</div>
 									</div>
 
-									<div
-										style="display: flex; align-items: center; gap: 0.6rem;"
-									>
-										<MapPin
-											size={16}
-											style="color: var(--text-muted); flex-shrink: 0;"
-										/>
-										<div>
-											<span
-												style="font-size: 0.75rem; color: var(--text-muted); display: block;"
-												>City/Municipality</span
-											>
-											<strong
-												style="color: var(--text-primary);"
-												>{user.address}</strong
-											>
+									<div class="detail-row">
+										<MapPin size={15} class="detail-icon" />
+										<div class="detail-info">
+											<span class="detail-label">City / Municipality</span>
+											<strong class="detail-value">{user.address || "Not specified"}</strong>
 										</div>
 									</div>
 
 									{#if user.created_at}
-										<div
-											style="display: flex; align-items: center; gap: 0.6rem;"
-										>
-											<Calendar
-												size={16}
-												style="color: var(--text-muted); flex-shrink: 0;"
-											/>
-											<div>
-												<span
-													style="font-size: 0.75rem; color: var(--text-muted); display: block;"
-													>Member Since</span
-												>
-												<strong
-													style="color: var(--text-secondary);"
-												>
-													{new Date(
-														user.created_at,
-													).toLocaleDateString(
-														"en-PH",
-														{
-															month: "long",
-															year: "numeric",
-														},
-													)}
+										<div class="detail-row">
+											<Calendar size={15} class="detail-icon" />
+											<div class="detail-info">
+												<span class="detail-label">Member Since</span>
+												<strong class="detail-value muted-val">
+													{new Date(user.created_at).toLocaleDateString("en-PH", {
+														month: "long",
+														year: "numeric",
+													})}
 												</strong>
 											</div>
 										</div>
@@ -604,119 +432,61 @@
 							</div>
 
 							<!-- Account Performance Summary Box -->
-							<div
-								class="card"
-								style="padding: 1.25rem; background: var(--bg-input); display: flex; flex-direction: column; justify-content: space-between;"
-							>
+							<div class="modal-card performance-card">
 								<div>
-									<h4
-										style="font-size: 1rem; margin-bottom: 1rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.4rem;"
-									>
-										<Award
-											size={16}
-											style="color: var(--warning);"
-										/> Account Performance
+									<h4 class="modal-card-title">
+										<Award size={15} style="color: var(--warning);" />
+										Account Performance
 									</h4>
 
 									{#if user.role === "worker"}
-										<div
-											style="display: flex; flex-direction: column; gap: 0.75rem;"
-										>
-											<div
-												style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;"
-											>
+										<div class="perf-list">
+											<div class="perf-row">
+												<span class="perf-label">Overall Rating Score:</span>
 												<span
-													style="color: var(--text-secondary); font-size: 0.85rem;"
-													>Overall Rating Score:</span
-												>
-												<span
-													class="rating-badge {stats.average_rating >
-													0
+													class="rating-badge {stats.average_rating > 0
 														? 'rating-badge-positive'
-														: stats.average_rating <
-															  0
+														: stats.average_rating < 0
 															? 'rating-badge-negative'
 															: 'rating-badge-zero'}"
 												>
-													<Star
-														size={12}
-														fill="currentColor"
-													/>
+													<Star size={11} fill="currentColor" />
 													{stats.average_rating > 0
 														? `+${stats.average_rating}`
-														: stats.average_rating}
+														: stats.average_rating || 0}
 												</span>
 											</div>
-											<div
-												style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;"
-											>
-												<span
-													style="color: var(--text-secondary); font-size: 0.85rem;"
-													>Total Reviews Received:</span
-												>
-												<strong
-													style="color: var(--text-primary);"
-													>{stats.total_reviews || 0} reviews</strong
-												>
+											<div class="perf-row">
+												<span class="perf-label">Total Reviews Received:</span>
+												<strong class="perf-val">{stats.total_reviews || 0} reviews</strong>
 											</div>
-											<div
-												style="display: flex; justify-content: space-between; align-items: center;"
-											>
-												<span
-													style="color: var(--text-secondary); font-size: 0.85rem;"
-													>Completed Sideline Tasks:</span
-												>
-												<strong
-													style="color: var(--success);"
-													>{stats.completed_jobs_count ||
-														0} completed</strong
-												>
+											<div class="perf-row">
+												<span class="perf-label">Completed Tasks:</span>
+												<strong class="perf-val success-val">{stats.completed_jobs_count || 0} completed</strong>
 											</div>
 										</div>
 									{:else}
-										<div
-											style="display: flex; flex-direction: column; gap: 0.75rem;"
-										>
-											<div
-												style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;"
-											>
-												<span
-													style="color: var(--text-secondary); font-size: 0.85rem;"
-													>Total Jobs Posted:</span
-												>
-												<strong
-													style="color: var(--text-primary);"
-													>{stats.total_posts_count ||
-														0} job posts</strong
-												>
+										<div class="perf-list">
+											<div class="perf-row">
+												<span class="perf-label">Total Jobs Posted:</span>
+												<strong class="perf-val">{stats.total_posts_count || 0} jobs</strong>
 											</div>
-											<div
-												style="display: flex; justify-content: space-between; align-items: center;"
-											>
-												<span
-													style="color: var(--text-secondary); font-size: 0.85rem;"
-													>Successfully Completed:</span
-												>
-												<strong
-													style="color: var(--success);"
-													>{stats.completed_jobs_count ||
-														0} finished</strong
-												>
+											<div class="perf-row">
+												<span class="perf-label">Successfully Completed:</span>
+												<strong class="perf-val success-val">{stats.completed_jobs_count || 0} finished</strong>
 											</div>
 										</div>
 									{/if}
 								</div>
 
 								{#if canChat}
-									<div style="margin-top: 1.5rem;">
+									<div class="perf-chat-btn-wrap">
 										<button
 											type="button"
-											class="btn btn-primary"
-											style="width: 100%; padding: 0.65rem;"
+											class="btn btn-primary chat-direct-btn"
 											onclick={handleMessageClick}
 										>
-											<MessageSquare size={16} /> Send Direct
-											Message
+											<MessageSquare size={15} /> Send Direct Message
 										</button>
 									</div>
 								{/if}
@@ -726,25 +496,11 @@
 
 					<!-- TAB 2: REVIEWS & FEEDBACK (FOR WORKERS) -->
 					{#if activeTab === "reviews" && user.role === "worker"}
-						<div
-							style="display: flex; flex-direction: column; gap: 1rem;"
-						>
+						<div class="reviews-container">
 							{#if !stats.reviews || stats.reviews.length === 0}
-								<div
-									class="card"
-									style="text-align: center; padding: 3rem 1.5rem; border-style: dashed; background: var(--bg-input);"
-								>
-									<h4
-										style="font-size: 1.1rem; margin-bottom: 0.35rem;"
-									>
-										No reviews yet
-									</h4>
-									<p
-										style="color: var(--text-secondary); font-size: 0.85rem;"
-									>
-										This worker has not received any
-										feedback ratings yet.
-									</p>
+								<div class="modal-card empty-card">
+									<h4>No reviews yet</h4>
+									<p>This worker has not received any feedback ratings yet.</p>
 								</div>
 							{:else}
 								{@const sortedReviews = [...stats.reviews].sort(
@@ -753,59 +509,30 @@
 										new Date(a.created_at).getTime(),
 								)}
 								{#each sortedReviews as rev (rev.id)}
-									<div
-										class="card"
-										style="padding: 1rem 1.25rem; background: var(--bg-input); display: flex; flex-direction: column; gap: 0.5rem;"
-									>
-										<div
-											style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;"
-										>
-											<div
-												style="display: flex; align-items: center; gap: 0.5rem;"
-											>
-												<strong
-													style="color: var(--text-primary); font-size: 0.95rem;"
-													>{rev.customer_name}</strong
-												>
-												<span
-													style="font-size: 0.75rem; color: var(--text-muted);"
-												>
-													{new Date(
-														rev.created_at,
-													).toLocaleDateString(
-														"en-PH",
-														{
-															month: "short",
-															day: "numeric",
-															year: "numeric",
-														},
-													)}
+									<div class="modal-card review-item-card">
+										<div class="review-header">
+											<div class="review-user-info">
+												<strong class="review-author">{rev.customer_name}</strong>
+												<span class="review-date">
+													{new Date(rev.created_at).toLocaleDateString("en-PH", {
+														month: "short",
+														day: "numeric",
+														year: "numeric",
+													})}
 												</span>
 											</div>
 											<span
-												class="rating-badge {rev.rating >
-												0
+												class="rating-badge {rev.rating > 0
 													? 'rating-badge-positive'
 													: rev.rating < 0
 														? 'rating-badge-negative'
 														: 'rating-badge-zero'}"
 											>
-												<Star
-													size={11}
-													fill="currentColor"
-												/>
-												{rev.rating > 0
-													? `+${rev.rating}`
-													: rev.rating} Star{Math.abs(
-													rev.rating,
-												) === 1
-													? ""
-													: "s"}
+												<Star size={11} fill="currentColor" />
+												{rev.rating > 0 ? `+${rev.rating}` : rev.rating} Star{Math.abs(rev.rating) === 1 ? "" : "s"}
 											</span>
 										</div>
-										<p
-											style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; font-style: italic;"
-										>
+										<p class="review-body">
 											"{rev.review_text}"
 										</p>
 									</div>
@@ -816,149 +543,69 @@
 
 					<!-- TAB 3: SERVICE / JOB HISTORY -->
 					{#if activeTab === "history"}
-						<div
-							style="display: flex; flex-direction: column; gap: 1rem;"
-						>
+						<div class="history-container">
 							{#if user.role === "customer"}
 								<!-- Sub-tabs header for customer modal view -->
-								<div
-									class="tabs-header"
-									style="margin-bottom: 0.25rem;"
-								>
+								<div class="history-subtabs">
 									<button
 										type="button"
-										class="tab-btn {customerSubTab ===
-										'posted'
-											? 'active'
-											: ''}"
-										onclick={() =>
-											(customerSubTab = "posted")}
-										style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; padding: 0.4rem 0.75rem;"
+										class="subtab-btn {customerSubTab === 'posted' ? 'active' : ''}"
+										onclick={() => (customerSubTab = "posted")}
 									>
-										<ClipboardList size={14} /> Job Posted ({allPosts.length})
+										<ClipboardList size={13} /> Job Posted ({allPosts.length})
 									</button>
 									<button
 										type="button"
-										class="tab-btn {customerSubTab ===
-										'completed'
-											? 'active'
-											: ''}"
-										onclick={() =>
-											(customerSubTab = "completed")}
-										style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; padding: 0.4rem 0.75rem;"
+										class="subtab-btn {customerSubTab === 'completed' ? 'active' : ''}"
+										onclick={() => (customerSubTab = "completed")}
 									>
-										<CheckCircle2 size={14} /> Completed Jobs
-										({completedJobs.length})
+										<CheckCircle2 size={13} /> Completed Jobs ({completedJobs.length})
 									</button>
 								</div>
 
 								{#if customerSubTab === "posted"}
 									{#if allPosts.length === 0}
-										<div
-											class="card"
-											style="text-align: center; padding: 3rem 1.5rem; border-style: dashed; background: var(--bg-input);"
-										>
-											<h4
-												style="font-size: 1.1rem; margin-bottom: 0.35rem;"
-											>
-												No jobs posted yet
-											</h4>
-											<p
-												style="color: var(--text-secondary); font-size: 0.85rem;"
-											>
-												This customer has not posted any
-												jobs yet.
-											</p>
+										<div class="modal-card empty-card">
+											<h4>No jobs posted yet</h4>
+											<p>This customer has not posted any jobs yet.</p>
 										</div>
 									{:else}
 										{#each allPosts as job (job.id)}
-											<div
-												class="card"
-												style="padding: 1rem 1.25rem; background: var(--bg-input); display: flex; flex-direction: column; gap: 0.5rem;"
-											>
-												<div
-													style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; flex-wrap: wrap;"
-												>
-													<div>
-														<h4
-															style="font-size: 1.1rem; color: var(--text-primary); margin-bottom: 0.25rem;"
-														>
-															{job.title}
-														</h4>
-														<div
-															style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;"
-														>
-															<span
-																class="badge {getCategoryBadge(
-																	job.category,
-																)}"
-																style="font-size: 0.7rem;"
-																>{job.category}</span
-															>
+											<div class="modal-card job-history-card">
+												<div class="job-card-top">
+													<div class="job-card-title-group">
+														<h4 class="job-card-title">{job.title}</h4>
+														<div class="job-card-meta">
+															<span class="badge {getCategoryBadge(job.category)} meta-badge">
+																{job.category}
+															</span>
 															{#if job.status === "completed"}
-																<span
-																	class="status status-completed"
-																	style="font-size: 0.7rem; padding: 0.1rem 0.4rem;"
-																	>Completed</span
-																>
+																<span class="status status-completed meta-status">Completed</span>
 															{:else if job.status === "in_progress"}
-																<span
-																	class="status status-in-progress"
-																	style="font-size: 0.7rem; padding: 0.1rem 0.4rem;"
-																	>In Progress</span
-																>
+																<span class="status status-in-progress meta-status">In Progress</span>
 															{:else}
-																<span
-																	class="status status-open"
-																	style="font-size: 0.7rem; padding: 0.1rem 0.4rem;"
-																	>Open</span
-																>
+																<span class="status status-open meta-status">Open</span>
 															{/if}
 															{#if job.created_at}
-																<span
-																	style="font-size: 0.7rem; color: var(--text-muted);"
-																>
-																	Posted: {new Date(
-																		job.created_at,
-																	).toLocaleDateString(
-																		"en-PH",
-																		{
-																			month: "short",
-																			day: "numeric",
-																			year: "numeric",
-																			hour: "numeric",
-																			minute: "2-digit",
-																		},
-																	)}
+																<span class="job-card-date">
+																	{new Date(job.created_at).toLocaleDateString("en-PH", {
+																		month: "short",
+																		day: "numeric",
+																		year: "numeric",
+																	})}
 																</span>
 															{/if}
 														</div>
 													</div>
-													<strong
-														style="color: var(--accent); font-size: 1.1rem;"
-														>₱{job.budget?.toLocaleString()}</strong
-													>
+													<strong class="job-card-budget">₱{job.budget?.toLocaleString()}</strong>
 												</div>
-												<p
-													style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.45;"
-												>
-													{job.description}
-												</p>
-												<div
-													style="font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; margin-top: 0.25rem; border-top: 1px solid var(--border-color); padding-top: 0.5rem;"
-												>
-													<span
-														>Location: {job.location}</span
-													>
+												{#if job.description}
+													<p class="job-card-desc">{job.description}</p>
+												{/if}
+												<div class="job-card-bottom">
+													<span><MapPin size={11} /> {job.location}</span>
 													{#if job.assignedWorker}
-														<span
-															>Worker: <strong
-																style="color: var(--text-primary);"
-																>{job
-																	.assignedWorker
-																	.name}</strong
-															></span
-														>
+														<span>Worker: <strong class="highlight-worker">{job.assignedWorker.name}</strong></span>
 													{/if}
 												</div>
 											</div>
@@ -966,110 +613,46 @@
 									{/if}
 								{:else if customerSubTab === "completed"}
 									{#if completedJobs.length === 0}
-										<div
-											class="card"
-											style="text-align: center; padding: 3rem 1.5rem; border-style: dashed; background: var(--bg-input);"
-										>
-											<h4
-												style="font-size: 1.1rem; margin-bottom: 0.35rem;"
-											>
-												No completed jobs recorded
-											</h4>
-											<p
-												style="color: var(--text-secondary); font-size: 0.85rem;"
-											>
-												No completed job transactions
-												recorded for this customer
-												profile.
-											</p>
+										<div class="modal-card empty-card">
+											<h4>No completed jobs recorded</h4>
+											<p>No completed job transactions recorded for this customer profile.</p>
 										</div>
 									{:else}
 										{#each completedJobs as job (job.id)}
-											<div
-												class="card"
-												style="padding: 1rem 1.25rem; background: var(--bg-input); display: flex; flex-direction: column; gap: 0.5rem;"
-											>
-												<div
-													style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; flex-wrap: wrap;"
-												>
-													<div>
-														<h4
-															style="font-size: 1.1rem; color: var(--text-primary); margin-bottom: 0.25rem;"
-														>
-															{job.title}
-														</h4>
-														<span
-															class="badge {getCategoryBadge(
-																job.category,
-															)}"
-															style="font-size: 0.7rem;"
-															>{job.category}</span
-														>
+											<div class="modal-card job-history-card">
+												<div class="job-card-top">
+													<div class="job-card-title-group">
+														<h4 class="job-card-title">{job.title}</h4>
+														<span class="badge {getCategoryBadge(job.category)} meta-badge">
+															{job.category}
+														</span>
 													</div>
-													<strong
-														style="color: var(--accent); font-size: 1.1rem;"
-														>₱{job.budget?.toLocaleString()}</strong
-													>
+													<strong class="job-card-budget">₱{job.budget?.toLocaleString()}</strong>
 												</div>
-												<p
-													style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.45;"
-												>
-													{job.description}
-												</p>
+												{#if job.description}
+													<p class="job-card-desc">{job.description}</p>
+												{/if}
 
-												<div
-													style="border-top: 1px solid var(--border-color); padding-top: 0.5rem; margin-top: 0.25rem; display: flex; flex-direction: column; gap: 0.35rem;"
-												>
-													<div
-														style="font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;"
-													>
-														<span
-															>Completed by: <strong
-																style="color: var(--text-primary);"
-																>{job
-																	.assignedWorker
-																	?.name ||
-																	"Worker"}</strong
-															></span
-														>
+												<div class="completed-job-meta-box">
+													<div class="completed-job-meta-row">
+														<span>Completed by: <strong class="highlight-worker">{job.assignedWorker?.name || "Worker"}</strong></span>
 														{#if job.review}
 															<span
-																class="rating-badge {job
-																	.review
-																	.rating > 0
+																class="rating-badge {job.review.rating > 0
 																	? 'rating-badge-positive'
-																	: job.review
-																				.rating <
-																		  0
+																	: job.review.rating < 0
 																		? 'rating-badge-negative'
-																		: 'rating-badge-zero'}"
-																style="font-size: 0.75rem; padding: 0.1rem 0.4rem;"
+																		: 'rating-badge-zero'} compact-rating"
 															>
-																<Star
-																	size={11}
-																	fill="currentColor"
-																/> Rating Given:
-																{job.review
-																	.rating > 0
-																	? `+${job.review.rating}`
-																	: job.review
-																			.rating}
-																Star{Math.abs(
-																	job.review
-																		.rating,
-																) === 1
-																	? ""
-																	: "s"}
+																<Star size={10} fill="currentColor" />
+																{job.review.rating > 0 ? `+${job.review.rating}` : job.review.rating} Star{Math.abs(job.review.rating) === 1 ? "" : "s"}
 															</span>
 														{/if}
 													</div>
 
 													{#if job.review && job.review.review_text}
-														<div
-															style="background: var(--bg-input); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); font-size: 0.82rem; color: var(--text-secondary); font-style: italic; border: 1px solid var(--border-color);"
-														>
-															"{job.review
-																.review_text}"
+														<div class="completed-job-review-quote">
+															"{job.review.review_text}"
 														</div>
 													{/if}
 												</div>
@@ -1080,64 +663,28 @@
 							{:else}
 								<!-- Worker Service History -->
 								{#if completedJobs.length === 0}
-									<div
-										class="card"
-										style="text-align: center; padding: 3rem 1.5rem; border-style: dashed; background: var(--bg-input);"
-									>
-										<h4
-											style="font-size: 1.1rem; margin-bottom: 0.35rem;"
-										>
-											No completed jobs recorded
-										</h4>
-										<p
-											style="color: var(--text-secondary); font-size: 0.85rem;"
-										>
-											No past completed job records found
-											for this profile.
-										</p>
+									<div class="modal-card empty-card">
+										<h4>No completed jobs recorded</h4>
+										<p>No past completed job records found for this profile.</p>
 									</div>
 								{:else}
 									{#each completedJobs as job (job.id)}
-										<div
-											class="card"
-											style="padding: 1rem 1.25rem; background: var(--bg-input); display: flex; flex-direction: column; gap: 0.5rem;"
-										>
-											<div
-												style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; flex-wrap: wrap;"
-											>
-												<div>
-													<h4
-														style="font-size: 1.1rem; color: var(--text-primary); margin-bottom: 0.25rem;"
-													>
-														{job.title}
-													</h4>
-													<span
-														class="badge {getCategoryBadge(
-															job.category,
-														)}"
-														style="font-size: 0.7rem;"
-														>{job.category}</span
-													>
+										<div class="modal-card job-history-card">
+											<div class="job-card-top">
+												<div class="job-card-title-group">
+													<h4 class="job-card-title">{job.title}</h4>
+													<span class="badge {getCategoryBadge(job.category)} meta-badge">
+														{job.category}
+													</span>
 												</div>
-												<strong
-													style="color: var(--accent); font-size: 1.1rem;"
-													>₱{job.budget?.toLocaleString()}</strong
-												>
+												<strong class="job-card-budget">₱{job.budget?.toLocaleString()}</strong>
 											</div>
-											<p
-												style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.45;"
-											>
-												{job.description}
-											</p>
-											<div
-												style="font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; margin-top: 0.25rem; border-top: 1px solid var(--border-color); padding-top: 0.5rem;"
-											>
-												<span
-													>Location: {job.location}</span
-												>
-												<span
-													style="color: var(--success); display: inline-flex; align-items: center; gap: 0.25rem;"
-												>
+											{#if job.description}
+												<p class="job-card-desc">{job.description}</p>
+											{/if}
+											<div class="job-card-bottom">
+												<span><MapPin size={11} /> {job.location}</span>
+												<span class="job-completed-tag">
 													<CheckCircle2 size={12} /> Completed
 												</span>
 											</div>
@@ -1150,12 +697,10 @@
 				</div>
 
 				<!-- Modal Footer Actions -->
-				<div
-					style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); background: var(--bg-card); display: flex; justify-content: flex-end; gap: 0.75rem;"
-				>
+				<div class="modal-footer">
 					<button
 						type="button"
-						class="btn btn-secondary"
+						class="btn btn-secondary modal-footer-btn"
 						onclick={closeModal}
 					>
 						Close Profile
@@ -1163,10 +708,10 @@
 					{#if canChat}
 						<button
 							type="button"
-							class="btn btn-primary"
+							class="btn btn-primary modal-footer-btn"
 							onclick={handleMessageClick}
 						>
-							<MessageSquare size={15} /> Open Message Chat
+							<MessageSquare size={14} /> Open Chat
 						</button>
 					{/if}
 				</div>
@@ -1176,28 +721,812 @@
 {/if}
 
 <style>
-	.close-modal-btn {
-		position: absolute;
-		top: 1rem;
-		right: 1rem;
-		background: rgba(15, 23, 42, 0.55);
+	/* Modal Backdrop & Container */
+	.profile-modal-backdrop {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100vw;
+		height: 100vh;
+		background-color: rgba(0, 0, 0, 0.75);
 		backdrop-filter: blur(8px);
 		-webkit-backdrop-filter: blur(8px);
-		border: 1px solid rgba(255, 255, 255, 0.3);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 99999;
+		padding: 1.5rem;
+		box-sizing: border-box;
+	}
+
+	.profile-modal-content {
+		max-width: 680px;
+		width: 100%;
+		max-height: 90vh;
+		overflow-y: auto;
+		overflow-x: hidden;
+		padding: 0 !important;
+		border-radius: var(--radius-lg);
+		background-color: var(--bg-card);
+		border: 1px solid var(--border-color);
+		box-shadow: 0 20px 45px rgba(0, 0, 0, 0.5);
+		position: relative;
+		animation: modalSlideUp var(--transition-smooth);
+		box-sizing: border-box;
+	}
+
+	/* Floating Close Button */
+	.close-modal-btn {
+		position: absolute;
+		top: 0.75rem;
+		right: 0.75rem;
+		background: rgba(15, 23, 42, 0.65);
+		backdrop-filter: blur(8px);
+		-webkit-backdrop-filter: blur(8px);
+		border: 1px solid rgba(255, 255, 255, 0.25);
 		color: #ffffff;
-		width: 36px;
-		height: 36px;
+		width: 34px;
+		height: 34px;
 		border-radius: 50%;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		cursor: pointer;
-		z-index: 20;
-		transition: background 0.2s ease, border-color 0.2s ease;
+		z-index: 30;
+		transition: all 0.2s ease;
 	}
 	.close-modal-btn:hover {
-		background: rgba(15, 23, 42, 0.85);
+		background: rgba(15, 23, 42, 0.9);
 		border-color: rgba(255, 255, 255, 0.6);
+		transform: scale(1.05);
+	}
+
+	/* Modal Header Layout */
+	.modal-profile-header {
+		position: relative;
+		border-bottom: 1px solid var(--border-color);
+		background: var(--bg-card);
+	}
+
+	.modal-cover-banner {
+		height: 120px;
+		background: linear-gradient(135deg, hsl(230, 40%, 15%) 0%, hsl(260, 50%, 20%) 50%, hsl(280, 45%, 15%) 100%);
+		position: relative;
+	}
+
+	.modal-header-content {
+		padding: 0 1.25rem 1.15rem 1.25rem;
+		position: relative;
+	}
+
+	.modal-header-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-end;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+
+	.modal-user-left {
+		display: flex;
+		align-items: flex-end;
+		gap: 1rem;
+		margin-top: -42px;
+	}
+
+	.modal-avatar {
+		width: 82px;
+		height: 82px;
+		border-radius: var(--radius-full);
+		border: 4px solid var(--bg-card);
+		background: linear-gradient(135deg, var(--accent) 0%, hsl(265, 75%, 45%) 100%);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 2rem;
+		font-weight: 800;
 		color: #ffffff;
+		box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+		z-index: 2;
+		flex-shrink: 0;
+	}
+
+	.modal-user-text {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		min-width: 0;
+	}
+
+	.modal-user-name-row {
+		display: flex;
+		align-items: center;
+		gap: 0.45rem;
+		flex-wrap: wrap;
+	}
+
+	.modal-user-name {
+		font-size: 1.35rem;
+		font-weight: 700;
+		line-height: 1.2;
+		margin: 0;
+		color: var(--text-primary);
+		word-break: break-word;
+	}
+
+	.modal-self-badge {
+		font-size: 0.72rem;
+		font-weight: 600;
+		padding: 0.12rem 0.45rem;
+		background: var(--accent-light);
+		color: var(--accent-hover);
+		border-radius: var(--radius-full);
+	}
+
+	.modal-user-badges {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		flex-wrap: wrap;
+	}
+
+	.badge-status-busy {
+		background: rgba(245, 158, 11, 0.15);
+		color: #f59e0b;
+		border: 1px solid rgba(245, 158, 11, 0.3);
+		font-size: 0.74rem;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+	}
+
+	.status-dot-busy {
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background: #f59e0b;
+	}
+
+	.badge-status-available {
+		background: rgba(16, 185, 129, 0.15);
+		color: #10b981;
+		border: 1px solid rgba(16, 185, 129, 0.3);
+		font-size: 0.74rem;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+	}
+
+	.status-dot-available {
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background: #10b981;
+		box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+	}
+
+	.modal-user-location {
+		font-size: 0.78rem;
+		color: var(--text-muted);
+		display: inline-flex;
+		align-items: center;
+		gap: 0.2rem;
+	}
+
+	.modal-stats-group {
+		display: flex;
+		gap: 0.5rem;
+		align-items: center;
+	}
+
+	.modal-stat-item {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		background: var(--bg-input);
+		border: 1px solid var(--border-color);
+		padding: 0.4rem 0.8rem;
+		border-radius: var(--radius-md);
+		min-width: 85px;
+	}
+
+	.modal-stat-value {
+		font-size: 1.15rem;
+		font-weight: 800;
+		color: var(--text-primary);
+		line-height: 1.2;
+	}
+
+	.modal-stat-value.success-val {
+		color: var(--success);
+	}
+
+	.modal-stat-label {
+		font-size: 0.65rem;
+		color: var(--text-muted);
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		margin-top: 0.15rem;
+	}
+
+	/* Modal Tabs */
+	.modal-tabs-wrapper {
+		padding: 0 1rem;
+		border-bottom: 1px solid var(--border-color);
+		background: var(--bg-card);
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+		scrollbar-width: none;
+	}
+	.modal-tabs-wrapper::-webkit-scrollbar {
+		display: none;
+	}
+
+	.modal-tabs-nav {
+		display: flex;
+		gap: 0.4rem;
+		white-space: nowrap;
+		margin-bottom: -1px;
+	}
+
+	.modal-tab-btn {
+		padding: 0.65rem 0.85rem;
+		font-size: 0.84rem;
+		font-weight: 600;
+		color: var(--text-secondary);
+		border: none;
+		border-bottom: 2px solid transparent;
+		background: transparent;
+		cursor: pointer;
+		transition: all 0.2s ease;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+	}
+	.modal-tab-btn:hover {
+		color: var(--text-primary);
+	}
+	.modal-tab-btn.active {
+		color: var(--accent);
+		border-bottom-color: var(--accent);
+	}
+
+	/* Modal Body Container */
+	.modal-body-container {
+		padding: 1.25rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1.15rem;
+	}
+
+	.overview-grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 1rem;
+	}
+
+	.modal-card {
+		background: var(--bg-input);
+		border: 1px solid var(--border-color);
+		border-radius: var(--radius-md);
+		padding: 1.1rem;
+	}
+
+	.modal-card.full-span {
+		grid-column: 1 / -1;
+	}
+
+	.modal-card-title {
+		font-size: 0.95rem;
+		font-weight: 600;
+		margin-bottom: 0.6rem;
+		color: var(--text-primary);
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+	}
+
+	.modal-card-header-flex {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+		margin-bottom: 0.6rem;
+	}
+	.modal-card-header-flex .modal-card-title {
+		margin-bottom: 0;
+	}
+
+	:global(.card-icon-accent) {
+		color: var(--accent);
+	}
+
+	.service-count-pill {
+		font-size: 0.72rem;
+		color: var(--accent-hover);
+		font-weight: 600;
+		background: var(--accent-light);
+		padding: 0.12rem 0.5rem;
+		border-radius: var(--radius-full);
+	}
+
+	.modal-bio-text {
+		color: var(--text-primary);
+		font-size: 0.88rem;
+		line-height: 1.55;
+		white-space: pre-line;
+		margin: 0;
+		background: var(--bg-card);
+		padding: 0.75rem 0.9rem;
+		border-radius: var(--radius-sm);
+		border: 1px solid var(--border-color);
+		word-break: break-word;
+	}
+
+	.modal-empty-text {
+		color: var(--text-muted);
+		font-size: 0.85rem;
+		font-style: italic;
+		margin: 0;
+	}
+
+	.modal-skills-wrap {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+	}
+
+	.skill-pill {
+		font-size: 0.78rem;
+		padding: 0.28rem 0.65rem;
+		border-radius: var(--radius-full);
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+		font-weight: 500;
+	}
+
+	/* Details List */
+	.details-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	.detail-row {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.55rem;
+	}
+
+	:global(.detail-icon) {
+		color: var(--text-muted);
+		flex-shrink: 0;
+		margin-top: 2px;
+	}
+
+	.detail-info {
+		min-width: 0;
+		overflow-wrap: break-word;
+		word-break: break-word;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.detail-label {
+		font-size: 0.7rem;
+		color: var(--text-muted);
+	}
+
+	.detail-value {
+		font-size: 0.85rem;
+		color: var(--text-primary);
+		font-weight: 600;
+	}
+
+	.detail-value.phone-value {
+		color: var(--accent-hover);
+		font-family: monospace;
+		font-size: 0.92rem;
+	}
+
+	.detail-value.muted-val {
+		color: var(--text-secondary);
+		font-weight: 500;
+	}
+
+	/* Performance Box */
+	.performance-card {
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+	}
+
+	.perf-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.65rem;
+	}
+
+	.perf-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 0.5rem;
+		border-bottom: 1px solid var(--border-color);
+		padding-bottom: 0.45rem;
+	}
+	.perf-row:last-child {
+		border-bottom: none;
+		padding-bottom: 0;
+	}
+
+	.perf-label {
+		color: var(--text-secondary);
+		font-size: 0.8rem;
+	}
+
+	.perf-val {
+		color: var(--text-primary);
+		font-size: 0.84rem;
+	}
+
+	.perf-val.success-val {
+		color: var(--success);
+	}
+
+	.perf-chat-btn-wrap {
+		margin-top: 1rem;
+	}
+
+	.chat-direct-btn {
+		width: 100%;
+		padding: 0.55rem;
+		font-size: 0.85rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.4rem;
+	}
+
+	/* Reviews Tab */
+	.reviews-container,
+	.history-container {
+		display: flex;
+		flex-direction: column;
+		gap: 0.85rem;
+	}
+
+	.empty-card {
+		text-align: center;
+		padding: 2.5rem 1.25rem;
+		border-style: dashed;
+	}
+	.empty-card h4 {
+		font-size: 1rem;
+		margin-bottom: 0.3rem;
+		color: var(--text-primary);
+	}
+	.empty-card p {
+		color: var(--text-secondary);
+		font-size: 0.82rem;
+		margin: 0;
+	}
+
+	.review-item-card {
+		display: flex;
+		flex-direction: column;
+		gap: 0.45rem;
+		padding: 0.9rem 1.1rem;
+	}
+
+	.review-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+
+	.review-user-info {
+		display: flex;
+		align-items: center;
+		gap: 0.45rem;
+		flex-wrap: wrap;
+	}
+
+	.review-author {
+		color: var(--text-primary);
+		font-size: 0.9rem;
+	}
+
+	.review-date {
+		font-size: 0.72rem;
+		color: var(--text-muted);
+	}
+
+	.review-body {
+		font-size: 0.85rem;
+		color: var(--text-secondary);
+		line-height: 1.45;
+		font-style: italic;
+		margin: 0;
+	}
+
+	/* History Tab */
+	.history-subtabs {
+		display: flex;
+		gap: 0.4rem;
+		margin-bottom: 0.25rem;
+	}
+
+	.subtab-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		font-size: 0.8rem;
+		padding: 0.35rem 0.7rem;
+		border-radius: var(--radius-md);
+		border: 1px solid var(--border-color);
+		background: var(--bg-card);
+		color: var(--text-secondary);
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+	.subtab-btn.active {
+		background: var(--accent);
+		color: #ffffff;
+		border-color: var(--accent);
+	}
+
+	.job-history-card {
+		display: flex;
+		flex-direction: column;
+		gap: 0.45rem;
+		padding: 0.9rem 1.1rem;
+	}
+
+	.job-card-top {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		gap: 0.5rem;
+	}
+
+	.job-card-title-group {
+		min-width: 0;
+	}
+
+	.job-card-title {
+		font-size: 0.95rem;
+		color: var(--text-primary);
+		margin: 0 0 0.2rem 0;
+		font-weight: 600;
+		word-break: break-word;
+	}
+
+	.job-card-meta {
+		display: flex;
+		gap: 0.35rem;
+		align-items: center;
+		flex-wrap: wrap;
+	}
+
+	.meta-badge {
+		font-size: 0.68rem;
+		padding: 0.1rem 0.4rem;
+	}
+
+	.meta-status {
+		font-size: 0.68rem;
+		padding: 0.08rem 0.35rem;
+	}
+
+	.job-card-date {
+		font-size: 0.68rem;
+		color: var(--text-muted);
+	}
+
+	.job-card-budget {
+		color: var(--accent);
+		font-size: 1rem;
+		white-space: nowrap;
+		flex-shrink: 0;
+	}
+
+	.job-card-desc {
+		font-size: 0.82rem;
+		color: var(--text-secondary);
+		line-height: 1.4;
+		margin: 0;
+	}
+
+	.job-card-bottom {
+		font-size: 0.74rem;
+		color: var(--text-muted);
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-top: 0.2rem;
+		border-top: 1px solid var(--border-color);
+		padding-top: 0.45rem;
+		flex-wrap: wrap;
+		gap: 0.35rem;
+	}
+
+	.highlight-worker {
+		color: var(--text-primary);
+	}
+
+	.job-completed-tag {
+		color: var(--success);
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+	}
+
+	.completed-job-meta-box {
+		border-top: 1px solid var(--border-color);
+		padding-top: 0.45rem;
+		margin-top: 0.2rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.3rem;
+	}
+
+	.completed-job-meta-row {
+		font-size: 0.74rem;
+		color: var(--text-muted);
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		flex-wrap: wrap;
+		gap: 0.35rem;
+	}
+
+	.compact-rating {
+		font-size: 0.7rem;
+		padding: 0.1rem 0.35rem;
+	}
+
+	.completed-job-review-quote {
+		background: var(--bg-card);
+		padding: 0.45rem 0.7rem;
+		border-radius: var(--radius-sm);
+		font-size: 0.78rem;
+		color: var(--text-secondary);
+		font-style: italic;
+		border: 1px solid var(--border-color);
+	}
+
+	/* Modal Footer */
+	.modal-footer {
+		padding: 0.85rem 1.25rem;
+		border-top: 1px solid var(--border-color);
+		background: var(--bg-card);
+		display: flex;
+		justify-content: flex-end;
+		gap: 0.6rem;
+	}
+
+	.modal-footer-btn {
+		font-size: 0.85rem;
+		padding: 0.5rem 1rem;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+	}
+
+	/* Responsive Media Queries */
+	@media (max-width: 640px) {
+		.profile-modal-backdrop {
+			padding: 0.5rem 0.35rem;
+			align-items: center;
+		}
+
+		.profile-modal-content {
+			width: 100%;
+			max-height: 94vh;
+			border-radius: var(--radius-md);
+		}
+
+		.modal-cover-banner {
+			height: 90px;
+		}
+
+		.modal-header-content {
+			padding: 0 0.85rem 0.85rem 0.85rem;
+		}
+
+		.modal-header-row {
+			flex-direction: column;
+			align-items: center;
+			text-align: center;
+			gap: 0.65rem;
+		}
+
+		.modal-user-left {
+			flex-direction: column;
+			align-items: center;
+			margin-top: -38px;
+			gap: 0.5rem;
+			width: 100%;
+		}
+
+		.modal-avatar {
+			width: 74px;
+			height: 74px;
+			font-size: 1.75rem;
+			border-width: 3px;
+		}
+
+		.modal-user-text {
+			align-items: center;
+			width: 100%;
+		}
+
+		.modal-user-name-row {
+			justify-content: center;
+		}
+
+		.modal-user-name {
+			font-size: 1.18rem;
+		}
+
+		.modal-user-badges {
+			justify-content: center;
+		}
+
+		.modal-stats-group {
+			width: 100%;
+			justify-content: center;
+			gap: 0.45rem;
+			margin-top: 0.15rem;
+		}
+
+		.modal-stat-item {
+			flex: 1;
+			max-width: 140px;
+			min-width: 0;
+			padding: 0.35rem 0.5rem;
+		}
+
+		.modal-stat-value {
+			font-size: 1.05rem;
+		}
+
+		.modal-tab-btn {
+			padding: 0.55rem 0.65rem;
+			font-size: 0.78rem;
+		}
+
+		.modal-body-container {
+			padding: 0.85rem;
+			gap: 0.85rem;
+		}
+
+		.overview-grid {
+			grid-template-columns: 1fr;
+			gap: 0.75rem;
+		}
+
+		.modal-card {
+			padding: 0.85rem;
+		}
+
+		.modal-footer {
+			flex-direction: column-reverse;
+			padding: 0.75rem 0.85rem;
+			gap: 0.5rem;
+		}
+
+		.modal-footer-btn {
+			width: 100%;
+			justify-content: center;
+			padding: 0.6rem;
+		}
 	}
 </style>
