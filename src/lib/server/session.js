@@ -5,23 +5,25 @@ import { env } from '$env/dynamic/private';
 const SESSION_SECRET = env.SESSION_SECRET || process.env.SESSION_SECRET || 'serviee_secret_session_signing_key_2026';
 
 /**
- * Creates a cryptographically signed session token: `${userId}.${signature}`
+ * Creates a cryptographically signed session token: `${userId}:${tokenVersion}.${signature}`
  * @param {string} userId - The user's UUID
+ * @param {number} [tokenVersion=1] - Version number for session invalidation
  * @returns {string} Signed session token
  */
-export function createSignedSession(userId) {
+export function createSignedSession(userId, tokenVersion = 1) {
 	if (!userId) return '';
+	const payload = `${userId}:${tokenVersion}`;
 	const signature = crypto
 		.createHmac('sha256', SESSION_SECRET)
-		.update(userId)
+		.update(payload)
 		.digest('hex');
-	return `${userId}.${signature}`;
+	return `${payload}.${signature}`;
 }
 
 /**
- * Verifies a signed session token and extracts the userId if valid.
+ * Verifies a signed session token and extracts the userId and tokenVersion if valid.
  * @param {string} token - The signed token string
- * @returns {string|null} The verified user ID, or null if invalid or tampered
+ * @returns {{ userId: string, tokenVersion: number }|null} The verified session info, or null if invalid or tampered
  */
 export function verifySignedSession(token) {
 	if (!token || typeof token !== 'string' || !token.includes('.')) {
@@ -31,12 +33,13 @@ export function verifySignedSession(token) {
 	const parts = token.split('.');
 	if (parts.length !== 2) return null;
 
-	const [userId, signature] = parts;
-	if (!userId || !signature) return null;
+	const [payload, signature] = parts;
+	if (!payload || !signature) return null;
 
+	// Support both legacy `${userId}` and `${userId}:${tokenVersion}` formats
 	const expectedSignature = crypto
 		.createHmac('sha256', SESSION_SECRET)
-		.update(userId)
+		.update(payload)
 		.digest('hex');
 
 	// Timing-safe comparison to prevent timing attacks
@@ -51,7 +54,14 @@ export function verifySignedSession(token) {
 		return null;
 	}
 
-	return userId;
+	if (payload.includes(':')) {
+		const [userId, versionStr] = payload.split(':');
+		const tokenVersion = parseInt(versionStr, 10) || 1;
+		return { userId, tokenVersion };
+	}
+
+	// Legacy format (no version in payload)
+	return { userId: payload, tokenVersion: 1 };
 }
 
 const ADMIN_PASSCODE = env.ADMIN_PASSCODE || process.env.ADMIN_PASSCODE || '1473';

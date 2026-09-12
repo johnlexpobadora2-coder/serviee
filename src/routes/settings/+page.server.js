@@ -1,4 +1,5 @@
-import { db } from '$lib/server/db.js';
+import { db, hashPassword } from '$lib/server/db.js';
+import { createSignedSession } from '$lib/server/session.js';
 import { redirect, fail } from '@sveltejs/kit';
 
 export async function load({ locals }) {
@@ -10,8 +11,15 @@ export async function load({ locals }) {
 		const { password_hash, ...safeUser } = freshUser;
 		locals.user = safeUser;
 	}
+
+	const complementaryRole = locals.user.role === 'customer' ? 'worker' : 'customer';
+	const complementaryAccount = await db.users.getComplementaryAccount(locals.user.email, locals.user.role);
+
 	return {
-		user: locals.user
+		user: locals.user,
+		complementaryRole,
+		hasComplementaryAccount: Boolean(complementaryAccount),
+		complementaryAccountName: complementaryAccount?.name || null
 	};
 }
 
@@ -107,5 +115,216 @@ export const actions = {
 				passwordSuccess: false
 			});
 		}
+	},
+
+	logoutAllDevices: async ({ request, cookies, locals }) => {
+		if (!locals.user) {
+			throw redirect(303, '/login');
+		}
+
+		const data = await request.formData();
+		const password = data.get('password')?.toString();
+
+		if (!password) {
+			return fail(400, {
+				sessionError: 'Please enter your password to confirm logging out from all devices.',
+				sessionSuccess: false
+			});
+		}
+
+		try {
+			const user = await db.users.findById(locals.user.id);
+			if (!user || user.password_hash !== hashPassword(password)) {
+				return fail(400, {
+					sessionError: 'Incorrect password. Could not revoke other sessions.',
+					sessionSuccess: false
+				});
+			}
+
+			// Increment token version in database
+			const newVersion = await db.users.incrementTokenVersion(locals.user.id);
+
+			// Refresh current browser session cookie with new version
+			const freshToken = createSignedSession(locals.user.id, newVersion);
+			cookies.set('session_id', freshToken, {
+				path: '/',
+				httpOnly: true,
+				sameSite: 'lax',
+				secure: process.env.NODE_ENV === 'production',
+				maxAge: 60 * 60 * 24 * 7
+			});
+
+			return {
+				sessionSuccess: 'Successfully logged out of all other devices and sessions!',
+				sessionError: null
+			};
+		} catch (error) {
+			console.error('Error in logoutAllDevices:', error);
+			return fail(400, {
+				sessionError: error.message || 'Failed to revoke other sessions.',
+				sessionSuccess: false
+			});
+		}
+	},
+
+	switchRole: async ({ request, cookies, locals }) => {
+		if (!locals.user) {
+			throw redirect(303, '/login');
+		}
+
+		const data = await request.formData();
+		const targetRole = data.get('targetRole')?.toString();
+		const password = data.get('password')?.toString();
+
+		if (!targetRole || (targetRole !== 'customer' && targetRole !== 'worker')) {
+			return fail(400, { switchError: 'Invalid target role.' });
+		}
+
+		if (!password) {
+			return fail(400, { switchError: `Please enter the password for your ${targetRole === 'customer' ? 'Client' : 'Worker'} account.` });
+		}
+
+		try {
+			const targetUser = await db.users.findByEmailAndRole(locals.user.email, targetRole);
+			if (!targetUser) {
+				return fail(404, { switchError: `No ${targetRole === 'customer' ? 'Client' : 'Worker'} account found under this email.` });
+			}
+
+			if (targetUser.password_hash !== hashPassword(password)) {
+				return fail(400, { switchError: `Incorrect password for your ${targetRole === 'customer' ? 'Client' : 'Worker'} account.` });
+			}
+
+			// Switch session to the target role account
+			const signedToken = createSignedSession(targetUser.id, targetUser.token_version || 1);
+			cookies.set('session_id', signedToken, {
+				path: '/',
+				httpOnly: true,
+				sameSite: 'lax',
+				secure: process.env.NODE_ENV === 'production',
+				maxAge: 60 * 60 * 24 * 7
+			});
+
+			if (targetRole === 'customer') {
+				throw redirect(303, '/customer');
+			} else {
+				throw redirect(303, '/worker');
+			}
+		} catch (error) {
+			if (error.status === 303) throw error;
+			console.error('Error switching role:', error);
+			return fail(400, { switchError: error.message || 'Failed to switch role.' });
+		}
+	},
+
+	createComplementaryRole: async ({ request, cookies, locals }) => {
+		if (!locals.user) {
+			throw redirect(303, '/login');
+		}
+
+		const data = await request.formData();
+		const role = data.get('role')?.toString();
+		const password = data.get('password')?.toString();
+		const name = data.get('name')?.toString().trim() || locals.user.name;
+		const phone = data.get('phone')?.toString().trim() || locals.user.phone;
+		const address = data.get('address')?.toString().trim() || locals.user.address;
+
+		if (!role || (role !== 'customer' && role !== 'worker')) {
+			return fail(400, { createRoleError: 'Invalid role selection.' });
+		}
+
+		if (!password || password.length < 6) {
+			return fail(400, { createRoleError: 'Password must be at least 6 characters.' });
+		}
+
+		try {
+			const existingRole = await db.users.findByEmailAndRole(locals.user.email, role);
+			if (existingRole) {
+				return fail(400, { createRoleError: `A ${role === 'customer' ? 'Client' : 'Worker'} account already exists for this email.` });
+			}
+
+			const currentUserRecord = await db.users.findById(locals.user.id);
+			if (currentUserRecord && currentUserRecord.password_hash === hashPassword(password)) {
+				return fail(400, { createRoleError: 'For security, your new role account cannot use the same password as your existing account.' });
+			}
+
+			const newUser = await db.users.create({
+				name,
+				email: locals.user.email,
+				phone,
+				role,
+				address,
+				password
+			});
+
+			// Switch to the newly created role account
+			const signedToken = createSignedSession(newUser.id, newUser.token_version || 1);
+			cookies.set('session_id', signedToken, {
+				path: '/',
+				httpOnly: true,
+				sameSite: 'lax',
+				secure: process.env.NODE_ENV === 'production',
+				maxAge: 60 * 60 * 24 * 7
+			});
+
+			if (newUser.role === 'customer') {
+				throw redirect(303, '/customer');
+			} else {
+				throw redirect(303, '/worker');
+			}
+		} catch (error) {
+			if (error.status === 303) throw error;
+			console.error('Error creating complementary role:', error);
+			return fail(400, { createRoleError: error.message || 'Failed to create account.' });
+		}
+	},
+
+	deleteAccount: async ({ request, cookies, locals }) => {
+		if (!locals.user) {
+			throw redirect(303, '/login');
+		}
+
+		const data = await request.formData();
+		const password = data.get('password')?.toString();
+		const confirmation = data.get('confirmation')?.toString().trim();
+
+		if (confirmation !== 'DELETE') {
+			return fail(400, {
+				deleteError: 'Please type "DELETE" exactly to confirm account deletion.',
+				deleteSuccess: false
+			});
+		}
+
+		if (!password) {
+			return fail(400, {
+				deleteError: 'Please enter your password to delete your account.',
+				deleteSuccess: false
+			});
+		}
+
+		try {
+			const user = await db.users.findById(locals.user.id);
+			if (!user || user.password_hash !== hashPassword(password)) {
+				return fail(400, {
+					deleteError: 'Incorrect password. Account deletion cancelled.',
+					deleteSuccess: false
+				});
+			}
+
+			// Delete user from database
+			await db.users.delete(locals.user.id);
+
+			// Clear session cookie
+			cookies.delete('session_id', { path: '/' });
+
+			throw redirect(303, '/register?deleted=true');
+		} catch (error) {
+			if (error.status === 303) throw error;
+			console.error('Error deleting account:', error);
+			return fail(400, {
+				deleteError: error.message || 'Failed to delete account. Please try again.',
+				deleteSuccess: false
+			});
+		}
 	}
 };
+

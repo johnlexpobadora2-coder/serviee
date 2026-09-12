@@ -339,6 +339,27 @@ export const db = {
 			return data || [];
 		},
 
+		async incrementTokenVersion(id) {
+			const user = await this.findById(id);
+			if (!user) throw new Error('User not found.');
+			const nextVersion = (user.token_version || 1) + 1;
+			const supabase = getSupabase();
+			try {
+				await supabase.from('users').update({ token_version: nextVersion }).eq('id', id);
+			} catch (e) {
+				console.warn('Could not update token_version in Supabase:', e.message);
+			}
+			invalidateUserCache(id);
+			return nextVersion;
+		},
+
+		async getComplementaryAccount(email, currentRole) {
+			if (!email) return null;
+			const accounts = await this.findAllByEmail(email);
+			const targetRole = currentRole === 'customer' ? 'worker' : 'customer';
+			return accounts.find(a => a.role === targetRole) || null;
+		},
+
 		async delete(id) {
 			const supabase = getSupabase();
 			const { error } = await supabase

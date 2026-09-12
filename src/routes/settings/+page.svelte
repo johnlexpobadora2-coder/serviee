@@ -1,17 +1,39 @@
 <script>
-	import { User, Lock, Shield, CheckCircle2, AlertCircle, Phone, MapPin, Mail, ArrowLeft, KeyRound, Navigation, Check } from 'lucide-svelte';
+	import { 
+		User, 
+		Lock, 
+		Shield, 
+		CheckCircle2, 
+		AlertCircle, 
+		Phone, 
+		MapPin, 
+		Mail, 
+		ArrowLeft, 
+		KeyRound, 
+		Navigation, 
+		Check, 
+		Repeat, 
+		Smartphone, 
+		Trash2, 
+		LogOut, 
+		UserPlus,
+		ShieldAlert
+	} from 'lucide-svelte';
 	import { enhance } from '$app/forms';
 	import { getCurrentCoordinates, reverseGeocode } from '$lib/gpsUtils.js';
 	import LocationPickerModal from '$lib/LocationPickerModal.svelte';
 	import CityAutocomplete from '$lib/CityAutocomplete.svelte';
+	import DeleteAccountConfirmModal from '$lib/DeleteAccountConfirmModal.svelte';
 
 	let { data, form } = $props();
 
-	let activeTab = $state('profile'); // 'profile' | 'password'
+	let activeTab = $state('profile'); // 'profile' | 'security' | 'roles'
 
 	$effect(() => {
-		if (form?.passwordError || form?.passwordSuccess) {
-			activeTab = 'password';
+		if (form?.passwordError || form?.passwordSuccess || form?.sessionError || form?.sessionSuccess) {
+			activeTab = 'security';
+		} else if (form?.switchError || form?.createRoleError) {
+			activeTab = 'roles';
 		} else if (form?.profileError || form?.profileSuccess) {
 			activeTab = 'profile';
 		}
@@ -32,6 +54,7 @@
 	let detectingGps = $state(false);
 	let gpsStatus = $state(null); // { type: 'success' | 'error', message: string }
 	let showPickerModal = $state(false);
+	let showDeleteAccountModal = $state(false);
 
 	$effect(() => {
 		if (form?.profileSuccess) {
@@ -58,7 +81,7 @@
 			if (detectedCity) {
 				address = detectedCity;
 				isAddressValid = true;
-				gpsStatus = { type: 'success', message: `Location verified & detected: ${detectedCity}` };
+				gpsStatus = { type: 'success', message: `Location verified: ${detectedCity}` };
 			} else {
 				gpsStatus = { type: 'error', message: 'Could not auto-detect city name. Please search and tap your municipality.' };
 			}
@@ -83,9 +106,21 @@
 		showPickerModal = false;
 	}
 
+	// Security states
 	let currentPassword = $state('');
 	let newPassword = $state('');
 	let confirmPassword = $state('');
+	let sessionLogoutPassword = $state('');
+
+	// Role Switcher states
+	let switchPassword = $state('');
+	let newRolePassword = $state('');
+	// svelte-ignore state_referenced_locally
+	let newRoleName = $state(data.user?.name || '');
+	// svelte-ignore state_referenced_locally
+	let newRolePhone = $state(data.user?.phone || '');
+	// svelte-ignore state_referenced_locally
+	let newRoleAddress = $state(data.user?.address || '');
 
 	$effect(() => {
 		if (form?.passwordSuccess) {
@@ -93,10 +128,19 @@
 			newPassword = '';
 			confirmPassword = '';
 		}
+		if (form?.sessionSuccess) {
+			sessionLogoutPassword = '';
+		}
+		if (form?.deleteError) {
+			showDeleteAccountModal = true;
+		}
 	});
 
 	let profileSubmitting = $state(false);
 	let passwordSubmitting = $state(false);
+	let sessionLogoutSubmitting = $state(false);
+	let switchSubmitting = $state(false);
+	let createRoleSubmitting = $state(false);
 </script>
 
 <svelte:head>
@@ -140,18 +184,29 @@
 				aria-selected={activeTab === 'profile'}
 			>
 				<User size={18} />
-				<span class="tab-label">Profile Customization</span>
+				<span class="tab-label">Profile</span>
 			</button>
 			<button
 				type="button"
 				class="tab-btn"
-				class:active={activeTab === 'password'}
-				onclick={() => (activeTab = 'password')}
+				class:active={activeTab === 'security'}
+				onclick={() => (activeTab = 'security')}
 				role="tab"
-				aria-selected={activeTab === 'password'}
+				aria-selected={activeTab === 'security'}
 			>
-				<Lock size={18} />
-				<span class="tab-label">Change Password</span>
+				<Shield size={18} />
+				<span class="tab-label">Security & Devices</span>
+			</button>
+			<button
+				type="button"
+				class="tab-btn"
+				class:active={activeTab === 'roles'}
+				onclick={() => (activeTab = 'roles')}
+				role="tab"
+				aria-selected={activeTab === 'roles'}
+			>
+				<Repeat size={18} />
+				<span class="tab-label">Switch Role</span>
 			</button>
 		</div>
 
@@ -221,7 +276,7 @@
 								disabled
 							/>
 						</div>
-						<small class="field-hint">Email address cannot be changed for account security.</small>
+						<small class="field-hint">Email address is tied to your account identity.</small>
 					</div>
 
 					<div class="form-group">
@@ -309,98 +364,350 @@
 			</div>
 		{/if}
 
-		<!-- Tab Content 2: Change Password -->
-		{#if activeTab === 'password'}
-			<div class="tab-panel">
-				<div class="panel-header">
-					<h3>Security & Password</h3>
-					<p>Ensure your account remains safe with a strong, unique password.</p>
+		<!-- Tab Content 2: Security & Devices -->
+		{#if activeTab === 'security'}
+			<div class="space-y-6">
+				<!-- Change Password Card -->
+				<div class="tab-panel">
+					<div class="panel-header">
+						<h3>Change Password</h3>
+						<p>Ensure your account remains safe with a strong, unique password.</p>
+					</div>
+
+					{#if form?.passwordSuccess}
+						<div class="alert alert-success">
+							<CheckCircle2 size={18} />
+							<span>{form.passwordSuccess}</span>
+						</div>
+					{/if}
+
+					{#if form?.passwordError}
+						<div class="alert alert-error">
+							<AlertCircle size={18} />
+							<span>{form.passwordError}</span>
+						</div>
+					{/if}
+
+					<form
+						method="POST"
+						action="?/updatePassword"
+						class="settings-form"
+						use:enhance={() => {
+							passwordSubmitting = true;
+							return async ({ update }) => {
+								passwordSubmitting = false;
+								await update();
+							};
+						}}
+					>
+						<div class="form-group">
+							<label for="currentPassword">Current Password</label>
+							<div class="input-wrapper">
+								<KeyRound size={18} class="input-icon" />
+								<input
+									type="password"
+									id="currentPassword"
+									name="currentPassword"
+									bind:value={currentPassword}
+									placeholder="Enter your current password"
+									required
+								/>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label for="newPassword">New Password</label>
+							<div class="input-wrapper">
+								<Lock size={18} class="input-icon" />
+								<input
+									type="password"
+									id="newPassword"
+									name="newPassword"
+									bind:value={newPassword}
+									placeholder="At least 6 characters"
+									required
+									minlength="6"
+								/>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label for="confirmPassword">Confirm New Password</label>
+							<div class="input-wrapper">
+								<Shield size={18} class="input-icon" />
+								<input
+									type="password"
+									id="confirmPassword"
+									name="confirmPassword"
+									bind:value={confirmPassword}
+									placeholder="Re-enter your new password"
+									required
+									minlength="6"
+								/>
+							</div>
+						</div>
+
+						<div class="form-actions">
+							<button type="submit" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;" disabled={passwordSubmitting}>
+								{#if passwordSubmitting}
+									<span class="spinner spinner-sm"></span>
+									<span>Updating Password...</span>
+								{:else}
+									Update Password
+								{/if}
+							</button>
+						</div>
+					</form>
 				</div>
 
-				{#if form?.passwordSuccess}
-					<div class="alert alert-success">
-						<CheckCircle2 size={18} />
-						<span>{form.passwordSuccess}</span>
-					</div>
-				{/if}
-
-				{#if form?.passwordError}
-					<div class="alert alert-error">
-						<AlertCircle size={18} />
-						<span>{form.passwordError}</span>
-					</div>
-				{/if}
-
-				<form
-					method="POST"
-					action="?/updatePassword"
-					class="settings-form"
-					use:enhance={() => {
-						passwordSubmitting = true;
-						return async ({ update }) => {
-							passwordSubmitting = false;
-							await update();
-						};
-					}}
-				>
-					<div class="form-group">
-						<label for="currentPassword">Current Password</label>
-						<div class="input-wrapper">
-							<KeyRound size={18} class="input-icon" />
-							<input
-								type="password"
-								id="currentPassword"
-								name="currentPassword"
-								bind:value={currentPassword}
-								placeholder="Enter your current password"
-								required
-							/>
+				<!-- Active Sessions & Multi-Device Logout Card -->
+				<div class="tab-panel">
+					<div class="panel-header">
+						<div style="display: flex; align-items: center; gap: 0.5rem;">
+							<Smartphone size={20} class="text-accent" />
+							<h3 style="margin: 0;">Active Devices & Sessions</h3>
 						</div>
+						<p>Logged in on a public computer or another device? Revoke all other active sessions here.</p>
 					</div>
 
-					<div class="form-group">
-						<label for="newPassword">New Password</label>
-						<div class="input-wrapper">
-							<Lock size={18} class="input-icon" />
-							<input
-								type="password"
-								id="newPassword"
-								name="newPassword"
-								bind:value={newPassword}
-								placeholder="At least 6 characters"
-								required
-								minlength="6"
-							/>
+					{#if form?.sessionSuccess}
+						<div class="alert alert-success">
+							<CheckCircle2 size={18} />
+							<span>{form.sessionSuccess}</span>
 						</div>
-					</div>
+					{/if}
 
-					<div class="form-group">
-						<label for="confirmPassword">Confirm New Password</label>
-						<div class="input-wrapper">
-							<Shield size={18} class="input-icon" />
-							<input
-								type="password"
-								id="confirmPassword"
-								name="confirmPassword"
-								bind:value={confirmPassword}
-								placeholder="Re-enter your new password"
-								required
-								minlength="6"
-							/>
+					{#if form?.sessionError}
+						<div class="alert alert-error">
+							<AlertCircle size={18} />
+							<span>{form.sessionError}</span>
 						</div>
+					{/if}
+
+					<form 
+						method="POST" 
+						action="?/logoutAllDevices"
+						class="settings-form"
+						use:enhance={() => {
+							sessionLogoutSubmitting = true;
+							return async ({ update }) => {
+								sessionLogoutSubmitting = false;
+								await update();
+							};
+						}}
+					>
+						<div class="form-group">
+							<label for="session-password">Confirm Password to Revoke Other Devices</label>
+							<div class="input-wrapper">
+								<KeyRound size={18} class="input-icon" />
+								<input 
+									type="password" 
+									id="session-password" 
+									name="password" 
+									bind:value={sessionLogoutPassword}
+									placeholder="Enter your account password" 
+									required
+								/>
+							</div>
+						</div>
+
+						<div class="form-actions">
+							<button 
+								type="submit" 
+								class="btn btn-outline" 
+								style="display: inline-flex; align-items: center; gap: 0.5rem; border-color: var(--border-color); color: var(--text-primary);"
+								disabled={sessionLogoutSubmitting || !sessionLogoutPassword}
+							>
+								{#if sessionLogoutSubmitting}
+									<span class="spinner spinner-sm"></span>
+									<span>Revoking sessions...</span>
+								{:else}
+									<LogOut size={16} />
+									<span>Log Out From All Other Devices</span>
+								{/if}
+							</button>
+						</div>
+					</form>
+				</div>
+
+				<!-- Danger Zone Card -->
+				<div class="tab-panel danger-zone-panel">
+					<div class="panel-header">
+						<div style="display: flex; align-items: center; gap: 0.5rem;">
+							<ShieldAlert size={20} style="color: #ef4444;" />
+							<h3 style="margin: 0; color: #ef4444;">Danger Zone</h3>
+						</div>
+						<p>Permanently delete your account and all associated data from the Serviee platform.</p>
 					</div>
 
-					<div class="form-actions">
-						<button type="submit" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;" disabled={passwordSubmitting}>
-							{#if passwordSubmitting}
-								<span class="spinner spinner-sm"></span>
-								<span>Updating Password...</span>
-							{:else}
-								Update Password
-							{/if}
+					<div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+						<div>
+							<div style="font-weight: 600; font-size: 0.95rem; color: var(--text-primary);">Delete Account</div>
+							<div style="font-size: 0.82rem; color: var(--text-secondary);">Once deleted, your profile, active job posts, and reviews cannot be recovered.</div>
+						</div>
+
+						<button 
+							type="button" 
+							class="btn btn-danger" 
+							style="background-color: #ef4444; border-color: #ef4444; color: #ffffff; display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.55rem 1.15rem; font-size: 0.88rem;"
+							onclick={() => showDeleteAccountModal = true}
+						>
+							<Trash2 size={16} />
+							<span>Delete My Account</span>
 						</button>
 					</div>
-				</form>
+				</div>
+			</div>
+		{/if}
+
+		<!-- Tab Content 3: Switch Role (Client ↔ Worker) -->
+		{#if activeTab === 'roles'}
+			<div class="tab-panel">
+				{#if data.hasComplementaryAccount}
+					<!-- Case A: Complementary Account already exists -->
+					<div class="panel-header">
+						<div style="display: flex; align-items: center; gap: 0.5rem;">
+							<Repeat size={20} class="text-accent" />
+							<h3 style="margin: 0;">Switch to {data.complementaryRole === 'customer' ? 'Client' : 'Worker'} Profile</h3>
+						</div>
+						<p>
+							You already have a registered <strong>{data.complementaryRole === 'customer' ? 'Client' : 'Worker'}</strong> account ({data.complementaryAccountName || data.user.name}) under <code>{data.user.email}</code>.
+						</p>
+					</div>
+
+					{#if form?.switchError}
+						<div class="alert alert-error">
+							<AlertCircle size={18} />
+							<span>{form.switchError}</span>
+						</div>
+					{/if}
+
+					<form 
+						method="POST" 
+						action="?/switchRole"
+						class="settings-form"
+						use:enhance={() => {
+							switchSubmitting = true;
+							return async ({ update }) => {
+								switchSubmitting = false;
+								await update();
+							};
+						}}
+					>
+						<input type="hidden" name="targetRole" value={data.complementaryRole} />
+
+						<div class="form-group">
+							<label for="switch-password">Password for your {data.complementaryRole === 'customer' ? 'Client' : 'Worker'} Account</label>
+							<div class="input-wrapper">
+								<KeyRound size={18} class="input-icon" />
+								<input 
+									type="password" 
+									id="switch-password" 
+									name="password" 
+									bind:value={switchPassword}
+									placeholder="Enter {data.complementaryRole === 'customer' ? 'Client' : 'Worker'} password" 
+									required
+								/>
+							</div>
+							<small class="field-hint">Enter the password for your other role to authenticate and switch dashboards.</small>
+						</div>
+
+						<div class="form-actions">
+							<button 
+								type="submit" 
+								class="btn btn-primary" 
+								style="display: inline-flex; align-items: center; gap: 0.5rem;"
+								disabled={switchSubmitting || !switchPassword}
+							>
+								{#if switchSubmitting}
+									<span class="spinner spinner-sm"></span>
+									<span>Switching Dashboards...</span>
+								{:else}
+									<Repeat size={16} />
+									<span>Switch to {data.complementaryRole === 'customer' ? 'Client' : 'Worker'} Dashboard</span>
+								{/if}
+							</button>
+						</div>
+					</form>
+				{:else}
+					<!-- Case B: Complementary Account does not exist yet -->
+					<div class="panel-header">
+						<div style="display: flex; align-items: center; gap: 0.5rem;">
+							<UserPlus size={20} class="text-accent" />
+							<h3 style="margin: 0;">Create a {data.complementaryRole === 'customer' ? 'Client' : 'Worker'} Profile</h3>
+						</div>
+						<p>
+							Want to both {data.user.role === 'customer' ? 'hire and offer services as a Worker' : 'find sideline jobs and post jobs as a Client'}? Set up your {data.complementaryRole === 'customer' ? 'Client' : 'Worker'} profile below using your same email.
+						</p>
+					</div>
+
+					{#if form?.createRoleError}
+						<div class="alert alert-error">
+							<AlertCircle size={18} />
+							<span>{form.createRoleError}</span>
+						</div>
+					{/if}
+
+					<form 
+						method="POST" 
+						action="?/createComplementaryRole"
+						class="settings-form"
+						use:enhance={() => {
+							createRoleSubmitting = true;
+							return async ({ update }) => {
+								createRoleSubmitting = false;
+								await update();
+							};
+						}}
+					>
+						<input type="hidden" name="role" value={data.complementaryRole} />
+						<input type="hidden" name="name" value={newRoleName} />
+						<input type="hidden" name="phone" value={newRolePhone} />
+						<input type="hidden" name="address" value={newRoleAddress} />
+
+						<div class="form-group">
+							<label for="new-role-email">Registered Email</label>
+							<div class="input-wrapper disabled">
+								<Mail size={18} class="input-icon" />
+								<input type="email" id="new-role-email" value={data.user.email} disabled />
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label for="new-role-pass">Create Password for {data.complementaryRole === 'customer' ? 'Client' : 'Worker'} Profile</label>
+							<div class="input-wrapper">
+								<Lock size={18} class="input-icon" />
+								<input 
+									type="password" 
+									id="new-role-pass" 
+									name="password" 
+									bind:value={newRolePassword}
+									placeholder="At least 6 characters (must differ from your existing password)" 
+									required
+									minlength="6"
+								/>
+							</div>
+							<small class="field-hint">For security, your Client and Worker accounts under the same email must have different passwords.</small>
+						</div>
+
+						<div class="form-actions">
+							<button 
+								type="submit" 
+								class="btn btn-primary" 
+								style="display: inline-flex; align-items: center; gap: 0.5rem;"
+								disabled={createRoleSubmitting || newRolePassword.length < 6}
+							>
+								{#if createRoleSubmitting}
+									<span class="spinner spinner-sm"></span>
+									<span>Creating Account...</span>
+								{:else}
+									<UserPlus size={16} />
+									<span>Create & Switch to {data.complementaryRole === 'customer' ? 'Client' : 'Worker'} Profile</span>
+								{/if}
+							</button>
+						</div>
+					</form>
+				{/if}
 			</div>
 		{/if}
 	</div>
@@ -410,6 +717,11 @@
 	bind:show={showPickerModal}
 	title="Pin Location / Select City"
 	onSave={handleCustomLocationSaved}
+/>
+
+<DeleteAccountConfirmModal 
+	bind:show={showDeleteAccountModal}
+	deleteError={form?.deleteError || ''}
 />
 
 <style>
@@ -466,7 +778,6 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		box-shadow: var(--glow);
 		flex-shrink: 0;
 	}
 
@@ -528,7 +839,7 @@
 
 	.tabs-header.settings-tabs {
 		display: grid !important;
-		grid-template-columns: 1fr 1fr !important;
+		grid-template-columns: repeat(3, 1fr) !important;
 		gap: 0.5rem !important;
 		margin-bottom: 0 !important;
 		overflow-x: visible !important;
@@ -542,11 +853,11 @@
 		justify-content: center !important;
 		gap: 0.5rem !important;
 		width: 100% !important;
-		padding: 0.75rem 0.75rem !important;
+		padding: 0.75rem 0.5rem !important;
 		text-align: center !important;
 		flex-shrink: 1 !important;
 		white-space: normal !important;
-		font-size: 0.95rem !important;
+		font-size: 0.9rem !important;
 	}
 
 	.tab-panel {
@@ -558,6 +869,11 @@
 		display: flex;
 		flex-direction: column;
 		gap: 1.5rem;
+	}
+
+	.danger-zone-panel {
+		border: 1px solid var(--border-color);
+		background: var(--bg-card);
 	}
 
 	.panel-header h3 {
@@ -659,9 +975,9 @@
 
 	@media (max-width: 600px) {
 		.settings-tabs .tab-btn {
-			padding: 0.65rem 0.35rem !important;
-			font-size: 0.82rem !important;
-			gap: 0.35rem !important;
+			padding: 0.65rem 0.25rem !important;
+			font-size: 0.78rem !important;
+			gap: 0.3rem !important;
 		}
 
 		.tab-label {
@@ -689,9 +1005,10 @@
 
 	@media (max-width: 380px) {
 		.settings-tabs .tab-btn {
-			font-size: 0.76rem !important;
-			padding: 0.55rem 0.2rem !important;
-			gap: 0.25rem !important;
+			font-size: 0.72rem !important;
+			padding: 0.5rem 0.15rem !important;
+			gap: 0.2rem !important;
 		}
 	}
 </style>
+

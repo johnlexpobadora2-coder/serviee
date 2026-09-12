@@ -2,7 +2,7 @@ import { db, hashPassword } from '$lib/server/db.js';
 import { createSignedSession } from '$lib/server/session.js';
 import { redirect, fail } from '@sveltejs/kit';
 
-export function load({ locals }) {
+export function load({ locals, url }) {
 	// If already logged in, redirect to appropriate page
 	if (locals.user) {
 		if (locals.user.role === 'customer') {
@@ -11,7 +11,8 @@ export function load({ locals }) {
 			throw redirect(303, '/worker');
 		}
 	}
-	return {};
+	const deleted = url.searchParams.get('deleted') === 'true';
+	return { deleted };
 }
 
 export const actions = {
