@@ -280,34 +280,33 @@
 				</div>
 
 				<!-- Navigation Tabs within Modal -->
-				<div class="modal-tabs-wrapper">
-					<div class="modal-tabs-nav">
+				<div class="tabs-header modal-tabs-header">
+					<button
+						type="button"
+						class="tab-btn {activeTab === 'overview' ? 'active' : ''}"
+						onclick={() => (activeTab = "overview")}
+					>
+						<UserCheck size={16} /> About Profile
+					</button>
+					{#if user.role === "worker"}
 						<button
 							type="button"
-							class="modal-tab-btn {activeTab === 'overview' ? 'active' : ''}"
-							onclick={() => (activeTab = "overview")}
+							class="tab-btn {activeTab === 'reviews' ? 'active' : ''}"
+							onclick={() => (activeTab = "reviews")}
 						>
-							About Profile
+							<Star size={16} fill="currentColor" /> Reviews & Feedback ({stats.reviews?.length || 0})
 						</button>
-						{#if user.role === "worker"}
-							<button
-								type="button"
-								class="modal-tab-btn {activeTab === 'reviews' ? 'active' : ''}"
-								onclick={() => (activeTab = "reviews")}
-							>
-								Reviews & Feedback ({stats.reviews?.length || 0})
-							</button>
-						{/if}
-						<button
-							type="button"
-							class="modal-tab-btn {activeTab === 'history' ? 'active' : ''}"
-							onclick={() => (activeTab = "history")}
-						>
-							{user.role === "worker"
-								? "Service History"
-								: "Job History"} ({completedJobs.length})
-						</button>
-					</div>
+					{/if}
+					<button
+						type="button"
+						class="tab-btn {activeTab === 'history' ? 'active' : ''}"
+						onclick={() => (activeTab = "history")}
+					>
+						<ClipboardList size={16} />
+						{user.role === "worker"
+							? "Service History"
+							: "Job History"} ({completedJobs.length})
+					</button>
 				</div>
 
 				<!-- Tab Content Container -->
@@ -546,20 +545,20 @@
 						<div class="history-container">
 							{#if user.role === "customer"}
 								<!-- Sub-tabs header for customer modal view -->
-								<div class="history-subtabs">
+								<div class="tabs-header subtabs-header" style="margin-bottom: 0.85rem;">
 									<button
 										type="button"
-										class="subtab-btn {customerSubTab === 'posted' ? 'active' : ''}"
+										class="tab-btn {customerSubTab === 'posted' ? 'active' : ''}"
 										onclick={() => (customerSubTab = "posted")}
 									>
-										<ClipboardList size={13} /> Job Posted ({allPosts.length})
+										<ClipboardList size={15} /> Job Posted ({allPosts.length})
 									</button>
 									<button
 										type="button"
-										class="subtab-btn {customerSubTab === 'completed' ? 'active' : ''}"
+										class="tab-btn {customerSubTab === 'completed' ? 'active' : ''}"
 										onclick={() => (customerSubTab = "completed")}
 									>
-										<CheckCircle2 size={13} /> Completed Jobs ({completedJobs.length})
+										<CheckCircle2 size={15} /> Completed Jobs ({completedJobs.length})
 									</button>
 								</div>
 
@@ -951,46 +950,27 @@
 		margin-top: 0.15rem;
 	}
 
-	/* Modal Tabs */
-	.modal-tabs-wrapper {
-		padding: 0 1rem;
-		border-bottom: 1px solid var(--border-color);
+	/* Modal Navigation Tabs */
+	.modal-tabs-header {
+		padding: 0.65rem 1.25rem 0 1.25rem;
 		background: var(--bg-card);
+		border-bottom: 1px solid var(--border-color);
+		display: flex;
+		gap: 0.35rem;
 		overflow-x: auto;
+		white-space: nowrap;
 		-webkit-overflow-scrolling: touch;
 		scrollbar-width: none;
 	}
-	.modal-tabs-wrapper::-webkit-scrollbar {
+	.modal-tabs-header::-webkit-scrollbar {
 		display: none;
 	}
 
-	.modal-tabs-nav {
-		display: flex;
-		gap: 0.4rem;
-		white-space: nowrap;
-		margin-bottom: -1px;
-	}
-
-	.modal-tab-btn {
-		padding: 0.65rem 0.85rem;
-		font-size: 0.84rem;
-		font-weight: 600;
-		color: var(--text-secondary);
-		border: none;
-		border-bottom: 2px solid transparent;
-		background: transparent;
-		cursor: pointer;
-		transition: all 0.2s ease;
-		display: inline-flex;
-		align-items: center;
-		gap: 0.35rem;
-	}
-	.modal-tab-btn:hover {
-		color: var(--text-primary);
-	}
-	.modal-tab-btn.active {
-		color: var(--accent);
-		border-bottom-color: var(--accent);
+	.modal-tabs-header .tab-btn {
+		padding: 0.65rem 1.05rem;
+		font-size: 0.88rem;
+		border-top-left-radius: 8px;
+		border-top-right-radius: 8px;
 	}
 
 	/* Modal Body Container */
@@ -1256,30 +1236,26 @@
 		margin: 0;
 	}
 
-	/* History Tab */
-	.history-subtabs {
+	/* Subtabs */
+	.subtabs-header {
 		display: flex;
-		gap: 0.4rem;
-		margin-bottom: 0.25rem;
+		gap: 0.35rem;
+		border-bottom: 1px solid var(--border-color);
+		overflow-x: auto;
+		white-space: nowrap;
+		-webkit-overflow-scrolling: touch;
+		scrollbar-width: none;
+		padding-top: 0.4rem;
+	}
+	.subtabs-header::-webkit-scrollbar {
+		display: none;
 	}
 
-	.subtab-btn {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.35rem;
-		font-size: 0.8rem;
-		padding: 0.35rem 0.7rem;
-		border-radius: var(--radius-md);
-		border: 1px solid var(--border-color);
-		background: var(--bg-card);
-		color: var(--text-secondary);
-		cursor: pointer;
-		transition: all 0.15s ease;
-	}
-	.subtab-btn.active {
-		background: var(--accent);
-		color: #ffffff;
-		border-color: var(--accent);
+	.subtabs-header .tab-btn {
+		padding: 0.55rem 0.85rem;
+		font-size: 0.82rem;
+		border-top-left-radius: 6px;
+		border-top-right-radius: 6px;
 	}
 
 	.job-history-card {
@@ -1498,9 +1474,24 @@
 			font-size: 1.05rem;
 		}
 
-		.modal-tab-btn {
+		.modal-tabs-header {
+			padding: 0.5rem 0.75rem 0 0.75rem;
+			gap: 0.25rem;
+		}
+
+		.modal-tabs-header .tab-btn {
 			padding: 0.55rem 0.65rem;
 			font-size: 0.78rem;
+			gap: 0.3rem;
+		}
+
+		.subtabs-header {
+			padding-top: 0.35rem;
+		}
+
+		.subtabs-header .tab-btn {
+			padding: 0.45rem 0.6rem;
+			font-size: 0.75rem;
 		}
 
 		.modal-body-container {

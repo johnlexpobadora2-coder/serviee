@@ -34,14 +34,14 @@
 					</div>
 					<div class="profile-user-text">
 						<h2>{user?.name}</h2>
-						<div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+						<div class="profile-badges-row">
 							<span class="badge badge-roofing" style="font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.35rem;">
 								<ShieldCheck size={13} /> Customer Account
 							</span>
 							{#if user?.address}
-								<span style="font-size: 0.8rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 0.25rem;">
-									<MapPin size={13} style="color: var(--accent);" />
-									{user.address}
+								<span style="font-size: 0.8rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 0.25rem; max-width: 100%;">
+									<MapPin size={13} style="color: var(--accent); flex-shrink: 0;" />
+									<span style="overflow-wrap: break-word; word-break: break-word;">{user.address}</span>
 								</span>
 							{/if}
 						</div>
@@ -85,10 +85,10 @@
 				{:else}
 					<div style="text-align: center; padding: 1rem; background: var(--bg-input); border-radius: var(--radius-md);">
 						<p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.5rem;">
-							Wala ka pang nilalagay na bio.
+							No bio added yet.
 						</p>
 						<a href="/settings" class="btn btn-secondary btn-sm" style="font-size: 0.78rem; padding: 0.25rem 0.6rem;">
-							+ Maglagay ng Bio
+							+ Add Bio
 						</a>
 					</div>
 				{/if}

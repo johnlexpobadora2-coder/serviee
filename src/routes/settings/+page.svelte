@@ -404,14 +404,14 @@
 						{/if}
 					</div>
 
-					<!-- Bio / About Me (Maikling Pagpapakilala) -->
+					<!-- Bio / About Me -->
 					<div class="form-group">
-						<div style="display: flex; justify-content: space-between; align-items: center;">
-							<label for="bio" style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0;">
-								<FileText size={16} style="color: var(--accent);" />
-								Bio / About Me (Maikling Pagpapakilala)
+						<div class="bio-label-header">
+							<label for="bio" class="bio-label">
+								<FileText size={16} class="bio-icon" />
+								<span class="bio-title">Bio / About Me</span>
 							</label>
-							<span style="font-size: 0.75rem; color: var(--text-muted);">
+							<span class="bio-char-count">
 								{bio.length}/500
 							</span>
 						</div>
@@ -423,24 +423,24 @@
 								rows="3"
 								maxlength="500"
 								placeholder={data.user.role === 'worker' 
-									? "e.g. 5 years experience sa plumbing at house wiring. May kumpletong tools at garantisadong pulido ang gawa."
-									: "e.g. Homeowner sa Davao City looking for reliable plumbers at electricians para sa regular home maintenance."}
+									? "e.g. 5+ years experience in plumbing and electrical works. Reliable, equipped with complete tools and quality service."
+									: "e.g. Homeowner in Davao City looking for reliable plumbers and electricians for regular home maintenance."}
 								class="custom-textarea"
 							></textarea>
 						</div>
 						<small class="field-hint">
 							{data.user.role === 'worker' 
-								? 'Maikling deskripsyon na makikita ng mga kliyente kapag binuksan ang iyong profile.' 
-								: 'Maikling pagpapakilala na makikita ng mga manggagawa sa iyong profile.'}
+								? 'Brief description visible to clients on your profile.' 
+								: 'Brief introduction visible to workers on your profile.'}
 						</small>
 					</div>
 
 					{#if data.user.role === 'worker'}
-						<!-- Availability Status Toggle (Para sa Workers) -->
+						<!-- Availability Status Toggle (For Workers) -->
 						<div class="form-group availability-section">
 							<label style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.35rem;">
 								<Activity size={16} style="color: {availability_status === 'available' ? 'var(--success)' : '#f59e0b'};" />
-								Availability Status (Pagtanggap ng Trabaho)
+								Availability Status
 							</label>
 							<div class="availability-cards-grid">
 								<button
@@ -451,7 +451,7 @@
 									<div class="status-pulse-dot available-pulse"></div>
 									<div class="availability-card-info">
 										<strong>Available for Jobs</strong>
-										<span>Tumatanggap ng trabaho • Pwede kang ma-hire</span>
+										<span>Accepting job requests • Visible for hire</span>
 									</div>
 									{#if availability_status === 'available'}
 										<div class="check-badge available-badge">
@@ -468,7 +468,7 @@
 									<div class="status-pulse-dot busy-pulse"></div>
 									<div class="availability-card-info">
 										<strong>Busy / On Leave</strong>
-										<span>Pansamantalang hindi tumatanggap ng bagong trabaho</span>
+										<span>Temporarily not accepting new jobs</span>
 									</div>
 									{#if availability_status === 'busy'}
 										<div class="check-badge busy-badge">
@@ -480,19 +480,19 @@
 							<input type="hidden" name="availability_status" value={availability_status} />
 						</div>
 
-						<!-- Skills / Services Offered (Para sa Workers) -->
+						<!-- Skills / Services Offered (For Workers) -->
 						<div class="form-group skills-section">
 							<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.25rem;">
 								<label style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0;">
 									<Wrench size={16} style="color: var(--accent);" />
-									Skills & Services Offered (Mga Kayang Gawin)
+									Skills & Services Offered
 								</label>
 								<span class="skills-counter-badge">
 									{skills.length} {skills.length === 1 ? 'skill' : 'skills'} selected
 								</span>
 							</div>
 							<small class="field-hint" style="margin-bottom: 0.5rem; display: block;">
-								I-click ang mga tags o mag-type ng sariling skill para mas madaling mapili ng mga kliyente.
+								Click tags or type custom skills to help clients find your services easily.
 							</small>
 
 							<!-- Popular Preset Chips -->
@@ -518,7 +518,7 @@
 							<div class="custom-skill-input-row">
 								<input
 									type="text"
-									placeholder="Mag-dagdag ng sariling skill (e.g. CCTV Setup, Tile Work)..."
+									placeholder="Add a custom skill (e.g. CCTV Setup, Tile Work)..."
 									bind:value={newSkillInput}
 									onkeydown={(e) => {
 										if (e.key === 'Enter') {
@@ -1441,6 +1441,45 @@
 		background: rgba(0, 0, 0, 0.1);
 	}
 
+	.bio-label-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+		margin-bottom: 0.35rem;
+	}
+
+	.bio-label {
+		display: inline-flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0.35rem;
+		margin-bottom: 0;
+		font-weight: 600;
+		font-size: 0.88rem;
+		color: var(--text-primary);
+		cursor: pointer;
+	}
+
+	.bio-icon {
+		color: var(--accent);
+		flex-shrink: 0;
+	}
+
+	.bio-subtitle {
+		font-weight: normal;
+		color: var(--text-muted);
+		font-size: 0.8rem;
+	}
+
+	.bio-char-count {
+		font-size: 0.75rem;
+		color: var(--text-muted);
+		font-weight: 500;
+		flex-shrink: 0;
+	}
+
 	@media (max-width: 600px) {
 		.availability-cards-grid {
 			grid-template-columns: 1fr;
@@ -1466,6 +1505,14 @@
 			justify-content: center;
 		}
 
+		.bio-label {
+			font-size: 0.84rem;
+		}
+
+		.bio-subtitle {
+			font-size: 0.76rem;
+		}
+
 		.form-actions {
 			justify-content: stretch;
 		}
@@ -1480,6 +1527,10 @@
 			font-size: 0.72rem !important;
 			padding: 0.5rem 0.15rem !important;
 			gap: 0.2rem !important;
+		}
+
+		.bio-subtitle {
+			font-size: 0.72rem;
 		}
 	}
 </style>
