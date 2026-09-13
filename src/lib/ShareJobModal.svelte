@@ -28,6 +28,17 @@
 	let copied = $state(false);
 	let copyTimer = null;
 
+	$effect(() => {
+		if (isOpen) {
+			document.body.style.overflow = 'hidden';
+		} else {
+			document.body.style.overflow = '';
+		}
+		return () => {
+			document.body.style.overflow = '';
+		};
+	});
+
 	const canNativeShare = $derived(
 		typeof navigator !== 'undefined' && !!navigator.share
 	);

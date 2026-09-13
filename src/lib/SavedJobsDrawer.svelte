@@ -65,6 +65,17 @@
 			default: return 'badge-general';
 		}
 	}
+
+	$effect(() => {
+		if (savedJobs.isDrawerOpen) {
+			document.body.style.overflow = 'hidden';
+		} else {
+			document.body.style.overflow = '';
+		}
+		return () => {
+			document.body.style.overflow = '';
+		};
+	});
 </script>
 
 <svelte:window onkeydown={handleKeydown} />

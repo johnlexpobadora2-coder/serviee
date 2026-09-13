@@ -42,6 +42,17 @@
 	let selectedCity = $state('');
 	let detectingGps = $state(false);
 
+	$effect(() => {
+		if (show) {
+			document.body.style.overflow = 'hidden';
+		} else {
+			document.body.style.overflow = '';
+		}
+		return () => {
+			document.body.style.overflow = '';
+		};
+	});
+
 	// Leaflet map references
 	let mapContainer = $state(null);
 	let mapInstance = null;
