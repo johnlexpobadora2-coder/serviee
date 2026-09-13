@@ -273,7 +273,7 @@
 				aria-selected={activeTab === 'security'}
 			>
 				<Shield size={18} />
-				<span class="tab-label">Security & Devices</span>
+				<span class="tab-label">Security</span>
 			</button>
 			<button
 				type="button"
@@ -590,7 +590,7 @@
 			</div>
 		{/if}
 
-		<!-- Tab Content 2: Security & Devices -->
+		<!-- Tab Content 2: Security -->
 		{#if activeTab === 'security'}
 			<div class="space-y-6">
 				<!-- Change Password Card -->
