@@ -13,9 +13,7 @@
 		Navigation, 
 		Check, 
 		Repeat, 
-		Smartphone, 
 		Trash2, 
-		LogOut, 
 		UserPlus,
 		ShieldAlert,
 		Wrench,
@@ -38,7 +36,7 @@
 	let activeTab = $state('profile'); // 'profile' | 'security' | 'roles'
 
 	$effect(() => {
-		if (form?.passwordError || form?.passwordSuccess || form?.sessionError || form?.sessionSuccess) {
+		if (form?.passwordError || form?.passwordSuccess) {
 			activeTab = 'security';
 		} else if (form?.switchError || form?.createRoleError) {
 			activeTab = 'roles';
@@ -112,8 +110,6 @@
 	let lastHandledProfileError = null;
 	let lastHandledPasswordSuccess = null;
 	let lastHandledPasswordError = null;
-	let lastHandledSessionSuccess = null;
-	let lastHandledSessionError = null;
 	let lastHandledSwitchError = null;
 	let lastHandledCreateRoleError = null;
 	let lastHandledDeleteError = null;
@@ -181,7 +177,6 @@
 	let currentPassword = $state('');
 	let newPassword = $state('');
 	let confirmPassword = $state('');
-	let sessionLogoutPassword = $state('');
 
 	// Role Switcher states
 	let switchPassword = $state('');
@@ -205,15 +200,6 @@
 			lastHandledPasswordError = form.passwordError;
 			toast.error(form.passwordError);
 		}
-		if (form?.sessionSuccess && form.sessionSuccess !== lastHandledSessionSuccess) {
-			lastHandledSessionSuccess = form.sessionSuccess;
-			toast.success(form.sessionSuccess);
-			sessionLogoutPassword = '';
-		}
-		if (form?.sessionError && form.sessionError !== lastHandledSessionError) {
-			lastHandledSessionError = form.sessionError;
-			toast.error(form.sessionError);
-		}
 		if (form?.switchError && form.switchError !== lastHandledSwitchError) {
 			lastHandledSwitchError = form.switchError;
 			toast.error(form.switchError);
@@ -231,7 +217,6 @@
 
 	let profileSubmitting = $state(false);
 	let passwordSubmitting = $state(false);
-	let sessionLogoutSubmitting = $state(false);
 	let switchSubmitting = $state(false);
 	let createRoleSubmitting = $state(false);
 </script>
@@ -687,61 +672,6 @@
 					</form>
 				</div>
 
-				<!-- Active Sessions & Multi-Device Logout Card -->
-				<div class="tab-panel">
-					<div class="panel-header">
-						<div style="display: flex; align-items: center; gap: 0.5rem;">
-							<Smartphone size={20} class="text-accent" />
-							<h3 style="margin: 0;">Active Devices & Sessions</h3>
-						</div>
-						<p>Logged in on a public computer or another device? Revoke all other active sessions here.</p>
-					</div>
-
-					<form 
-						method="POST" 
-						action="?/logoutAllDevices"
-						class="settings-form"
-						use:enhance={() => {
-							sessionLogoutSubmitting = true;
-							return async ({ update }) => {
-								sessionLogoutSubmitting = false;
-								await update();
-							};
-						}}
-					>
-						<div class="form-group">
-							<label for="session-password">Confirm Password to Revoke Other Devices</label>
-							<div class="input-wrapper">
-								<KeyRound size={18} class="input-icon" />
-								<input 
-									type="password" 
-									id="session-password" 
-									name="password" 
-									bind:value={sessionLogoutPassword}
-									placeholder="Enter your account password" 
-									required
-								/>
-							</div>
-						</div>
-
-						<div class="form-actions">
-							<button 
-								type="submit" 
-								class="btn btn-outline" 
-								style="display: inline-flex; align-items: center; gap: 0.5rem; border-color: var(--border-color); color: var(--text-primary);"
-								disabled={sessionLogoutSubmitting || !sessionLogoutPassword}
-							>
-								{#if sessionLogoutSubmitting}
-									<span class="spinner spinner-sm"></span>
-									<span>Revoking sessions...</span>
-								{:else}
-									<LogOut size={16} />
-									<span>Log Out From All Other Devices</span>
-								{/if}
-							</button>
-						</div>
-					</form>
-				</div>
 
 				<!-- Danger Zone Card -->
 				<div class="tab-panel danger-zone-panel">

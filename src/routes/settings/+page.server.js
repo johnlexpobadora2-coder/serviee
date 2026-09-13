@@ -139,56 +139,6 @@ export const actions = {
 		}
 	},
 
-	logoutAllDevices: async ({ request, cookies, locals }) => {
-		if (!locals.user) {
-			throw redirect(303, '/login');
-		}
-
-		const data = await request.formData();
-		const password = data.get('password')?.toString();
-
-		if (!password) {
-			return fail(400, {
-				sessionError: 'Please enter your password to confirm logging out from all devices.',
-				sessionSuccess: false
-			});
-		}
-
-		try {
-			const user = await db.users.findById(locals.user.id);
-			if (!user || user.password_hash !== hashPassword(password)) {
-				return fail(400, {
-					sessionError: 'Incorrect password. Could not revoke other sessions.',
-					sessionSuccess: false
-				});
-			}
-
-			// Increment token version in database
-			const newVersion = await db.users.incrementTokenVersion(locals.user.id);
-
-			// Refresh current browser session cookie with new version
-			const freshToken = createSignedSession(locals.user.id, newVersion);
-			cookies.set('session_id', freshToken, {
-				path: '/',
-				httpOnly: true,
-				sameSite: 'lax',
-				secure: process.env.NODE_ENV === 'production',
-				maxAge: 60 * 60 * 24 * 7
-			});
-
-			return {
-				sessionSuccess: 'Successfully logged out of all other devices and sessions!',
-				sessionError: null
-			};
-		} catch (error) {
-			console.error('Error in logoutAllDevices:', error);
-			return fail(400, {
-				sessionError: error.message || 'Failed to revoke other sessions.',
-				sessionSuccess: false
-			});
-		}
-	},
-
 	switchRole: async ({ request, cookies, locals }) => {
 		if (!locals.user) {
 			throw redirect(303, '/login');
