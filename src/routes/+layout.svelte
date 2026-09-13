@@ -4,9 +4,8 @@
 	import { Menu, X, Settings, LogOut, LogIn, UserPlus, Home, PlusCircle, User, ShieldCheck, Download } from 'lucide-svelte';
 	import ThemeToggle from '$lib/ThemeToggle.svelte';
 	import PwaInstallBanner from '$lib/PwaInstallBanner.svelte';
-	import MapViewer from '$lib/MapViewer.svelte';
 	import LogoutConfirmModal from '$lib/LogoutConfirmModal.svelte';
-	import { mapModal } from '$lib/mapViewerModal.svelte.js';
+	import ToastContainer from '$lib/ToastContainer.svelte';
 	import { navigating } from '$app/stores';
 	import { page } from '$app/state';
 
@@ -18,6 +17,7 @@
 	let logoutFormRef = $state(null);
 
 	let isAdminPage = $derived(page.url.pathname.startsWith('/admin'));
+	let isMapPage = $derived(page.url.pathname === '/map' || page.url.pathname.startsWith('/map/'));
 	let currentPath = $derived(page.url.pathname);
 
 	function toggleMenu() {
@@ -30,22 +30,14 @@
 
 	function handleKeydown(e) {
 		if (e.key === 'Escape') {
-			if (mapModal.open) {
-				mapModal.closeModal();
-				return;
-			}
 			if (menuOpen) {
 				closeMenu();
 			}
 		}
 	}
 
-	function handlePopState(e) {
-		mapModal.handlePopState();
-	}
-
 	$effect(() => {
-		if (menuOpen || mapModal.open) {
+		if (menuOpen) {
 			document.body.style.overflow = 'hidden';
 		} else {
 			document.body.style.overflow = '';
@@ -56,7 +48,7 @@
 	});
 </script>
 
-<svelte:window onkeydown={handleKeydown} onpopstate={handlePopState} />
+<svelte:window onkeydown={handleKeydown} />
 
 {#if $navigating}
 	<div class="global-loading-indicator">
@@ -70,7 +62,7 @@
 	<meta name="description" content="Connect local clients needing quick repairs or manual labor with available sideline workers and handymen in the Philippines." />
 </svelte:head>
 
-{#if menuOpen && !isAdminPage}
+{#if menuOpen && !isAdminPage && !isMapPage}
 	<!-- Backdrop overlay on mobile when burger menu is open -->
 	<button
 		type="button"
@@ -80,8 +72,8 @@
 	></button>
 {/if}
 
-<div class="app-container">
-	{#if !isAdminPage}
+<div class="app-container" class:map-mode={isMapPage}>
+	{#if !isAdminPage && !isMapPage}
 		<header>
 			<nav class="nav-container">
 			<a href="/" class="logo" onclick={closeMenu} id="nav-logo">
@@ -242,11 +234,11 @@
 	</header>
 	{/if}
 
-	<main>
+	<main class:is-admin={isAdminPage} class:is-map-page={isMapPage}>
 		{@render children()}
 	</main>
 
-	{#if !isAdminPage}
+	{#if !isAdminPage && !isMapPage}
 		<footer>
 			<div style="max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 0.5rem; align-items: center;">
 				<p>&copy; {new Date().getFullYear()} <strong>Serviee</strong>. All rights reserved.</p>
@@ -262,15 +254,5 @@
 		onConfirm={() => logoutFormRef?.submit()} 
 	/>
 
-	{#if mapModal.open}
-		<MapViewer
-			latitude={mapModal.latitude}
-			longitude={mapModal.longitude}
-			title={mapModal.title}
-			address={mapModal.address}
-			backUrl={mapModal.backUrl}
-			fullscreen={true}
-			onClose={() => mapModal.closeModal()}
-		/>
-	{/if}
+	<ToastContainer />
 </div>

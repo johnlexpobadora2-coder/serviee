@@ -161,19 +161,19 @@
 	});
 </script>
 
-<div class="city-autocomplete-container" bind:this={containerRef}>
+<div class="relative w-full" bind:this={containerRef}>
 	<!-- Hidden input for standard Form Data submission -->
 	<input type="hidden" {name} {value} {required} />
 
 	<div
-		class="autocomplete-input-wrapper {isValid
-			? 'is-valid'
+		class="relative flex items-center w-full rounded-md border-[1.5px] bg-[var(--bg-input,#1e293b)] transition-all duration-200 focus-within:border-[var(--accent,#6366f1)] focus-within:ring-3 focus-within:ring-indigo-500/20 {isValid
+			? 'border-emerald-500 bg-emerald-500/5'
 			: hasInteracted && query && !isValid
-				? 'is-invalid'
-				: ''}"
+				? 'border-amber-500 bg-amber-500/5'
+				: 'border-[var(--border-color,#334155)]'}"
 	>
-		<div class="input-icon-left">
-			<MapPin size={18} class={isValid ? "text-success" : "text-muted"} />
+		<div class="flex items-center justify-center pl-3.5 text-[var(--text-muted,#94a3b8)]">
+			<MapPin size={18} class={isValid ? "text-emerald-500" : "text-slate-400"} />
 		</div>
 
 		<input
@@ -181,7 +181,7 @@
 			type="text"
 			role="combobox"
 			{id}
-			class="autocomplete-input"
+			class="w-full flex-1 border-none bg-transparent py-3 px-2.5 text-[0.98rem] text-[var(--text-primary,#f8fafc)] outline-none shadow-none focus:outline-none focus:ring-0 placeholder:text-[var(--text-muted,#94a3b8)]"
 			{placeholder}
 			value={query}
 			oninput={handleInput}
@@ -195,21 +195,21 @@
 			aria-controls="{id}-listbox"
 		/>
 
-		<div class="input-actions-right">
+		<div class="flex items-center gap-1.5 pr-3">
 			{#if isSearching}
-				<span class="spinner-icon">
+				<span class="flex items-center text-[var(--accent,#6366f1)]">
 					<Loader2 size={16} class="animate-spin" />
 				</span>
 			{:else if isValid}
-				<span class="badge-verified" title="Verified Location">
-					<CheckCircle2 size={16} class="text-success" />
+				<span class="flex items-center text-emerald-500" title="Verified Location">
+					<CheckCircle2 size={16} />
 				</span>
 			{/if}
 
 			{#if query}
 				<button
 					type="button"
-					class="btn-clear-input"
+					class="flex items-center justify-center rounded-full p-1 text-[var(--text-muted,#94a3b8)] transition-colors duration-150 hover:bg-white/10 hover:text-[var(--text-primary,#f8fafc)] cursor-pointer"
 					onclick={handleClear}
 					title="Clear location"
 					aria-label="Clear location input"
@@ -222,18 +222,22 @@
 
 	<!-- Suggestions Dropdown Menu -->
 	{#if isOpen && suggestions.length > 0}
-		<div class="suggestions-dropdown" id="{id}-listbox" role="listbox">
-			<div class="dropdown-header">
+		<div
+			class="absolute top-[calc(100%+6px)] left-0 right-0 z-50 max-h-[260px] overflow-y-auto rounded-md border border-[var(--border-color,#334155)] bg-[var(--bg-card,#0f172a)] shadow-2xl"
+			id="{id}-listbox"
+			role="listbox"
+		>
+			<div class="border-b border-[var(--border-color,#334155)] bg-black/15 px-3.5 py-2 text-[0.72rem] font-semibold uppercase tracking-wider text-[var(--text-muted,#94a3b8)]">
 				<span>Tap to select official Municipality / City:</span>
 			</div>
-			<ul class="suggestions-list">
+			<ul class="m-0 list-none py-1.5">
 				{#each suggestions as item, idx}
 					<li
 						role="option"
 						tabindex="0"
 						aria-selected={selectedIndex === idx}
-						class="suggestion-item {selectedIndex === idx
-							? 'selected'
+						class="flex items-center gap-3 px-3.5 py-2.5 cursor-pointer transition-colors duration-150 border-b border-white/[0.04] last:border-b-0 hover:bg-indigo-500/15 focus:bg-indigo-500/15 focus:outline-none {selectedIndex === idx
+							? 'bg-indigo-500/15'
 							: ''}"
 						onclick={() => selectSuggestion(item)}
 						onkeydown={(e) => {
@@ -243,20 +247,20 @@
 							}
 						}}
 					>
-						<div class="suggestion-pin">
+						<div class="flex shrink-0 items-center text-[var(--accent,#6366f1)]">
 							<MapPin size={16} />
 						</div>
-						<div class="suggestion-text">
-							<div class="suggestion-title">{item.city}</div>
+						<div class="min-w-0 flex-1">
+							<div class="truncate text-[0.92rem] font-semibold text-[var(--text-primary,#f8fafc)]">{item.city}</div>
 							{#if item.province}
-								<div class="suggestion-subtitle">
+								<div class="truncate text-[0.78rem] text-[var(--text-muted,#94a3b8)]">
 									{item.province}
 									{item.region ? `• ${item.region}` : ""}
 								</div>
 							{/if}
 						</div>
-						<div class="suggestion-action">
-							<span class="btn-select-badge">Select</span>
+						<div class="shrink-0">
+							<span class="rounded px-2 py-0.5 text-[0.72rem] font-semibold bg-indigo-500/20 text-indigo-400">Select</span>
 						</div>
 					</li>
 				{/each}
@@ -266,7 +270,7 @@
 
 	<!-- Validation helper message -->
 	{#if hasInteracted && query && !isValid}
-		<div class="validation-warning">
+		<div class="mt-1.5 flex items-center gap-1.5 text-[0.8rem] text-amber-500">
 			<AlertCircle size={14} />
 			<span
 				>Please select a valid city/municipality from the list or use
@@ -275,223 +279,3 @@
 		</div>
 	{/if}
 </div>
-
-<style>
-	.city-autocomplete-container {
-		position: relative;
-		width: 100%;
-	}
-
-	.autocomplete-input-wrapper {
-		position: relative;
-		display: flex;
-		align-items: center;
-		background: var(--bg-input, #1e293b);
-		border: 1.5px solid var(--border-color, #334155);
-		border-radius: var(--radius-md, 0.5rem);
-		transition: all 0.2s ease;
-		width: 100%;
-	}
-
-	.autocomplete-input-wrapper:focus-within {
-		border-color: var(--accent, #6366f1);
-		box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-	}
-
-	.autocomplete-input-wrapper.is-valid {
-		border-color: #10b981;
-		background: rgba(16, 185, 129, 0.03);
-	}
-
-	.autocomplete-input-wrapper.is-invalid {
-		border-color: #f59e0b;
-		background: rgba(245, 158, 11, 0.03);
-	}
-
-	.input-icon-left {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding-left: 0.85rem;
-		color: var(--text-muted, #94a3b8);
-	}
-
-	.autocomplete-input {
-		flex: 1;
-		border: none !important;
-		background: transparent !important;
-		padding: 0.75rem 0.65rem !important;
-		font-size: 0.98rem;
-		color: var(--text-primary, #f8fafc);
-		outline: none !important;
-		box-shadow: none !important;
-		width: 100%;
-	}
-
-	.input-actions-right {
-		display: flex;
-		align-items: center;
-		gap: 0.35rem;
-		padding-right: 0.75rem;
-	}
-
-	.spinner-icon {
-		display: flex;
-		align-items: center;
-		color: var(--accent, #6366f1);
-	}
-
-	:global(.animate-spin) {
-		animation: spin 1s linear infinite;
-	}
-
-	@keyframes spin {
-		from {
-			transform: rotate(0deg);
-		}
-		to {
-			transform: rotate(360deg);
-		}
-	}
-
-	.badge-verified {
-		display: flex;
-		align-items: center;
-		color: #10b981;
-	}
-
-	.btn-clear-input {
-		background: none;
-		border: none;
-		padding: 0.25rem;
-		border-radius: 50%;
-		color: var(--text-muted, #94a3b8);
-		cursor: pointer;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		transition:
-			background 0.15s,
-			color 0.15s;
-	}
-
-	.btn-clear-input:hover {
-		background: rgba(255, 255, 255, 0.1);
-		color: var(--text-primary, #f8fafc);
-	}
-
-	.suggestions-dropdown {
-		position: absolute;
-		top: calc(100% + 6px);
-		left: 0;
-		right: 0;
-		background: var(--bg-card, #0f172a);
-		border: 1px solid var(--border-color, #334155);
-		border-radius: var(--radius-md, 0.5rem);
-		box-shadow:
-			0 10px 25px -5px rgba(0, 0, 0, 0.5),
-			0 8px 10px -6px rgba(0, 0, 0, 0.4);
-		z-index: 100;
-		max-height: 260px;
-		overflow-y: auto;
-		animation: slideDown 0.15s ease-out;
-	}
-
-	@keyframes slideDown {
-		from {
-			opacity: 0;
-			transform: translateY(-6px);
-		}
-		to {
-			opacity: 1;
-			transform: translateY(0);
-		}
-	}
-
-	.dropdown-header {
-		padding: 0.45rem 0.85rem;
-		font-size: 0.72rem;
-		font-weight: 600;
-		text-transform: uppercase;
-		letter-spacing: 0.04em;
-		color: var(--text-muted, #94a3b8);
-		border-bottom: 1px solid var(--border-color, #334155);
-		background: rgba(0, 0, 0, 0.15);
-	}
-
-	.suggestions-list {
-		list-style: none;
-		padding: 0.35rem 0;
-		margin: 0;
-	}
-
-	.suggestion-item {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-		padding: 0.6rem 0.85rem;
-		cursor: pointer;
-		transition: background 0.15s ease;
-		border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-	}
-
-	.suggestion-item:last-child {
-		border-bottom: none;
-	}
-
-	.suggestion-item:hover,
-	.suggestion-item.selected {
-		background: rgba(99, 102, 241, 0.12);
-	}
-
-	.suggestion-pin {
-		color: var(--accent, #6366f1);
-		display: flex;
-		align-items: center;
-		flex-shrink: 0;
-	}
-
-	.suggestion-text {
-		flex: 1;
-		min-width: 0;
-	}
-
-	.suggestion-title {
-		font-size: 0.92rem;
-		font-weight: 600;
-		color: var(--text-primary, #f8fafc);
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	.suggestion-subtitle {
-		font-size: 0.78rem;
-		color: var(--text-muted, #94a3b8);
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	.suggestion-action {
-		flex-shrink: 0;
-	}
-
-	.btn-select-badge {
-		font-size: 0.72rem;
-		padding: 0.2rem 0.5rem;
-		border-radius: var(--radius-sm, 0.25rem);
-		background: rgba(99, 102, 241, 0.18);
-		color: #818cf8;
-		font-weight: 600;
-	}
-
-	.validation-warning {
-		display: flex;
-		align-items: center;
-		gap: 0.4rem;
-		margin-top: 0.4rem;
-		font-size: 0.8rem;
-		color: #f59e0b;
-	}
-</style>

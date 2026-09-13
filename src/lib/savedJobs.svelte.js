@@ -1,5 +1,6 @@
 // Svelte 5 Rune-based Reactive Saved Jobs Store
 import { browser } from '$app/environment';
+import { getPhilippineCityCoordinates } from '$lib/philippinesLocations.js';
 
 function getStorageKey(userId) {
 	return userId ? `serviee_saved_jobs_${userId}` : 'serviee_saved_jobs_v1';
@@ -140,6 +141,17 @@ function createSavedJobsStore() {
 				list = list.filter((item) => String(item.id) !== targetId);
 				willBeSaved = false;
 			} else {
+				// Resolve coordinates if missing or text location
+				let lat = job.latitude !== null && job.latitude !== undefined && job.latitude !== '' ? parseFloat(job.latitude) : null;
+				let lng = job.longitude !== null && job.longitude !== undefined && job.longitude !== '' ? parseFloat(job.longitude) : null;
+				if ((lat === null || isNaN(lat) || lng === null || isNaN(lng)) && job.location) {
+					const cityCoords = getPhilippineCityCoordinates(job.location);
+					if (cityCoords) {
+						lat = cityCoords.latitude;
+						lng = cityCoords.longitude;
+					}
+				}
+
 				// Store essential fields to keep size light and snappy
 				const savedItem = {
 					id: job.id,
@@ -148,8 +160,8 @@ function createSavedJobsStore() {
 					category: job.category || 'Others',
 					budget: Number(job.budget) || 0,
 					location: job.location || 'Unknown Location',
-					latitude: job.latitude || null,
-					longitude: job.longitude || null,
+					latitude: (lat !== null && !isNaN(lat)) ? lat : null,
+					longitude: (lng !== null && !isNaN(lng)) ? lng : null,
 					customer_id: job.customer_id || null,
 					customerName: job.customerName || 'Client',
 					target_date: job.target_date || new Date().toISOString(),

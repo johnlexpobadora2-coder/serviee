@@ -15,6 +15,7 @@
 	import WorkerImagePreviewModal from '$lib/worker/WorkerImagePreviewModal.svelte';
 	import { getSmartCache, setSmartCache, removeSmartCache } from '$lib/smartCache.js';
 	import { savedJobs } from '$lib/savedJobs.svelte.js';
+	import { toast } from '$lib/toast.svelte.js';
 
 	let { data, form } = $props();
 
@@ -985,12 +986,13 @@
 		await sendChatMessagePayload(trimmed);
 	}
 
-	// Refetch when form actions return
+	// Refetch and toast when form actions return
 	let lastHandledFormSuccess = null;
 	$effect(() => {
 		const successMsg = form?.success;
 		if (successMsg && successMsg !== lastHandledFormSuccess) {
 			lastHandledFormSuccess = successMsg;
+			toast.success(successMsg);
 			untrack(() => {
 				if (form?.activeTab) {
 					activeTab = form.activeTab;
@@ -1007,6 +1009,15 @@
 				fetchConversations(false);
 				if (profileLoaded) fetchProfileData();
 			});
+		}
+	});
+
+	let lastHandledFormError = null;
+	$effect(() => {
+		const errorMsg = form?.error;
+		if (errorMsg && errorMsg !== lastHandledFormError) {
+			lastHandledFormError = errorMsg;
+			toast.error(errorMsg);
 		}
 	});
 </script>
@@ -1026,18 +1037,6 @@
 		scrollToBottom(false);
 	}} 
 />
-
-{#if form?.success}
-	<div style="background-color: var(--success-light); border: 1px solid var(--success); color: var(--text-primary); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; font-size: 0.95rem;">
-		{form.success}
-	</div>
-{/if}
-
-{#if form?.error}
-	<div style="background-color: var(--error-light); border: 1px solid var(--error); color: var(--text-primary); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; font-size: 0.95rem;">
-		{form.error}
-	</div>
-{/if}
 
 {#if activeTab === "feed"}
 	<WorkerFeedTab 

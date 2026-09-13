@@ -19,7 +19,6 @@
 		Share2
 	} from 'lucide-svelte';
 	import { getGoogleMapsUrl, getServieeMapUrl, getEmbedMapUrl } from '$lib/gpsUtils.js';
-	import { mapModal } from '$lib/mapViewerModal.svelte.js';
 	import FeedRefreshSpeedDial from '$lib/FeedRefreshSpeedDial.svelte';
 	import FeedViewToggle from '$lib/FeedViewToggle.svelte';
 	import ShareJobModal from '$lib/ShareJobModal.svelte';
@@ -305,9 +304,9 @@
 			</div>
 		</div>
 
-		<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
-			<div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
-				<h2 style="font-size: 1.25rem; margin: 0;">
+		<div class="feed-header-section">
+			<div class="feed-header-top">
+				<h2 class="feed-header-title">
 					Available Jobs ({totalCount || jobs.length})
 				</h2>
 				<button 
@@ -317,11 +316,13 @@
 					title="View Saved Jobs"
 				>
 					<Bookmark size={14} style={savedJobs.count > 0 ? 'fill: currentColor;' : ''} />
-					<span>Saved {savedJobs.count > 0 ? `(${savedJobs.count})` : ''}</span>
+					<span>Saved</span>
 				</button>
 			</div>
 
-			<FeedViewToggle bind:viewMode={viewMode} />
+			<div class="feed-header-actions">
+				<FeedViewToggle bind:viewMode={viewMode} />
+			</div>
 		</div>
 
 		{#if viewMode === 'map'}
@@ -463,10 +464,6 @@
 									<a 
 										href={getServieeMapUrl(job.latitude, job.longitude, job.title, job.location)} 
 										class="feed-job-directions-link"
-										onclick={(e) => {
-											e.preventDefault();
-											mapModal.openModal({ latitude: job.latitude, longitude: job.longitude, title: job.title, address: job.location });
-										}}
 										title="View Map"
 										aria-label="View Map"
 									>

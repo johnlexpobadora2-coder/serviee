@@ -1,7 +1,6 @@
 <script>
 	import { MessageSquare, Pin, ArrowLeft, User, Trash2, MapPin, ExternalLink, Plus, Compass, Navigation, Image as ImageIcon } from 'lucide-svelte';
 	import { parseGpsMessage, parseImageMessage } from '$lib/gpsUtils.js';
-	import { mapModal } from '$lib/mapViewerModal.svelte.js';
 
 	let { 
 		conversations = [], 
@@ -201,10 +200,6 @@
 												<a 
 													href={gpsData.servieeMapUrl} 
 													class="chat-location-btn"
-													onclick={(e) => {
-														e.preventDefault();
-														mapModal.openModal({ latitude: gpsData.lat, longitude: gpsData.lng, title: gpsData.label });
-													}}
 												>
 													<MapPin size={13} /> View Map
 												</a>

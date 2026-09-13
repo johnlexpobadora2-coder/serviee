@@ -1,14 +1,22 @@
 <script>
 	import { enhance } from '$app/forms';
 	import { getCurrentCoordinates, reverseGeocode, getGoogleMapsUrl, getServieeMapUrl, getEmbedMapUrl } from '$lib/gpsUtils.js';
-	import { mapModal } from '$lib/mapViewerModal.svelte.js';
 	import LocationPickerModal from '$lib/LocationPickerModal.svelte';
 	import CityAutocomplete from '$lib/CityAutocomplete.svelte';
 	import { MapPin, Navigation, ExternalLink, Check, AlertCircle, RefreshCw, Compass } from 'lucide-svelte';
+	import { toast } from '$lib/toast.svelte.js';
 
 	let { form } = $props();
 	let loading = $state(false);
 	let clientError = $state('');
+
+	let lastHandledError = null;
+	$effect(() => {
+		if (form?.error && form.error !== lastHandledError) {
+			lastHandledError = form.error;
+			toast.error(form.error);
+		}
+	});
 
 	// GPS States
 	let detectingGps = $state(false);
@@ -99,16 +107,12 @@
 			Describe the service you need with accurate location & GPS coordinates so nearby workers can locate you easily.
 		</p>
 
-		{#if form?.error || clientError}
-			<div style="background-color: var(--error-light); border: 1px solid var(--error); color: var(--text-primary); padding: 0.75rem 1rem; border-radius: var(--radius-md); margin-bottom: 1rem; font-size: 0.85rem;">
-				{form?.error || clientError}
-			</div>
-		{/if}
-
 		<form method="POST" use:enhance={({ cancel }) => {
 			clientError = '';
 			if (!selectedLocation || !isLocationValid) {
-				clientError = 'Please search and select a valid City or Municipality from the suggestions, or use Auto GPS / Pin Location.';
+				const msg = 'Please search and select a valid City or Municipality from the suggestions, or use Auto GPS / Pin Location.';
+				clientError = msg;
+				toast.error(msg);
 				cancel();
 				return;
 			}
@@ -236,10 +240,6 @@
 							<a 
 								href={getServieeMapUrl(latitude, longitude, 'New Job Location', detectedAddressLabel)} 
 								class="btn btn-outline feed-job-edit-btn" 
-								onclick={(e) => {
-									e.preventDefault();
-									mapModal.openModal({ latitude, longitude, title: 'New Job Location', address: detectedAddressLabel });
-								}}
 							>
 								<MapPin size={13} />
 								<span>View Map</span>

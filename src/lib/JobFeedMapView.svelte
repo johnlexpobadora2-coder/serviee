@@ -361,19 +361,19 @@
 	});
 </script>
 
-<div class="job-feed-map-wrapper">
+<div class="relative w-full h-[620px] max-sm:h-[calc(100vh-210px)] max-sm:min-h-[480px] rounded-2xl max-sm:rounded-xl overflow-hidden border border-[var(--border-color)] shadow-[var(--shadow-md)] bg-[var(--bg-card)]">
 	<!-- Leaflet Map Container -->
-	<div bind:this={mapContainer} class="job-feed-map-canvas"></div>
+	<div bind:this={mapContainer} class="w-full h-full z-[1]"></div>
 
 	<!-- Top Info / Banner Status -->
-	<div class="map-top-status-bar">
-		<span class="badge map-status-badge">
-			<MapPin size={12} style="color: var(--success, #10b981);" />
+	<div class="absolute top-3.5 left-3.5 z-[990] flex items-center gap-2 flex-wrap pointer-events-none">
+		<span class="pointer-events-auto bg-[var(--bg-card)] border border-[var(--border-color)] rounded-[var(--radius-sm)] py-1.5 px-2.5 text-[0.76rem] text-[var(--text-primary)] inline-flex items-center gap-1.5 shadow-[var(--shadow-sm)] font-medium normal-case tracking-normal">
+			<MapPin size={12} class="text-[var(--success)]" />
 			<span><strong>{mappedJobs.length}</strong> Pinned Jobs</span>
 		</span>
 
 		{#if unmappedCount > 0}
-			<span class="badge badge-warning map-status-badge" title="{unmappedCount} jobs without GPS coordinates">
+			<span class="pointer-events-auto bg-[var(--warning-light)] border border-amber-500/40 rounded-[var(--radius-sm)] py-1.5 px-2.5 text-[0.76rem] text-[var(--warning)] inline-flex items-center gap-1.5 shadow-[var(--shadow-sm)] font-medium normal-case tracking-normal" title="{unmappedCount} jobs without GPS coordinates">
 				<AlertCircle size={12} />
 				<span>{unmappedCount} Unpinned</span>
 			</span>
@@ -381,10 +381,10 @@
 	</div>
 
 	<!-- Floating Controls (Right) -->
-	<div class="map-controls-group">
+	<div class="absolute top-3.5 right-3.5 z-[990] flex flex-col gap-1.5 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-[var(--radius-md)] p-1.5 shadow-[var(--shadow-md)]">
 		<button 
 			type="button" 
-			class="map-ctrl-btn {locatingUser ? 'active' : ''}" 
+			class="w-8 h-8 rounded-[var(--radius-sm)] flex items-center justify-center cursor-pointer transition-all duration-150 {locatingUser ? 'bg-[var(--accent)] text-white' : 'bg-transparent text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--accent-light)]'}" 
 			onclick={() => locateUser(true)}
 			title="Locate My Position"
 		>
@@ -393,7 +393,7 @@
 
 		<button 
 			type="button" 
-			class="map-ctrl-btn" 
+			class="w-8 h-8 rounded-[var(--radius-sm)] bg-transparent text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--accent-light)] flex items-center justify-center cursor-pointer transition-all duration-150" 
 			onclick={fitAllJobs}
 			title="Fit All Jobs in View"
 		>
@@ -402,18 +402,18 @@
 
 		<button 
 			type="button" 
-			class="map-ctrl-btn {currentLayer === 'satellite' ? 'active' : ''}" 
+			class="w-8 h-8 rounded-[var(--radius-sm)] flex items-center justify-center cursor-pointer transition-all duration-150 {currentLayer === 'satellite' ? 'bg-[var(--accent)] text-white' : 'bg-transparent text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--accent-light)]'}" 
 			onclick={toggleMapLayer}
 			title="Toggle Satellite / Streets"
 		>
 			<Layers size={17} />
 		</button>
 
-		<div class="map-ctrl-divider"></div>
+		<div class="h-px bg-[var(--border-color)] my-0.5 mx-1"></div>
 
 		<button 
 			type="button" 
-			class="map-ctrl-btn" 
+			class="w-8 h-8 rounded-[var(--radius-sm)] bg-transparent text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--accent-light)] flex items-center justify-center cursor-pointer transition-all duration-150" 
 			onclick={zoomIn}
 			title="Zoom In"
 		>
@@ -422,7 +422,7 @@
 
 		<button 
 			type="button" 
-			class="map-ctrl-btn" 
+			class="w-8 h-8 rounded-[var(--radius-sm)] bg-transparent text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--accent-light)] flex items-center justify-center cursor-pointer transition-all duration-150" 
 			onclick={zoomOut}
 			title="Zoom Out"
 		>
@@ -432,33 +432,33 @@
 
 	<!-- Bottom Selected Job Card Popup -->
 	{#if selectedJob}
-		<div class="map-selected-job-card">
+		<div class="absolute bottom-4 left-4 right-4 max-w-[440px] z-[995] bg-[var(--bg-card)] border border-[var(--border-color)] rounded-[var(--radius-md)] p-[1.15rem] shadow-[var(--shadow-lg)] flex flex-col gap-2 animate-[slideUp_0.25s_cubic-bezier(0.16,1,0.3,1)]">
 			<button 
 				type="button" 
-				class="map-card-close-btn"
+				class="absolute top-2.5 right-2.5 bg-transparent border-none text-[var(--text-muted)] cursor-pointer p-1.5 rounded-md flex items-center justify-center transition-all duration-150 hover:text-[var(--text-primary)] hover:bg-[var(--bg-input)]"
 				onclick={() => { selectedJob = null; updateMarkers(); }}
 				aria-label="Close card"
 			>
 				<X size={16} />
 			</button>
 
-			<div class="map-card-header">
+			<div class="flex items-center gap-2 pr-6">
 				<span class="badge {getCategoryBadge(selectedJob.category)}">{selectedJob.category}</span>
-				<div class="map-card-budget">
+				<div class="text-[1.1rem] font-bold text-[var(--text-primary)] ml-auto">
 					₱{Number(selectedJob.budget || 0).toLocaleString()}
 				</div>
 			</div>
 
-			<h4 class="map-card-title">{selectedJob.title}</h4>
-			<p class="map-card-desc">{selectedJob.description}</p>
+			<h4 class="text-[0.98rem] font-semibold m-0 text-[var(--text-primary)] leading-[1.35]">{selectedJob.title}</h4>
+			<p class="text-[0.8rem] text-[var(--text-secondary)] m-0 line-clamp-2 leading-[1.4]">{selectedJob.description}</p>
 
-			<div class="map-card-meta">
-				<div class="map-card-meta-item">
-					<MapPin size={13} style="color: #38bdf8;" />
+			<div class="flex flex-wrap gap-3 text-[0.76rem] text-[var(--text-secondary)]">
+				<div class="inline-flex items-center gap-1.5">
+					<MapPin size={13} class="text-sky-400" />
 					<span>{selectedJob.location}</span>
 				</div>
-				<div class="map-card-meta-item">
-					<Calendar size={13} style="color: #a78bfa;" />
+				<div class="inline-flex items-center gap-1.5">
+					<Calendar size={13} class="text-violet-400" />
 					<span>
 						{new Date(selectedJob.target_date || selectedJob.created_at).toLocaleDateString('en-PH', {
 							month: 'short',
@@ -468,10 +468,10 @@
 				</div>
 			</div>
 
-			<div class="map-card-actions">
+			<div class="flex items-center gap-2 mt-1.5 pt-2.5 border-t border-[var(--border-color)]">
 				<button 
 					type="button" 
-					class="map-card-icon-action {savedJobs.isSaved(selectedJob.id) ? 'saved' : ''}"
+					class="w-[34px] h-[34px] rounded-lg flex items-center justify-center cursor-pointer transition-all duration-150 border {savedJobs.isSaved(selectedJob.id) ? 'bg-[var(--warning-light)] border-[var(--warning)] text-[var(--warning)] hover:bg-amber-500/25' : 'bg-[var(--bg-input)] border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--accent)] hover:border-[var(--accent)] hover:bg-[var(--accent-light)]'}"
 					onclick={() => savedJobs.toggle(selectedJob)}
 					title={savedJobs.isSaved(selectedJob.id) ? 'Saved' : 'Save Job'}
 				>
@@ -480,7 +480,7 @@
 
 				<button 
 					type="button" 
-					class="map-card-icon-action"
+					class="w-[34px] h-[34px] rounded-lg flex items-center justify-center cursor-pointer transition-all duration-150 border bg-[var(--bg-input)] border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--accent)] hover:border-[var(--accent)] hover:bg-[var(--accent-light)]"
 					onclick={() => onopenshare(selectedJob)}
 					title="Share Job"
 				>
@@ -491,8 +491,7 @@
 					{#if (jobs.find(j => j.id === selectedJob.id)?.hasApplied || selectedJob.hasApplied)}
 						<button
 							type="button"
-							class="btn btn-outline map-card-apply-btn"
-							style="border-color: var(--accent); color: var(--accent-hover); display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem;"
+							class="btn btn-outline flex-1 py-2 px-3.5 text-[0.82rem] border-[var(--accent)] text-[var(--accent-hover)] inline-flex items-center justify-center gap-1.5"
 							onclick={() => onopenchat(selectedJob.id, selectedJob.customer_id)}
 						>
 							<MessageSquare size={14} />
@@ -517,15 +516,14 @@
 									});
 								};
 							}}
-							style="display: inline-flex; flex: 1;"
+							class="inline-flex flex-1"
 						>
 							<input type="hidden" name="jobId" value={selectedJob.id} />
 							<input type="hidden" name="customerId" value={selectedJob.customer_id} />
 							<input type="hidden" name="initialMessage" value="Hello! Inquiring po ako sa sideline job na ito: {selectedJob.title}." />
 							<button
 								type="submit"
-								class="btn btn-primary map-card-apply-btn"
-								style="width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem;"
+								class="btn btn-primary flex-1 w-full py-2 px-3.5 text-[0.82rem] inline-flex items-center justify-center gap-1.5"
 								disabled={applyingJobId === selectedJob.id}
 								id="map-inquire-btn-{selectedJob.id}"
 							>
@@ -546,129 +544,6 @@
 </div>
 
 <style>
-	.job-feed-map-wrapper {
-		position: relative;
-		width: 100%;
-		height: 620px;
-		border-radius: var(--radius-lg, 16px);
-		overflow: hidden;
-		border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
-		box-shadow: var(--shadow-md, 0 8px 24px rgba(0, 0, 0, 0.25));
-		background: var(--bg-card, #0f172a);
-	}
-
-	@media (max-width: 640px) {
-		.job-feed-map-wrapper {
-			height: calc(100vh - 210px);
-			min-height: 480px;
-			border-radius: 12px;
-		}
-	}
-
-	.job-feed-map-canvas {
-		width: 100%;
-		height: 100%;
-		z-index: 1;
-	}
-
-	.map-top-status-bar {
-		position: absolute;
-		top: 14px;
-		left: 14px;
-		z-index: 990;
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		flex-wrap: wrap;
-		pointer-events: none;
-	}
-
-	.map-status-badge {
-		pointer-events: auto;
-		background: var(--bg-card, #1e293b);
-		border: 1px solid var(--border-color, rgba(255, 255, 255, 0.15));
-		border-radius: var(--radius-sm, 4px);
-		padding: 0.35rem 0.65rem;
-		font-size: 0.76rem;
-		color: var(--text-primary, #ffffff);
-		display: inline-flex;
-		align-items: center;
-		gap: 0.35rem;
-		box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.3));
-		text-transform: none;
-		letter-spacing: normal;
-		font-weight: 500;
-	}
-
-	.map-status-badge.badge-warning {
-		background: var(--warning-light, rgba(245, 158, 11, 0.15));
-		border-color: rgba(245, 158, 11, 0.4);
-		color: var(--warning, #f59e0b);
-	}
-
-	.map-controls-group {
-		position: absolute;
-		top: 14px;
-		right: 14px;
-		z-index: 990;
-		display: flex;
-		flex-direction: column;
-		gap: 0.35rem;
-		background: var(--bg-card, #1e293b);
-		border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12));
-		border-radius: var(--radius-md, 6px);
-		padding: 0.35rem;
-		box-shadow: var(--shadow-md, 0 4px 16px rgba(0, 0, 0, 0.35));
-	}
-
-	.map-ctrl-btn {
-		width: 32px;
-		height: 32px;
-		border-radius: var(--radius-sm, 4px);
-		background: transparent;
-		border: none;
-		color: var(--text-secondary, #cbd5e1);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		cursor: pointer;
-		transition: all 0.15s ease;
-	}
-
-	.map-ctrl-btn:hover {
-		color: var(--accent, #6366f1);
-		background: var(--accent-light, rgba(99, 102, 241, 0.12));
-	}
-
-	.map-ctrl-btn.active {
-		background: var(--accent, #6366f1);
-		color: #ffffff;
-	}
-
-	.map-ctrl-divider {
-		height: 1px;
-		background: var(--border-color, rgba(255, 255, 255, 0.1));
-		margin: 0.15rem 0.3rem;
-	}
-
-	.map-selected-job-card {
-		position: absolute;
-		bottom: 16px;
-		left: 16px;
-		right: 16px;
-		max-width: 440px;
-		z-index: 995;
-		background: var(--bg-card, #1e293b);
-		border: 1px solid var(--border-color, rgba(255, 255, 255, 0.15));
-		border-radius: var(--radius-md, 6px);
-		padding: 1.15rem;
-		box-shadow: var(--shadow-lg, 0 16px 36px rgba(0, 0, 0, 0.5));
-		animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-		display: flex;
-		flex-direction: column;
-		gap: 0.55rem;
-	}
-
 	@keyframes slideUp {
 		from { transform: translateY(15px); opacity: 0; }
 		to { transform: translateY(0); opacity: 1; }
@@ -678,125 +553,5 @@
 		0% { transform: scale(0.95); opacity: 0.8; }
 		50% { transform: scale(1.6); opacity: 0; }
 		100% { transform: scale(0.95); opacity: 0; }
-	}
-
-	.map-card-close-btn {
-		position: absolute;
-		top: 10px;
-		right: 10px;
-		background: transparent;
-		border: none;
-		color: var(--text-muted, #94a3b8);
-		cursor: pointer;
-		padding: 0.3rem;
-		border-radius: 6px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		transition: all 0.15s ease;
-	}
-
-	.map-card-close-btn:hover {
-		color: var(--text-primary, #ffffff);
-		background: var(--bg-input, rgba(255, 255, 255, 0.1));
-	}
-
-	.map-card-header {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		padding-right: 1.5rem;
-	}
-
-	.map-card-budget {
-		font-size: 1.1rem;
-		font-weight: 700;
-		color: var(--text-primary, #ffffff);
-		margin-left: auto;
-	}
-
-	.map-card-title {
-		font-size: 0.98rem;
-		font-weight: 600;
-		margin: 0;
-		color: var(--text-primary, #ffffff);
-		line-height: 1.35;
-	}
-
-	.map-card-desc {
-		font-size: 0.8rem;
-		color: var(--text-secondary, #94a3b8);
-		margin: 0;
-		display: -webkit-box;
-		-webkit-line-clamp: 2;
-		line-clamp: 2;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
-		line-height: 1.4;
-	}
-
-	.map-card-meta {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.75rem;
-		font-size: 0.76rem;
-		color: var(--text-secondary, #94a3b8);
-	}
-
-	.map-card-meta-item {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.3rem;
-	}
-
-	.map-card-actions {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		margin-top: 0.4rem;
-		padding-top: 0.6rem;
-		border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
-	}
-
-	.map-card-icon-action {
-		width: 34px;
-		height: 34px;
-		border-radius: 8px;
-		background: var(--bg-input, rgba(255, 255, 255, 0.06));
-		border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
-		color: var(--text-secondary, #94a3b8);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		cursor: pointer;
-		transition: all 0.15s ease;
-	}
-
-	.map-card-icon-action:hover {
-		color: var(--accent, #6366f1);
-		border-color: var(--accent, #6366f1);
-		background: var(--accent-light, rgba(99, 102, 241, 0.12));
-	}
-
-	.map-card-icon-action.saved {
-		background: var(--warning-light, hsla(38, 92%, 50%, 0.15));
-		border-color: var(--warning, hsl(38, 92%, 50%));
-		color: var(--warning, hsl(38, 92%, 50%));
-	}
-
-	.map-card-icon-action.saved:hover {
-		background: var(--warning-light, hsla(38, 92%, 50%, 0.25));
-		border-color: var(--warning, hsl(38, 92%, 50%));
-		color: var(--warning, hsl(38, 92%, 50%));
-	}
-
-	.map-card-apply-btn {
-		flex: 1;
-		padding: 0.45rem 0.9rem;
-		font-size: 0.82rem;
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		gap: 0.35rem;
 	}
 </style>

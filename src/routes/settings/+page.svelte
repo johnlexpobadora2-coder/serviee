@@ -31,6 +31,7 @@
 	import LocationPickerModal from '$lib/LocationPickerModal.svelte';
 	import CityAutocomplete from '$lib/CityAutocomplete.svelte';
 	import DeleteAccountConfirmModal from '$lib/DeleteAccountConfirmModal.svelte';
+	import { toast } from '$lib/toast.svelte.js';
 
 	let { data, form } = $props();
 
@@ -107,8 +108,20 @@
 	let showPickerModal = $state(false);
 	let showDeleteAccountModal = $state(false);
 
+	let lastHandledProfileSuccess = null;
+	let lastHandledProfileError = null;
+	let lastHandledPasswordSuccess = null;
+	let lastHandledPasswordError = null;
+	let lastHandledSessionSuccess = null;
+	let lastHandledSessionError = null;
+	let lastHandledSwitchError = null;
+	let lastHandledCreateRoleError = null;
+	let lastHandledDeleteError = null;
+
 	$effect(() => {
-		if (form?.profileSuccess) {
+		if (form?.profileSuccess && form.profileSuccess !== lastHandledProfileSuccess) {
+			lastHandledProfileSuccess = form.profileSuccess;
+			toast.success(form.profileSuccess);
 			const u = form.user || data.user;
 			if (u) {
 				name = u.name || '';
@@ -119,6 +132,10 @@
 				skills = Array.isArray(u.skills) ? [...u.skills] : [];
 				isAddressValid = !!(u.address);
 			}
+		}
+		if (form?.profileError && form.profileError !== lastHandledProfileError) {
+			lastHandledProfileError = form.profileError;
+			toast.error(form.profileError);
 		}
 	});
 
@@ -177,15 +194,37 @@
 	let newRoleAddress = $state(data.user?.address || '');
 
 	$effect(() => {
-		if (form?.passwordSuccess) {
+		if (form?.passwordSuccess && form.passwordSuccess !== lastHandledPasswordSuccess) {
+			lastHandledPasswordSuccess = form.passwordSuccess;
+			toast.success(form.passwordSuccess);
 			currentPassword = '';
 			newPassword = '';
 			confirmPassword = '';
 		}
-		if (form?.sessionSuccess) {
+		if (form?.passwordError && form.passwordError !== lastHandledPasswordError) {
+			lastHandledPasswordError = form.passwordError;
+			toast.error(form.passwordError);
+		}
+		if (form?.sessionSuccess && form.sessionSuccess !== lastHandledSessionSuccess) {
+			lastHandledSessionSuccess = form.sessionSuccess;
+			toast.success(form.sessionSuccess);
 			sessionLogoutPassword = '';
 		}
-		if (form?.deleteError) {
+		if (form?.sessionError && form.sessionError !== lastHandledSessionError) {
+			lastHandledSessionError = form.sessionError;
+			toast.error(form.sessionError);
+		}
+		if (form?.switchError && form.switchError !== lastHandledSwitchError) {
+			lastHandledSwitchError = form.switchError;
+			toast.error(form.switchError);
+		}
+		if (form?.createRoleError && form.createRoleError !== lastHandledCreateRoleError) {
+			lastHandledCreateRoleError = form.createRoleError;
+			toast.error(form.createRoleError);
+		}
+		if (form?.deleteError && form.deleteError !== lastHandledDeleteError) {
+			lastHandledDeleteError = form.deleteError;
+			toast.error(form.deleteError);
 			showDeleteAccountModal = true;
 		}
 	});
@@ -272,20 +311,6 @@
 					<p>Update your public profile details and contact information.</p>
 				</div>
 
-				{#if form?.profileSuccess}
-					<div class="alert alert-success">
-						<CheckCircle2 size={18} />
-						<span>{form.profileSuccess}</span>
-					</div>
-				{/if}
-
-				{#if form?.profileError || clientProfileError}
-					<div class="alert alert-error">
-						<AlertCircle size={18} />
-						<span>{form?.profileError || clientProfileError}</span>
-					</div>
-				{/if}
-
 				<form
 					method="POST"
 					action="?/updateProfile"
@@ -293,7 +318,9 @@
 					use:enhance={({ cancel }) => {
 						clientProfileError = '';
 						if (!address || !isAddressValid) {
-							clientProfileError = 'Please search and select a valid City or Municipality from the suggestions.';
+							const msg = 'Please search and select a valid City or Municipality from the suggestions.';
+							clientProfileError = msg;
+							toast.error(msg);
 							cancel();
 							return;
 						}
@@ -588,20 +615,6 @@
 						<p>Ensure your account remains safe with a strong, unique password.</p>
 					</div>
 
-					{#if form?.passwordSuccess}
-						<div class="alert alert-success">
-							<CheckCircle2 size={18} />
-							<span>{form.passwordSuccess}</span>
-						</div>
-					{/if}
-
-					{#if form?.passwordError}
-						<div class="alert alert-error">
-							<AlertCircle size={18} />
-							<span>{form.passwordError}</span>
-						</div>
-					{/if}
-
 					<form
 						method="POST"
 						action="?/updatePassword"
@@ -623,7 +636,7 @@
 									id="currentPassword"
 									name="currentPassword"
 									bind:value={currentPassword}
-									placeholder="Enter your current password"
+									placeholder="Enter current password"
 									required
 								/>
 							</div>
@@ -638,9 +651,9 @@
 									id="newPassword"
 									name="newPassword"
 									bind:value={newPassword}
-									placeholder="At least 6 characters"
-									required
+									placeholder="Minimum 6 characters"
 									minlength="6"
+									required
 								/>
 							</div>
 						</div>
@@ -648,21 +661,21 @@
 						<div class="form-group">
 							<label for="confirmPassword">Confirm New Password</label>
 							<div class="input-wrapper">
-								<Shield size={18} class="input-icon" />
+								<Lock size={18} class="input-icon" />
 								<input
 									type="password"
 									id="confirmPassword"
 									name="confirmPassword"
 									bind:value={confirmPassword}
-									placeholder="Re-enter your new password"
-									required
+									placeholder="Re-type new password"
 									minlength="6"
+									required
 								/>
 							</div>
 						</div>
 
 						<div class="form-actions">
-							<button type="submit" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;" disabled={passwordSubmitting}>
+							<button type="submit" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;" disabled={passwordSubmitting || !currentPassword || !newPassword || !confirmPassword}>
 								{#if passwordSubmitting}
 									<span class="spinner spinner-sm"></span>
 									<span>Updating Password...</span>
@@ -683,20 +696,6 @@
 						</div>
 						<p>Logged in on a public computer or another device? Revoke all other active sessions here.</p>
 					</div>
-
-					{#if form?.sessionSuccess}
-						<div class="alert alert-success">
-							<CheckCircle2 size={18} />
-							<span>{form.sessionSuccess}</span>
-						</div>
-					{/if}
-
-					{#if form?.sessionError}
-						<div class="alert alert-error">
-							<AlertCircle size={18} />
-							<span>{form.sessionError}</span>
-						</div>
-					{/if}
 
 					<form 
 						method="POST" 
@@ -789,13 +788,6 @@
 						</p>
 					</div>
 
-					{#if form?.switchError}
-						<div class="alert alert-error">
-							<AlertCircle size={18} />
-							<span>{form.switchError}</span>
-						</div>
-					{/if}
-
 					<form 
 						method="POST" 
 						action="?/switchRole"
@@ -854,13 +846,6 @@
 							Want to both {data.user.role === 'customer' ? 'hire and offer services as a Worker' : 'find sideline jobs and post jobs as a Client'}? Set up your {data.complementaryRole === 'customer' ? 'Client' : 'Worker'} profile below using your same email.
 						</p>
 					</div>
-
-					{#if form?.createRoleError}
-						<div class="alert alert-error">
-							<AlertCircle size={18} />
-							<span>{form.createRoleError}</span>
-						</div>
-					{/if}
 
 					<form 
 						method="POST" 

@@ -14,8 +14,7 @@
 		Wrench,
 		FileText,
 		Check,
-		Activity,
-		Sparkles
+		Activity
 	} from "lucide-svelte";
 
 	let {
@@ -107,47 +106,39 @@
 {#if show}
 	<!-- Modal Backdrop -->
 	<div
-		class="modal-backdrop profile-modal-backdrop"
+		class="fixed inset-0 w-screen h-screen bg-black/75 backdrop-blur-[8px] flex items-center justify-center max-sm:items-end z-[99999] p-4 max-sm:p-0 box-border"
 		onclick={handleBackdropClick}
 		role="button"
 		tabindex="0"
 		onkeydown={(e) => e.key === "Escape" && closeModal()}
 	>
-		<div class="modal-content profile-modal-content">
+		<div 
+			class="max-w-[720px] w-full max-h-[90vh] max-sm:max-h-[92dvh] max-sm:h-[92dvh] overflow-hidden rounded-[var(--radius-lg)] max-sm:rounded-t-2xl max-sm:rounded-b-none bg-[var(--bg-card)] border border-[var(--border-color)] max-sm:border-b-0 shadow-[0_20px_45px_rgba(0,0,0,0.5)] relative box-border flex flex-col"
+			onclick={(e) => e.stopPropagation()}
+			onkeydown={(e) => e.stopPropagation()}
+			role="dialog"
+			tabindex="-1"
+			aria-modal="true"
+		>
 			<!-- Close Button Floating Header -->
 			<button
 				type="button"
-				class="close-modal-btn"
+				class="absolute top-3 right-3 bg-slate-900/70 backdrop-blur-md border border-white/20 text-white w-[32px] h-[32px] rounded-full flex items-center justify-center cursor-pointer z-30 transition-all duration-200 hover:bg-slate-900/90 hover:scale-105 active:scale-95 shadow-md"
 				onclick={closeModal}
 				aria-label="Close modal"
 			>
-				<X size={20} />
+				<X size={18} />
 			</button>
 
 			{#if loading}
-				<div
-					style="padding: 4rem 2rem; text-align: center; color: var(--text-secondary);"
-				>
-					<div
-						class="spinner spinner-accent spinner-lg"
-						style="margin: 0 auto 1rem auto;"
-					></div>
-					<p style="font-size: 0.95rem;">
-						Loading user profile details...
-					</p>
+				<div class="py-20 px-8 text-center text-[var(--text-secondary)] flex-1 flex flex-col items-center justify-center">
+					<div class="spinner spinner-accent spinner-lg mb-4"></div>
+					<p class="text-[0.95rem] m-0">Loading user profile details...</p>
 				</div>
 			{:else if error}
-				<div
-					style="padding: 3rem 2rem; text-align: center; color: var(--error);"
-				>
-					<h4 style="font-size: 1.2rem; margin-bottom: 0.5rem;">
-						Unable to load profile
-					</h4>
-					<p
-						style="font-size: 0.9rem; margin-bottom: 1.5rem; color: var(--text-secondary);"
-					>
-						{error}
-					</p>
+				<div class="py-16 px-8 text-center text-[var(--error)] flex-1 flex flex-col items-center justify-center">
+					<h4 class="text-[1.2rem] mb-2 font-bold">Unable to load profile</h4>
+					<p class="text-[0.9rem] mb-6 text-[var(--text-secondary)] max-w-[360px]">{error}</p>
 					<button
 						type="button"
 						class="btn btn-secondary"
@@ -156,7 +147,7 @@
 				</div>
 			{:else if profileData && profileData.user}
 				{@const user = profileData.user}
-				{@const stats = profileData.stats}
+				{@const stats = profileData.stats || {}}
 				{@const completedJobs = [
 					...(profileData.completedJobs || []),
 				].sort(
@@ -174,520 +165,531 @@
 				{@const isWorkerViewingWorker = currentUserRole === 'worker' && user.role === 'worker'}
 				{@const canChat = Boolean(onopenchat && !isSelf && !isClientViewingClient && !isWorkerViewingWorker)}
 
-				<!-- Header Cover & Avatar Section -->
-				<div class="modal-profile-header">
-					<div class="modal-cover-banner"></div>
-					<div class="modal-header-content">
-						<div class="modal-header-row">
-							<!-- User Avatar & Core Header Info -->
-							<div class="modal-user-left">
-								<div class="modal-avatar">
-									{user.name
-										? user.name.charAt(0).toUpperCase()
-										: "U"}
-								</div>
-								<div class="modal-user-text">
-									<div class="modal-user-name-row">
-										<h2 class="modal-user-name">
-											{user.name}
-										</h2>
-										{#if isSelf}
-											<span class="modal-self-badge">You</span>
-										{/if}
+				<!-- Scrollable Content Area -->
+				<div class="flex-1 overflow-y-auto overflow-x-hidden">
+					<!-- Header Cover & Avatar Section -->
+					<div class="relative bg-[var(--bg-card)]">
+						<!-- Cover Banner -->
+						<div class="h-28 sm:h-32 bg-gradient-to-r from-slate-900 via-indigo-950 to-purple-950 relative overflow-hidden">
+							<div class="absolute -right-10 -bottom-10 w-36 h-36 bg-purple-500/15 rounded-full blur-2xl pointer-events-none"></div>
+							<div class="absolute -left-10 -top-10 w-36 h-36 bg-indigo-500/15 rounded-full blur-2xl pointer-events-none"></div>
+						</div>
+
+						<!-- Profile Info Area -->
+						<div class="px-5 sm:px-6 pb-4 relative">
+							<!-- Main Row -->
+							<div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+								<!-- Left: Avatar + Identity Info -->
+								<div class="flex items-start sm:items-end gap-3.5 sm:gap-4 min-w-0">
+									<!-- Avatar with negative margin so ONLY the avatar overlaps the cover -->
+									<div class="-mt-10 sm:-mt-12 w-[76px] h-[76px] sm:w-[88px] sm:h-[88px] rounded-full border-4 border-[var(--bg-card)] bg-gradient-to-br from-[var(--accent)] via-purple-600 to-indigo-700 flex items-center justify-center text-[1.75rem] sm:text-[2.2rem] font-extrabold text-white shadow-xl ring-1 ring-black/5 dark:ring-white/10 shrink-0 select-none z-[2]">
+										{user.name
+											? user.name.charAt(0).toUpperCase()
+											: "U"}
 									</div>
-									<div class="modal-user-badges">
-										<span
-											class="badge {user.role === 'worker'
-												? 'badge-gardening'
-												: 'badge-roofing'}"
-										>
-											{user.role === "worker"
-												? "Handyman / Worker"
-												: "Client / Customer"}
-										</span>
-										{#if user.role === "worker"}
-											{#if user.availability_status === 'busy'}
-												<span
-													class="badge badge-status-busy"
-												>
-													<span class="status-dot-busy"></span>
-													Busy / On Leave
-												</span>
-											{:else}
-												<span
-													class="badge badge-status-available"
-												>
-													<span class="status-dot-available"></span>
-													Available for Jobs
+
+									<!-- User Name and meta badges (placed safely below banner in the card body) -->
+									<div class="pt-1.5 sm:pt-0 pb-1 flex flex-col gap-1.5 min-w-0 flex-1">
+										<div class="flex items-center gap-2 flex-wrap">
+											<h2 class="text-[1.25rem] sm:text-[1.4rem] font-bold leading-tight m-0 text-[var(--text-primary)] break-words">
+												{user.name}
+											</h2>
+											{#if isSelf}
+												<span class="text-[0.68rem] font-semibold py-0.5 px-2 bg-[var(--accent-light)] text-[var(--accent-hover)] rounded-full">You</span>
+											{/if}
+										</div>
+
+										<div class="flex items-center gap-1.5 flex-wrap">
+											<span
+												class="badge {user.role === 'worker'
+													? 'badge-gardening'
+													: 'badge-roofing'} text-[0.72rem] py-0.5 px-2"
+											>
+												{user.role === "worker"
+													? "Worker"
+													: "Client"}
+											</span>
+											{#if user.role === "worker"}
+												{#if user.availability_status === 'busy'}
+													<span class="bg-amber-500/15 text-amber-500 border border-amber-500/30 text-[0.72rem] inline-flex items-center gap-1 py-0.5 px-2 rounded-full font-medium">
+														<span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+														Busy
+													</span>
+												{:else}
+													<span class="bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 text-[0.72rem] inline-flex items-center gap-1 py-0.5 px-2 rounded-full font-medium">
+														<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_0_2px_rgba(16,185,129,0.25)]"></span>
+														Available
+													</span>
+												{/if}
+											{/if}
+											{#if user.address}
+												<span class="text-[0.76rem] text-[var(--text-muted)] inline-flex items-center gap-1">
+													<MapPin size={12} class="shrink-0 text-sky-400" />
+													<span class="truncate max-w-[160px] sm:max-w-[200px]">{user.address}</span>
 												</span>
 											{/if}
-										{/if}
-										{#if user.address}
-											<span class="modal-user-location">
-												<MapPin size={12} />
-												{user.address}
-											</span>
-										{/if}
+										</div>
 									</div>
 								</div>
-							</div>
 
-							<!-- Quick Stat Pills -->
-							<div class="modal-stats-group">
-								{#if user.role === "worker"}
-									<div class="modal-stat-item">
-										<span
-											class="rating-badge {stats.average_rating >
-											0
-												? 'rating-badge-positive'
-												: stats.average_rating < 0
-													? 'rating-badge-negative'
-													: 'rating-badge-zero'}"
-										>
-											<Star
-												size={12}
-												fill="currentColor"
-											/>
-											{stats.average_rating > 0
-												? `+${stats.average_rating}`
-												: stats.average_rating || 0}
-										</span>
-										<span class="modal-stat-label">Rating</span>
-									</div>
-									<div class="modal-stat-item">
-										<span class="modal-stat-value success-val">
-											{stats.completed_jobs_count || 0}
-										</span>
-										<span class="modal-stat-label">Completed</span>
-									</div>
-								{:else}
-									<div class="modal-stat-item">
-										<span class="modal-stat-value">
-											{stats.total_posts_count || 0}
-										</span>
-										<span class="modal-stat-label">Total Posts</span>
-									</div>
-									<div class="modal-stat-item">
-										<span class="modal-stat-value success-val">
-											{stats.completed_jobs_count || 0}
-										</span>
-										<span class="modal-stat-label">Done Jobs</span>
-									</div>
-								{/if}
+								<!-- Right / Bottom: Quick Stat Cards -->
+								<div class="flex gap-2 items-center shrink-0 max-sm:w-full max-sm:grid max-sm:grid-cols-2 pt-1 sm:pt-0">
+									{#if user.role === "worker"}
+										<div class="flex flex-col items-center justify-center bg-[var(--bg-input)] border border-[var(--border-color)] py-2 px-3.5 rounded-[var(--radius-md)] min-w-[90px] max-sm:min-w-0 transition-colors">
+											<span
+												class="rating-badge {stats.average_rating >
+												0
+													? 'rating-badge-positive'
+													: stats.average_rating < 0
+														? 'rating-badge-negative'
+														: 'rating-badge-zero'} text-[0.75rem]"
+											>
+												<Star
+													size={11}
+													fill="currentColor"
+												/>
+												{stats.average_rating > 0
+													? `+${stats.average_rating}`
+													: stats.average_rating || 0}
+											</span>
+											<span class="text-[0.62rem] text-[var(--text-muted)] font-semibold uppercase tracking-wider mt-1">Rating</span>
+										</div>
+										<div class="flex flex-col items-center justify-center bg-[var(--bg-input)] border border-[var(--border-color)] py-2 px-3.5 rounded-[var(--radius-md)] min-w-[90px] max-sm:min-w-0 transition-colors">
+											<span class="text-[1.15rem] max-sm:text-[1.05rem] font-extrabold text-[var(--success)] leading-none">
+												{stats.completed_jobs_count || 0}
+											</span>
+											<span class="text-[0.62rem] text-[var(--text-muted)] font-semibold uppercase tracking-wider mt-1">Completed</span>
+										</div>
+									{:else}
+										<div class="flex flex-col items-center justify-center bg-[var(--bg-input)] border border-[var(--border-color)] py-2 px-3.5 rounded-[var(--radius-md)] min-w-[90px] max-sm:min-w-0 transition-colors">
+											<span class="text-[1.15rem] max-sm:text-[1.05rem] font-extrabold text-[var(--text-primary)] leading-none">
+												{stats.total_posts_count || 0}
+											</span>
+											<span class="text-[0.62rem] text-[var(--text-muted)] font-semibold uppercase tracking-wider mt-1">Total Posts</span>
+										</div>
+										<div class="flex flex-col items-center justify-center bg-[var(--bg-input)] border border-[var(--border-color)] py-2 px-3.5 rounded-[var(--radius-md)] min-w-[90px] max-sm:min-w-0 transition-colors">
+											<span class="text-[1.15rem] max-sm:text-[1.05rem] font-extrabold text-[var(--success)] leading-none">
+												{stats.completed_jobs_count || 0}
+											</span>
+											<span class="text-[0.62rem] text-[var(--text-muted)] font-semibold uppercase tracking-wider mt-1">Done Jobs</span>
+										</div>
+									{/if}
+								</div>
 							</div>
 						</div>
 					</div>
-				</div>
 
-				<!-- Navigation Tabs within Modal -->
-				<div class="tabs-header modal-tabs-header">
-					<button
-						type="button"
-						class="tab-btn {activeTab === 'overview' ? 'active' : ''}"
-						onclick={() => (activeTab = "overview")}
-					>
-						<UserCheck size={16} /> About Profile
-					</button>
-					{#if user.role === "worker"}
+					<!-- Sticky Navigation Tabs within Modal -->
+					<div class="sticky top-0 z-20 pt-2 px-5 max-sm:px-3 bg-[var(--bg-card)] border-y border-[var(--border-color)] flex gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-none tabs-header" style="margin-bottom: 0 !important;">
 						<button
 							type="button"
-							class="tab-btn {activeTab === 'reviews' ? 'active' : ''}"
-							onclick={() => (activeTab = "reviews")}
+							class="tab-btn {activeTab === 'overview' ? 'active' : ''} text-[0.82rem] max-sm:text-[0.76rem] py-2 px-3 max-sm:py-1.5 max-sm:px-2.5 flex items-center gap-1.5"
+							onclick={() => (activeTab = "overview")}
 						>
-							<Star size={16} fill="currentColor" /> Reviews & Feedback
+							<UserCheck size={14} /> <span>About Profile</span>
 						</button>
-					{/if}
-					<button
-						type="button"
-						class="tab-btn {activeTab === 'history' ? 'active' : ''}"
-						onclick={() => (activeTab = "history")}
-					>
-						<ClipboardList size={16} />
-						{user.role === "worker"
-							? "Service History"
-							: "Job History"}
-					</button>
-				</div>
+						{#if user.role === "worker"}
+							<button
+								type="button"
+								class="tab-btn {activeTab === 'reviews' ? 'active' : ''} text-[0.82rem] max-sm:text-[0.76rem] py-2 px-3 max-sm:py-1.5 max-sm:px-2.5 flex items-center gap-1.5"
+								onclick={() => (activeTab = "reviews")}
+							>
+								<Star size={14} fill="currentColor" /> <span>Reviews ({stats.total_reviews || 0})</span>
+							</button>
+						{/if}
+						<button
+							type="button"
+							class="tab-btn {activeTab === 'history' ? 'active' : ''} text-[0.82rem] max-sm:text-[0.76rem] py-2 px-3 max-sm:py-1.5 max-sm:px-2.5 flex items-center gap-1.5"
+							onclick={() => (activeTab = "history")}
+						>
+							<ClipboardList size={14} />
+							<span>{user.role === "worker" ? "Service History" : "Job History"}</span>
+						</button>
+					</div>
 
-				<!-- Tab Content Container -->
-				<div class="modal-body-container">
-					<!-- TAB 1: OVERVIEW & CONTACT -->
-					{#if activeTab === "overview"}
-						<div class="overview-grid">
-							<!-- Bio / About Me Card -->
-							<div class="modal-card full-span">
-								<h4 class="modal-card-title">
-									<FileText size={15} class="card-icon-accent" />
-									About
-								</h4>
-								{#if user.bio && user.bio.trim()}
-									<p class="modal-bio-text">
-										{user.bio.trim()}
-									</p>
-								{:else}
-									<p class="modal-empty-text">
-										No bio provided yet.
-									</p>
-								{/if}
-							</div>
+					<!-- Tab Content Body Container -->
+					<div class="p-5 max-sm:p-3.5 flex flex-col gap-4 max-sm:gap-3">
+						<!-- TAB 1: OVERVIEW & CONTACT -->
+						{#if activeTab === "overview"}
+							<div class="grid grid-cols-2 max-sm:grid-cols-1 gap-3.5 max-sm:gap-3">
+								<!-- Bio / About Me Card -->
+								<div class="col-span-2 max-sm:col-span-1 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] p-4 max-sm:p-3">
+									<h4 class="text-[0.92rem] font-semibold mb-2 text-[var(--text-primary)] flex items-center gap-1.5">
+										<FileText size={15} class="text-[var(--accent)]" />
+										About
+									</h4>
+									{#if user.bio && user.bio.trim()}
+										<p class="text-[var(--text-primary)] text-[0.85rem] leading-relaxed whitespace-pre-line m-0 bg-[var(--bg-card)] p-3 rounded-[var(--radius-sm)] border border-[var(--border-color)] break-words">
+											{user.bio.trim()}
+										</p>
+									{:else}
+										<p class="text-[var(--text-muted)] text-[0.82rem] italic m-0">
+											No bio provided yet.
+										</p>
+									{/if}
+								</div>
 
-							{#if user.role === "worker"}
-								<!-- Skills & Services Offered Card -->
-								<div class="modal-card full-span">
-									<div class="modal-card-header-flex">
-										<h4 class="modal-card-title">
-											<Wrench size={15} class="card-icon-accent" />
-											Skills & Services Offered
-										</h4>
+								{#if user.role === "worker"}
+									<!-- Skills & Services Offered Card -->
+									<div class="col-span-2 max-sm:col-span-1 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] p-4 max-sm:p-3">
+										<div class="flex items-center justify-between flex-wrap gap-1.5 mb-2">
+											<h4 class="text-[0.92rem] font-semibold text-[var(--text-primary)] flex items-center gap-1.5 m-0">
+												<Wrench size={15} class="text-[var(--accent)]" />
+												Skills & Services Offered
+											</h4>
+											{#if user.skills && user.skills.length > 0}
+												<span class="text-[0.7rem] text-[var(--accent-hover)] font-semibold bg-[var(--accent-light)] py-0.5 px-2 rounded-full">
+													{user.skills.length} {user.skills.length === 1 ? 'service' : 'services'}
+												</span>
+											{/if}
+										</div>
 										{#if user.skills && user.skills.length > 0}
-											<span class="service-count-pill">
-												{user.skills.length} {user.skills.length === 1 ? 'service' : 'services'}
-											</span>
+											<div class="flex flex-wrap gap-1.5">
+												{#each user.skills as skill}
+													<span
+														class="badge {getCategoryBadge(skill)} text-[0.75rem] py-0.5 px-2.5 rounded-full inline-flex items-center gap-1 font-medium"
+													>
+														<Check size={11} />
+														{skill}
+													</span>
+												{/each}
+											</div>
+										{:else}
+											<p class="text-[var(--text-muted)] text-[0.82rem] italic m-0">
+												No specific skills listed yet.
+											</p>
 										{/if}
 									</div>
-									{#if user.skills && user.skills.length > 0}
-										<div class="modal-skills-wrap">
-											{#each user.skills as skill}
-												<span
-													class="badge {getCategoryBadge(skill)} skill-pill"
-												>
-													<Check size={11} />
-													{skill}
-												</span>
-											{/each}
-										</div>
-									{:else}
-										<p class="modal-empty-text">
-											No specific skills listed yet.
-										</p>
-									{/if}
-								</div>
-							{/if}
-
-							<!-- Contact & Info Box -->
-							<div class="modal-card">
-								<h4 class="modal-card-title">
-									<UserCheck size={15} class="card-icon-accent" />
-									User Details
-								</h4>
-								<div class="details-list">
-									{#if user.role === "worker"}
-										<div class="detail-row">
-											<Activity
-												size={15}
-												style="color: {user.availability_status === 'busy' ? '#f59e0b' : 'var(--success)'}; flex-shrink: 0;"
-											/>
-											<div class="detail-info">
-												<span class="detail-label">Availability Status</span>
-												<strong
-													class="detail-value"
-													style="color: {user.availability_status === 'busy' ? '#f59e0b' : 'var(--success)'};"
-												>
-													{user.availability_status === 'busy' ? 'Busy / On Leave' : 'Available for Jobs'}
-												</strong>
-											</div>
-										</div>
-									{/if}
-
-									<div class="detail-row">
-										<Mail size={15} class="detail-icon" />
-										<div class="detail-info">
-											<span class="detail-label">Email</span>
-											<strong class="detail-value">{user.email || "Not provided"}</strong>
-										</div>
-									</div>
-
-									<div class="detail-row">
-										<Phone size={15} class="detail-icon" />
-										<div class="detail-info">
-											<span class="detail-label">Phone Number</span>
-											<strong class="detail-value phone-value">{user.phone || "Not provided"}</strong>
-										</div>
-									</div>
-
-									<div class="detail-row">
-										<MapPin size={15} class="detail-icon" />
-										<div class="detail-info">
-											<span class="detail-label">City / Municipality</span>
-											<strong class="detail-value">{user.address || "Not specified"}</strong>
-										</div>
-									</div>
-
-									{#if user.created_at}
-										<div class="detail-row">
-											<Calendar size={15} class="detail-icon" />
-											<div class="detail-info">
-												<span class="detail-label">Member Since</span>
-												<strong class="detail-value muted-val">
-													{new Date(user.created_at).toLocaleDateString("en-PH", {
-														month: "long",
-														year: "numeric",
-													})}
-												</strong>
-											</div>
-										</div>
-									{/if}
-								</div>
-							</div>
-
-							<!-- Account Performance Summary Box -->
-							<div class="modal-card performance-card">
-								<div>
-									<h4 class="modal-card-title">
-										<Award size={15} style="color: var(--warning);" />
-										Account Performance
-									</h4>
-
-									{#if user.role === "worker"}
-										<div class="perf-list">
-											<div class="perf-row">
-												<span class="perf-label">Overall Rating Score:</span>
-												<span
-													class="rating-badge {stats.average_rating > 0
-														? 'rating-badge-positive'
-														: stats.average_rating < 0
-															? 'rating-badge-negative'
-															: 'rating-badge-zero'}"
-												>
-													<Star size={11} fill="currentColor" />
-													{stats.average_rating > 0
-														? `+${stats.average_rating}`
-														: stats.average_rating || 0}
-												</span>
-											</div>
-											<div class="perf-row">
-												<span class="perf-label">Total Reviews Received:</span>
-												<strong class="perf-val">{stats.total_reviews || 0} reviews</strong>
-											</div>
-											<div class="perf-row">
-												<span class="perf-label">Completed Tasks:</span>
-												<strong class="perf-val success-val">{stats.completed_jobs_count || 0} completed</strong>
-											</div>
-										</div>
-									{:else}
-										<div class="perf-list">
-											<div class="perf-row">
-												<span class="perf-label">Total Jobs Posted:</span>
-												<strong class="perf-val">{stats.total_posts_count || 0} jobs</strong>
-											</div>
-											<div class="perf-row">
-												<span class="perf-label">Successfully Completed:</span>
-												<strong class="perf-val success-val">{stats.completed_jobs_count || 0} finished</strong>
-											</div>
-										</div>
-									{/if}
-								</div>
-							</div>
-						</div>
-					{/if}
-
-					<!-- TAB 2: REVIEWS & FEEDBACK (FOR WORKERS) -->
-					{#if activeTab === "reviews" && user.role === "worker"}
-						<div class="reviews-container">
-							{#if !stats.reviews || stats.reviews.length === 0}
-								<div class="modal-card empty-card">
-									<h4>No reviews yet</h4>
-									<p>This worker has not received any feedback ratings yet.</p>
-								</div>
-							{:else}
-								{@const sortedReviews = [...stats.reviews].sort(
-									(a, b) =>
-										new Date(b.created_at).getTime() -
-										new Date(a.created_at).getTime(),
-								)}
-								{#each sortedReviews as rev (rev.id)}
-									<div class="modal-card review-item-card">
-										<div class="review-header">
-											<div class="review-user-info">
-												<strong class="review-author">{rev.customer_name}</strong>
-												<span class="review-date">
-													{new Date(rev.created_at).toLocaleDateString("en-PH", {
-														month: "short",
-														day: "numeric",
-														year: "numeric",
-													})}
-												</span>
-											</div>
-											<span
-												class="rating-badge {rev.rating > 0
-													? 'rating-badge-positive'
-													: rev.rating < 0
-														? 'rating-badge-negative'
-														: 'rating-badge-zero'}"
-											>
-												<Star size={11} fill="currentColor" />
-												{rev.rating > 0 ? `+${rev.rating}` : rev.rating} Star{Math.abs(rev.rating) === 1 ? "" : "s"}
-											</span>
-										</div>
-										<p class="review-body">
-											"{rev.review_text}"
-										</p>
-									</div>
-								{/each}
-							{/if}
-						</div>
-					{/if}
-
-					<!-- TAB 3: SERVICE / JOB HISTORY -->
-					{#if activeTab === "history"}
-						<div class="history-container">
-							{#if user.role === "customer"}
-								<!-- Sub-tabs header for customer modal view -->
-								<div class="tabs-header subtabs-header" style="margin-bottom: 0.85rem;">
-									<button
-										type="button"
-										class="tab-btn {customerSubTab === 'posted' ? 'active' : ''}"
-										onclick={() => (customerSubTab = "posted")}
-									>
-										<ClipboardList size={15} /> Job Posted
-									</button>
-									<button
-										type="button"
-										class="tab-btn {customerSubTab === 'completed' ? 'active' : ''}"
-										onclick={() => (customerSubTab = "completed")}
-									>
-										<CheckCircle2 size={15} /> Completed Jobs
-									</button>
-								</div>
-
-								{#if customerSubTab === "posted"}
-									{#if allPosts.length === 0}
-										<div class="modal-card empty-card">
-											<h4>No jobs posted yet</h4>
-											<p>This customer has not posted any jobs yet.</p>
-										</div>
-									{:else}
-										{#each allPosts as job (job.id)}
-											<div class="modal-card job-history-card">
-												<div class="job-card-top">
-													<div class="job-card-title-group">
-														<h4 class="job-card-title">{job.title}</h4>
-														<div class="job-card-meta">
-															<span class="badge {getCategoryBadge(job.category)} meta-badge">
-																{job.category}
-															</span>
-															{#if job.status === "completed"}
-																<span class="status status-completed meta-status">Completed</span>
-															{:else if job.status === "in_progress"}
-																<span class="status status-in-progress meta-status">In Progress</span>
-															{:else}
-																<span class="status status-open meta-status">Open</span>
-															{/if}
-															{#if job.created_at}
-																<span class="job-card-date">
-																	{new Date(job.created_at).toLocaleDateString("en-PH", {
-																		month: "short",
-																		day: "numeric",
-																		year: "numeric",
-																	})}
-																</span>
-															{/if}
-														</div>
-													</div>
-													<strong class="job-card-budget">₱{job.budget?.toLocaleString()}</strong>
-												</div>
-												{#if job.description}
-													<p class="job-card-desc">{job.description}</p>
-												{/if}
-												<div class="job-card-bottom">
-													<span><MapPin size={11} /> {job.location}</span>
-													{#if job.assignedWorker}
-														<span>Worker: <strong class="highlight-worker">{job.assignedWorker.name}</strong></span>
-													{/if}
-												</div>
-											</div>
-										{/each}
-									{/if}
-								{:else if customerSubTab === "completed"}
-									{#if completedJobs.length === 0}
-										<div class="modal-card empty-card">
-											<h4>No completed jobs recorded</h4>
-											<p>No completed job transactions recorded for this customer profile.</p>
-										</div>
-									{:else}
-										{#each completedJobs as job (job.id)}
-											<div class="modal-card job-history-card">
-												<div class="job-card-top">
-													<div class="job-card-title-group">
-														<h4 class="job-card-title">{job.title}</h4>
-														<span class="badge {getCategoryBadge(job.category)} meta-badge">
-															{job.category}
-														</span>
-													</div>
-													<strong class="job-card-budget">₱{job.budget?.toLocaleString()}</strong>
-												</div>
-												{#if job.description}
-													<p class="job-card-desc">{job.description}</p>
-												{/if}
-
-												<div class="completed-job-meta-box">
-													<div class="completed-job-meta-row">
-														<span>Completed by: <strong class="highlight-worker">{job.assignedWorker?.name || "Worker"}</strong></span>
-														{#if job.review}
-															<span
-																class="rating-badge {job.review.rating > 0
-																	? 'rating-badge-positive'
-																	: job.review.rating < 0
-																		? 'rating-badge-negative'
-																		: 'rating-badge-zero'} compact-rating"
-															>
-																<Star size={10} fill="currentColor" />
-																{job.review.rating > 0 ? `+${job.review.rating}` : job.review.rating} Star{Math.abs(job.review.rating) === 1 ? "" : "s"}
-															</span>
-														{/if}
-													</div>
-
-													{#if job.review && job.review.review_text}
-														<div class="completed-job-review-quote">
-															"{job.review.review_text}"
-														</div>
-													{/if}
-												</div>
-											</div>
-										{/each}
-									{/if}
 								{/if}
-							{:else}
-								<!-- Worker Service History -->
-								{#if completedJobs.length === 0}
-									<div class="modal-card empty-card">
-										<h4>No completed jobs recorded</h4>
-										<p>No past completed job records found for this profile.</p>
+
+								<!-- Contact & Info Box -->
+								<div class="col-span-1 max-sm:col-span-1 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] p-4 max-sm:p-3">
+									<h4 class="text-[0.92rem] font-semibold mb-2.5 text-[var(--text-primary)] flex items-center gap-1.5">
+										<UserCheck size={15} class="text-[var(--accent)]" />
+										User Details
+									</h4>
+									<div class="flex flex-col gap-2.5">
+										{#if user.role === "worker"}
+											<div class="flex items-start gap-2">
+												<Activity
+													size={14}
+													style="color: {user.availability_status === 'busy' ? '#f59e0b' : 'var(--success)'}; flex-shrink: 0;"
+													class="mt-0.5"
+												/>
+												<div class="min-w-0 break-words flex flex-col">
+													<span class="text-[0.68rem] text-[var(--text-muted)]">Availability Status</span>
+													<strong
+														class="text-[0.82rem] font-semibold"
+														style="color: {user.availability_status === 'busy' ? '#f59e0b' : 'var(--success)'};"
+													>
+														{user.availability_status === 'busy' ? 'Busy / On Leave' : 'Available for Jobs'}
+													</strong>
+												</div>
+											</div>
+										{/if}
+
+										<div class="flex items-start gap-2">
+											<Mail size={14} class="text-[var(--text-muted)] shrink-0 mt-0.5" />
+											<div class="min-w-0 break-all flex flex-col">
+												<span class="text-[0.68rem] text-[var(--text-muted)]">Email</span>
+												<strong class="text-[0.82rem] text-[var(--text-primary)] font-semibold">{user.email || "Not provided"}</strong>
+											</div>
+										</div>
+
+										<div class="flex items-start gap-2">
+											<Phone size={14} class="text-[var(--text-muted)] shrink-0 mt-0.5" />
+											<div class="min-w-0 break-words flex flex-col">
+												<span class="text-[0.68rem] text-[var(--text-muted)]">Phone Number</span>
+												<strong class="text-[0.82rem] text-[var(--accent-hover)] font-mono font-semibold">{user.phone || "Not provided"}</strong>
+											</div>
+										</div>
+
+										<div class="flex items-start gap-2">
+											<MapPin size={14} class="text-[var(--text-muted)] shrink-0 mt-0.5" />
+											<div class="min-w-0 break-words flex flex-col">
+												<span class="text-[0.68rem] text-[var(--text-muted)]">City / Municipality</span>
+												<strong class="text-[0.82rem] text-[var(--text-primary)] font-semibold">{user.address || "Not specified"}</strong>
+											</div>
+										</div>
+
+										{#if user.created_at}
+											<div class="flex items-start gap-2">
+												<Calendar size={14} class="text-[var(--text-muted)] shrink-0 mt-0.5" />
+												<div class="min-w-0 break-words flex flex-col">
+													<span class="text-[0.68rem] text-[var(--text-muted)]">Member Since</span>
+													<strong class="text-[0.82rem] text-[var(--text-secondary)] font-medium">
+														{new Date(user.created_at).toLocaleDateString("en-PH", {
+															month: "long",
+															year: "numeric",
+														})}
+													</strong>
+												</div>
+											</div>
+										{/if}
 									</div>
-								{:else}
-									{#each completedJobs as job (job.id)}
-										<div class="modal-card job-history-card">
-											<div class="job-card-top">
-												<div class="job-card-title-group">
-													<h4 class="job-card-title">{job.title}</h4>
-													<span class="badge {getCategoryBadge(job.category)} meta-badge">
-														{job.category}
+								</div>
+
+								<!-- Account Performance Summary Box -->
+								<div class="col-span-1 max-sm:col-span-1 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] p-4 max-sm:p-3 flex flex-col justify-between">
+									<div>
+										<h4 class="text-[0.92rem] font-semibold mb-2.5 text-[var(--text-primary)] flex items-center gap-1.5">
+											<Award size={15} class="text-[var(--warning)]" />
+											Account Performance
+										</h4>
+
+										{#if user.role === "worker"}
+											<div class="flex flex-col gap-2">
+												<div class="flex justify-between items-center gap-2 border-b border-[var(--border-color)] pb-2">
+													<span class="text-[var(--text-secondary)] text-[0.78rem]">Rating Score:</span>
+													<span
+														class="rating-badge {stats.average_rating > 0
+															? 'rating-badge-positive'
+															: stats.average_rating < 0
+																? 'rating-badge-negative'
+																: 'rating-badge-zero'} text-[0.75rem]"
+													>
+														<Star size={10} fill="currentColor" />
+														{stats.average_rating > 0
+															? `+${stats.average_rating}`
+															: stats.average_rating || 0}
 													</span>
 												</div>
-												<strong class="job-card-budget">₱{job.budget?.toLocaleString()}</strong>
+												<div class="flex justify-between items-center gap-2 border-b border-[var(--border-color)] pb-2">
+													<span class="text-[var(--text-secondary)] text-[0.78rem]">Total Reviews:</span>
+													<strong class="text-[var(--text-primary)] text-[0.82rem]">{stats.total_reviews || 0} reviews</strong>
+												</div>
+												<div class="flex justify-between items-center gap-2">
+													<span class="text-[var(--text-secondary)] text-[0.78rem]">Completed Tasks:</span>
+													<strong class="text-[var(--success)] text-[0.82rem]">{stats.completed_jobs_count || 0} completed</strong>
+												</div>
 											</div>
-											{#if job.description}
-												<p class="job-card-desc">{job.description}</p>
-											{/if}
-											<div class="job-card-bottom">
-												<span><MapPin size={11} /> {job.location}</span>
-												<span class="job-completed-tag">
-													<CheckCircle2 size={12} /> Completed
+										{:else}
+											<div class="flex flex-col gap-2">
+												<div class="flex justify-between items-center gap-2 border-b border-[var(--border-color)] pb-2">
+													<span class="text-[var(--text-secondary)] text-[0.78rem]">Total Jobs Posted:</span>
+													<strong class="text-[var(--text-primary)] text-[0.82rem]">{stats.total_posts_count || 0} jobs</strong>
+												</div>
+												<div class="flex justify-between items-center gap-2">
+													<span class="text-[var(--text-secondary)] text-[0.78rem]">Successfully Finished:</span>
+													<strong class="text-[var(--success)] text-[0.82rem]">{stats.completed_jobs_count || 0} finished</strong>
+												</div>
+											</div>
+										{/if}
+									</div>
+								</div>
+							</div>
+						{/if}
+
+						<!-- TAB 2: REVIEWS & FEEDBACK (FOR WORKERS) -->
+						{#if activeTab === "reviews" && user.role === "worker"}
+							<div class="flex flex-col gap-3">
+								{#if !stats.reviews || stats.reviews.length === 0}
+									<div class="bg-[var(--bg-input)] border border-dashed border-[var(--border-color)] rounded-[var(--radius-md)] text-center p-8">
+										<h4 class="text-[0.95rem] text-[var(--text-primary)] mb-1 font-semibold">No reviews yet</h4>
+										<p class="text-[var(--text-secondary)] text-[0.8rem] m-0">This worker has not received any feedback ratings yet.</p>
+									</div>
+								{:else}
+									{@const sortedReviews = [...stats.reviews].sort(
+										(a, b) =>
+											new Date(b.created_at).getTime() -
+											new Date(a.created_at).getTime(),
+									)}
+									{#each sortedReviews as rev (rev.id)}
+										<div class="bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] p-3.5 max-sm:p-3 flex flex-col gap-2">
+											<div class="flex justify-between items-center gap-2 flex-wrap">
+												<div class="flex items-center gap-1.5 flex-wrap">
+													<strong class="text-[var(--text-primary)] text-[0.86rem]">{rev.customer_name}</strong>
+													<span class="text-[0.7rem] text-[var(--text-muted)]">
+														{new Date(rev.created_at).toLocaleDateString("en-PH", {
+															month: "short",
+															day: "numeric",
+															year: "numeric",
+														})}
+													</span>
+												</div>
+												<span
+													class="rating-badge {rev.rating > 0
+														? 'rating-badge-positive'
+														: rev.rating < 0
+															? 'rating-badge-negative'
+															: 'rating-badge-zero'} text-[0.72rem]"
+												>
+													<Star size={10} fill="currentColor" />
+													{rev.rating > 0 ? `+${rev.rating}` : rev.rating} Star{Math.abs(rev.rating) === 1 ? "" : "s"}
 												</span>
 											</div>
+											{#if rev.review_text}
+												<p class="text-[0.82rem] text-[var(--text-secondary)] leading-relaxed italic m-0">
+													"{rev.review_text}"
+												</p>
+											{/if}
 										</div>
 									{/each}
 								{/if}
-							{/if}
-						</div>
-					{/if}
+							</div>
+						{/if}
+
+						<!-- TAB 3: SERVICE / JOB HISTORY -->
+						{#if activeTab === "history"}
+							<div class="flex flex-col gap-3">
+								{#if user.role === "customer"}
+									<!-- Sub-tabs header for customer modal view -->
+									<div class="mb-2 flex gap-1.5 border-b border-[var(--border-color)] overflow-x-auto whitespace-nowrap scrollbar-none pt-1 tabs-header">
+										<button
+											type="button"
+											class="tab-btn {customerSubTab === 'posted' ? 'active' : ''} text-[0.78rem] py-1.5 px-2.5"
+											onclick={() => (customerSubTab = "posted")}
+										>
+											<ClipboardList size={13} /> Job Posted
+										</button>
+										<button
+											type="button"
+											class="tab-btn {customerSubTab === 'completed' ? 'active' : ''} text-[0.78rem] py-1.5 px-2.5"
+											onclick={() => (customerSubTab = "completed")}
+										>
+											<CheckCircle2 size={13} /> Completed Jobs
+										</button>
+									</div>
+
+									{#if customerSubTab === "posted"}
+										{#if allPosts.length === 0}
+											<div class="bg-[var(--bg-input)] border border-dashed border-[var(--border-color)] rounded-[var(--radius-md)] text-center p-8">
+												<h4 class="text-[0.95rem] text-[var(--text-primary)] mb-1 font-semibold">No jobs posted yet</h4>
+												<p class="text-[var(--text-secondary)] text-[0.8rem] m-0">This customer has not posted any jobs yet.</p>
+											</div>
+										{:else}
+											{#each allPosts as job (job.id)}
+												<div class="bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] p-3.5 max-sm:p-3 flex flex-col gap-2">
+													<div class="flex justify-between items-start gap-2">
+														<div class="min-w-0 flex-1">
+															<h4 class="text-[0.9rem] text-[var(--text-primary)] m-0 mb-1 font-semibold break-words leading-tight">{job.title}</h4>
+															<div class="flex gap-1.5 items-center flex-wrap">
+																<span class="badge {getCategoryBadge(job.category)} text-[0.66rem] py-0.5 px-1.5">
+																	{job.category}
+																</span>
+																{#if job.status === "completed"}
+																	<span class="status status-completed text-[0.66rem] py-0.5 px-1.5">Completed</span>
+																{:else if job.status === "in_progress"}
+																	<span class="status status-in-progress text-[0.66rem] py-0.5 px-1.5">In Progress</span>
+																{:else}
+																	<span class="status status-open text-[0.66rem] py-0.5 px-1.5">Open</span>
+																{/if}
+																{#if job.created_at}
+																	<span class="text-[0.66rem] text-[var(--text-muted)]">
+																		{new Date(job.created_at).toLocaleDateString("en-PH", {
+																			month: "short",
+																			day: "numeric",
+																			year: "numeric",
+																		})}
+																	</span>
+																{/if}
+															</div>
+														</div>
+														<strong class="text-[var(--accent)] text-[0.95rem] whitespace-nowrap shrink-0">₱{Number(job.budget || 0).toLocaleString()}</strong>
+													</div>
+													{#if job.description}
+														<p class="text-[0.8rem] text-[var(--text-secondary)] leading-relaxed m-0 line-clamp-3">{job.description}</p>
+													{/if}
+													<div class="text-[0.72rem] text-[var(--text-muted)] flex items-center justify-between mt-1 border-t border-[var(--border-color)] pt-2 flex-wrap gap-1.5">
+														<span class="inline-flex items-center gap-1 truncate"><MapPin size={11} class="text-sky-400 shrink-0" /> {job.location}</span>
+														{#if job.assignedWorker}
+															<span>Worker: <strong class="text-[var(--text-primary)]">{job.assignedWorker.name}</strong></span>
+														{/if}
+													</div>
+												</div>
+											{/each}
+										{/if}
+									{:else if customerSubTab === "completed"}
+										{#if completedJobs.length === 0}
+											<div class="bg-[var(--bg-input)] border border-dashed border-[var(--border-color)] rounded-[var(--radius-md)] text-center p-8">
+												<h4 class="text-[0.95rem] text-[var(--text-primary)] mb-1 font-semibold">No completed jobs recorded</h4>
+												<p class="text-[var(--text-secondary)] text-[0.8rem] m-0">No completed job transactions recorded for this customer profile.</p>
+											</div>
+										{:else}
+											{#each completedJobs as job (job.id)}
+												<div class="bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] p-3.5 max-sm:p-3 flex flex-col gap-2">
+													<div class="flex justify-between items-start gap-2">
+														<div class="min-w-0 flex-1">
+															<h4 class="text-[0.9rem] text-[var(--text-primary)] m-0 mb-1 font-semibold break-words leading-tight">{job.title}</h4>
+															<span class="badge {getCategoryBadge(job.category)} text-[0.66rem] py-0.5 px-1.5">
+																{job.category}
+															</span>
+														</div>
+														<strong class="text-[var(--accent)] text-[0.95rem] whitespace-nowrap shrink-0">₱{Number(job.budget || 0).toLocaleString()}</strong>
+													</div>
+													{#if job.description}
+														<p class="text-[0.8rem] text-[var(--text-secondary)] leading-relaxed m-0 line-clamp-3">{job.description}</p>
+													{/if}
+
+													<div class="border-t border-[var(--border-color)] pt-2 mt-1 flex flex-col gap-1.5">
+														<div class="text-[0.72rem] text-[var(--text-muted)] flex items-center justify-between flex-wrap gap-1.5">
+															<span>Completed by: <strong class="text-[var(--text-primary)]">{job.assignedWorker?.name || "Worker"}</strong></span>
+															{#if job.review}
+																<span
+																	class="rating-badge {job.review.rating > 0
+																		? 'rating-badge-positive'
+																		: job.review.rating < 0
+																			? 'rating-badge-negative'
+																			: 'rating-badge-zero'} text-[0.68rem] py-0.5 px-1.5"
+																>
+																	<Star size={10} fill="currentColor" />
+																	{job.review.rating > 0 ? `+${job.review.rating}` : job.review.rating} Star{Math.abs(job.review.rating) === 1 ? "" : "s"}
+																</span>
+															{/if}
+														</div>
+
+														{#if job.review && job.review.review_text}
+															<div class="bg-[var(--bg-card)] p-2 rounded-[var(--radius-sm)] text-[0.76rem] text-[var(--text-secondary)] italic border border-[var(--border-color)]">
+																"{job.review.review_text}"
+															</div>
+														{/if}
+													</div>
+												</div>
+											{/each}
+										{/if}
+									{/if}
+								{:else}
+									<!-- Worker Service History -->
+									{#if completedJobs.length === 0}
+										<div class="bg-[var(--bg-input)] border border-dashed border-[var(--border-color)] rounded-[var(--radius-md)] text-center p-8">
+											<h4 class="text-[0.95rem] text-[var(--text-primary)] mb-1 font-semibold">No completed jobs recorded</h4>
+											<p class="text-[var(--text-secondary)] text-[0.8rem] m-0">No past completed job records found for this profile.</p>
+										</div>
+									{:else}
+										{#each completedJobs as job (job.id)}
+											<div class="bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] p-3.5 max-sm:p-3 flex flex-col gap-2">
+												<div class="flex justify-between items-start gap-2">
+													<div class="min-w-0 flex-1">
+														<h4 class="text-[0.9rem] text-[var(--text-primary)] m-0 mb-1 font-semibold break-words leading-tight">{job.title}</h4>
+														<span class="badge {getCategoryBadge(job.category)} text-[0.66rem] py-0.5 px-1.5">
+															{job.category}
+														</span>
+													</div>
+													<strong class="text-[var(--accent)] text-[0.95rem] whitespace-nowrap shrink-0">₱{Number(job.budget || 0).toLocaleString()}</strong>
+												</div>
+												{#if job.description}
+													<p class="text-[0.8rem] text-[var(--text-secondary)] leading-relaxed m-0 line-clamp-3">{job.description}</p>
+												{/if}
+												<div class="text-[0.72rem] text-[var(--text-muted)] flex items-center justify-between mt-1 border-t border-[var(--border-color)] pt-2 flex-wrap gap-1.5">
+													<span class="inline-flex items-center gap-1 truncate"><MapPin size={11} class="text-sky-400 shrink-0" /> {job.location}</span>
+													<span class="text-[var(--success)] inline-flex items-center gap-1 font-medium">
+														<CheckCircle2 size={12} /> Completed
+													</span>
+												</div>
+											</div>
+										{/each}
+									{/if}
+								{/if}
+							</div>
+						{/if}
+					</div>
 				</div>
 
-				<!-- Modal Footer Actions -->
-				<div class="modal-footer">
+				<!-- Fixed Modal Footer Actions -->
+				<div class="p-3.5 max-sm:p-3 border-t border-[var(--border-color)] bg-[var(--bg-card)] flex justify-end max-sm:flex-col-reverse gap-2 shrink-0">
 					<button
 						type="button"
-						class="btn btn-secondary modal-footer-btn"
+						class="btn btn-secondary text-[0.85rem] py-2.5 px-4 max-sm:w-full justify-center inline-flex items-center gap-1.5"
 						onclick={closeModal}
 					>
 						Close Profile
@@ -695,7 +697,7 @@
 					{#if canChat}
 						<button
 							type="button"
-							class="btn btn-primary modal-footer-btn"
+							class="btn btn-primary text-[0.85rem] py-2.5 px-4 max-sm:w-full justify-center inline-flex items-center gap-1.5 shadow-md"
 							onclick={handleMessageClick}
 						>
 							<MessageSquare size={14} /> Open Chat
@@ -706,838 +708,3 @@
 		</div>
 	</div>
 {/if}
-
-<style>
-	/* Modal Backdrop & Container */
-	.profile-modal-backdrop {
-		position: fixed;
-		top: 0;
-		left: 0;
-		width: 100vw;
-		height: 100vh;
-		background-color: rgba(0, 0, 0, 0.75);
-		backdrop-filter: blur(8px);
-		-webkit-backdrop-filter: blur(8px);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		z-index: 99999;
-		padding: 1.5rem;
-		box-sizing: border-box;
-	}
-
-	.profile-modal-content {
-		max-width: 720px;
-		width: 100%;
-		max-height: 90vh;
-		overflow-y: auto;
-		overflow-x: hidden;
-		padding: 0 !important;
-		border-radius: var(--radius-lg);
-		background-color: var(--bg-card);
-		border: 1px solid var(--border-color);
-		box-shadow: 0 20px 45px rgba(0, 0, 0, 0.5);
-		position: relative;
-		animation: modalSlideUp var(--transition-smooth);
-		box-sizing: border-box;
-	}
-
-	/* Floating Close Button */
-	.close-modal-btn {
-		position: absolute;
-		top: 0.75rem;
-		right: 0.75rem;
-		background: rgba(15, 23, 42, 0.65);
-		backdrop-filter: blur(8px);
-		-webkit-backdrop-filter: blur(8px);
-		border: 1px solid rgba(255, 255, 255, 0.25);
-		color: #ffffff;
-		width: 34px;
-		height: 34px;
-		border-radius: 50%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		cursor: pointer;
-		z-index: 30;
-		transition: all 0.2s ease;
-	}
-	.close-modal-btn:hover {
-		background: rgba(15, 23, 42, 0.9);
-		border-color: rgba(255, 255, 255, 0.6);
-		transform: scale(1.05);
-	}
-
-	/* Modal Header Layout */
-	.modal-profile-header {
-		position: relative;
-		border-bottom: 1px solid var(--border-color);
-		background: var(--bg-card);
-	}
-
-	.modal-cover-banner {
-		height: 135px;
-		background: linear-gradient(135deg, hsl(230, 40%, 15%) 0%, hsl(260, 50%, 20%) 50%, hsl(280, 45%, 15%) 100%);
-		position: relative;
-		overflow: hidden;
-	}
-
-	.modal-cover-banner::before {
-		content: '';
-		position: absolute;
-		inset: 0;
-		background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px);
-		background-size: 20px 20px;
-		opacity: 0.35;
-		pointer-events: none;
-	}
-
-	.modal-cover-banner::after {
-		content: '';
-		position: absolute;
-		inset: 0;
-		background: radial-gradient(circle at 85% 25%, rgba(139, 92, 246, 0.35), transparent 60%),
-		            radial-gradient(circle at 10% 75%, rgba(59, 130, 246, 0.25), transparent 50%);
-		pointer-events: none;
-	}
-
-	.modal-header-content {
-		padding: 0 1.5rem 1.25rem 1.5rem;
-		position: relative;
-	}
-
-	.modal-header-row {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		gap: 1.25rem;
-		flex-wrap: wrap;
-	}
-
-	.modal-user-left {
-		display: flex;
-		align-items: center;
-		gap: 1.25rem;
-		margin-top: -46px;
-		min-width: 0;
-		flex: 1;
-	}
-
-	.modal-avatar {
-		width: 88px;
-		height: 88px;
-		border-radius: var(--radius-full);
-		border: 4px solid var(--bg-card);
-		background: linear-gradient(135deg, var(--accent) 0%, hsl(265, 75%, 45%) 100%);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-size: 2.2rem;
-		font-weight: 800;
-		color: #ffffff;
-		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--border-color);
-		z-index: 2;
-		flex-shrink: 0;
-	}
-
-	.modal-user-text {
-		padding-top: 46px;
-		display: flex;
-		flex-direction: column;
-		gap: 0.45rem;
-		min-width: 0;
-	}
-
-	.modal-user-name-row {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		flex-wrap: wrap;
-	}
-
-	.modal-user-name {
-		font-size: 1.45rem;
-		font-weight: 700;
-		line-height: 1.25;
-		margin: 0;
-		color: var(--text-primary);
-		word-break: break-word;
-	}
-
-	.modal-self-badge {
-		font-size: 0.72rem;
-		font-weight: 600;
-		padding: 0.15rem 0.5rem;
-		background: var(--accent-light);
-		color: var(--accent-hover);
-		border-radius: var(--radius-full);
-	}
-
-	.modal-user-badges {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		flex-wrap: wrap;
-	}
-
-	.badge-status-busy {
-		background: rgba(245, 158, 11, 0.15);
-		color: #f59e0b;
-		border: 1px solid rgba(245, 158, 11, 0.3);
-		font-size: 0.74rem;
-		display: inline-flex;
-		align-items: center;
-		gap: 0.3rem;
-	}
-
-	.status-dot-busy {
-		width: 6px;
-		height: 6px;
-		border-radius: 50%;
-		background: #f59e0b;
-	}
-
-	.badge-status-available {
-		background: rgba(16, 185, 129, 0.15);
-		color: #10b981;
-		border: 1px solid rgba(16, 185, 129, 0.3);
-		font-size: 0.74rem;
-		display: inline-flex;
-		align-items: center;
-		gap: 0.3rem;
-	}
-
-	.status-dot-available {
-		width: 6px;
-		height: 6px;
-		border-radius: 50%;
-		background: #10b981;
-		box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
-	}
-
-	.modal-user-location {
-		font-size: 0.8rem;
-		color: var(--text-muted);
-		display: inline-flex;
-		align-items: center;
-		gap: 0.25rem;
-	}
-
-	.modal-stats-group {
-		display: flex;
-		gap: 0.6rem;
-		align-items: center;
-		padding-top: 46px;
-		flex-shrink: 0;
-	}
-
-	.modal-stat-item {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		background: var(--bg-input);
-		border: 1px solid var(--border-color);
-		padding: 0.45rem 0.9rem;
-		border-radius: var(--radius-md);
-		min-width: 85px;
-	}
-
-	.modal-stat-value {
-		font-size: 1.2rem;
-		font-weight: 800;
-		color: var(--text-primary);
-		line-height: 1.2;
-	}
-
-	.modal-stat-value.success-val {
-		color: var(--success);
-	}
-
-	.modal-stat-label {
-		font-size: 0.65rem;
-		color: var(--text-muted);
-		font-weight: 600;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-		margin-top: 0.2rem;
-	}
-
-	/* Modal Navigation Tabs */
-	.modal-tabs-header {
-		padding: 0.65rem 1.25rem 0 1.25rem;
-		background: var(--bg-card);
-		border-bottom: 1px solid var(--border-color);
-		margin-bottom: 0 !important;
-		display: flex;
-		gap: 0.35rem;
-		overflow-x: auto;
-		white-space: nowrap;
-		-webkit-overflow-scrolling: touch;
-		scrollbar-width: none;
-	}
-	.modal-tabs-header::-webkit-scrollbar {
-		display: none;
-	}
-
-	.modal-tabs-header .tab-btn {
-		padding: 0.65rem 1.05rem;
-		font-size: 0.88rem;
-		border-top-left-radius: 8px;
-		border-top-right-radius: 8px;
-	}
-
-	/* Modal Body Container */
-	.modal-body-container {
-		padding: 1rem 1.25rem 1.25rem 1.25rem;
-		display: flex;
-		flex-direction: column;
-		gap: 1.15rem;
-	}
-
-	.overview-grid {
-		display: grid;
-		grid-template-columns: repeat(2, 1fr);
-		gap: 1rem;
-	}
-
-	.modal-card {
-		background: var(--bg-input);
-		border: 1px solid var(--border-color);
-		border-radius: var(--radius-md);
-		padding: 1.1rem;
-	}
-
-	.modal-card.full-span {
-		grid-column: 1 / -1;
-	}
-
-	.modal-card-title {
-		font-size: 0.95rem;
-		font-weight: 600;
-		margin-bottom: 0.6rem;
-		color: var(--text-primary);
-		display: flex;
-		align-items: center;
-		gap: 0.4rem;
-	}
-
-	.modal-card-header-flex {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		flex-wrap: wrap;
-		gap: 0.4rem;
-		margin-bottom: 0.6rem;
-	}
-	.modal-card-header-flex .modal-card-title {
-		margin-bottom: 0;
-	}
-
-	:global(.card-icon-accent) {
-		color: var(--accent);
-	}
-
-	.service-count-pill {
-		font-size: 0.72rem;
-		color: var(--accent-hover);
-		font-weight: 600;
-		background: var(--accent-light);
-		padding: 0.12rem 0.5rem;
-		border-radius: var(--radius-full);
-	}
-
-	.modal-bio-text {
-		color: var(--text-primary);
-		font-size: 0.88rem;
-		line-height: 1.55;
-		white-space: pre-line;
-		margin: 0;
-		background: var(--bg-card);
-		padding: 0.75rem 0.9rem;
-		border-radius: var(--radius-sm);
-		border: 1px solid var(--border-color);
-		word-break: break-word;
-	}
-
-	.modal-empty-text {
-		color: var(--text-muted);
-		font-size: 0.85rem;
-		font-style: italic;
-		margin: 0;
-	}
-
-	.modal-skills-wrap {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.4rem;
-	}
-
-	.skill-pill {
-		font-size: 0.78rem;
-		padding: 0.28rem 0.65rem;
-		border-radius: var(--radius-full);
-		display: inline-flex;
-		align-items: center;
-		gap: 0.3rem;
-		font-weight: 500;
-	}
-
-	/* Details List */
-	.details-list {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-	}
-
-	.detail-row {
-		display: flex;
-		align-items: flex-start;
-		gap: 0.55rem;
-	}
-
-	:global(.detail-icon) {
-		color: var(--text-muted);
-		flex-shrink: 0;
-		margin-top: 2px;
-	}
-
-	.detail-info {
-		min-width: 0;
-		overflow-wrap: break-word;
-		word-break: break-word;
-		display: flex;
-		flex-direction: column;
-	}
-
-	.detail-label {
-		font-size: 0.7rem;
-		color: var(--text-muted);
-	}
-
-	.detail-value {
-		font-size: 0.85rem;
-		color: var(--text-primary);
-		font-weight: 600;
-	}
-
-	.detail-value.phone-value {
-		color: var(--accent-hover);
-		font-family: monospace;
-		font-size: 0.92rem;
-	}
-
-	.detail-value.muted-val {
-		color: var(--text-secondary);
-		font-weight: 500;
-	}
-
-	/* Performance Box */
-	.performance-card {
-		display: flex;
-		flex-direction: column;
-		justify-content: space-between;
-	}
-
-	.perf-list {
-		display: flex;
-		flex-direction: column;
-		gap: 0.65rem;
-	}
-
-	.perf-row {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		gap: 0.5rem;
-		border-bottom: 1px solid var(--border-color);
-		padding-bottom: 0.45rem;
-	}
-	.perf-row:last-child {
-		border-bottom: none;
-		padding-bottom: 0;
-	}
-
-	.perf-label {
-		color: var(--text-secondary);
-		font-size: 0.8rem;
-	}
-
-	.perf-val {
-		color: var(--text-primary);
-		font-size: 0.84rem;
-	}
-
-	.perf-val.success-val {
-		color: var(--success);
-	}
-
-	.perf-chat-btn-wrap {
-		margin-top: 1rem;
-	}
-
-	.chat-direct-btn {
-		width: 100%;
-		padding: 0.55rem;
-		font-size: 0.85rem;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 0.4rem;
-	}
-
-	/* Reviews Tab */
-	.reviews-container,
-	.history-container {
-		display: flex;
-		flex-direction: column;
-		gap: 0.85rem;
-	}
-
-	.empty-card {
-		text-align: center;
-		padding: 2.5rem 1.25rem;
-		border-style: dashed;
-	}
-	.empty-card h4 {
-		font-size: 1rem;
-		margin-bottom: 0.3rem;
-		color: var(--text-primary);
-	}
-	.empty-card p {
-		color: var(--text-secondary);
-		font-size: 0.82rem;
-		margin: 0;
-	}
-
-	.review-item-card {
-		display: flex;
-		flex-direction: column;
-		gap: 0.45rem;
-		padding: 0.9rem 1.1rem;
-	}
-
-	.review-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		gap: 0.5rem;
-		flex-wrap: wrap;
-	}
-
-	.review-user-info {
-		display: flex;
-		align-items: center;
-		gap: 0.45rem;
-		flex-wrap: wrap;
-	}
-
-	.review-author {
-		color: var(--text-primary);
-		font-size: 0.9rem;
-	}
-
-	.review-date {
-		font-size: 0.72rem;
-		color: var(--text-muted);
-	}
-
-	.review-body {
-		font-size: 0.85rem;
-		color: var(--text-secondary);
-		line-height: 1.45;
-		font-style: italic;
-		margin: 0;
-	}
-
-	/* Subtabs */
-	.subtabs-header {
-		margin-bottom: 0.85rem !important;
-		display: flex;
-		gap: 0.35rem;
-		border-bottom: 1px solid var(--border-color);
-		overflow-x: auto;
-		white-space: nowrap;
-		-webkit-overflow-scrolling: touch;
-		scrollbar-width: none;
-		padding-top: 0.4rem;
-	}
-	.subtabs-header::-webkit-scrollbar {
-		display: none;
-	}
-
-	.subtabs-header .tab-btn {
-		padding: 0.55rem 0.85rem;
-		font-size: 0.82rem;
-		border-top-left-radius: 6px;
-		border-top-right-radius: 6px;
-	}
-
-	.job-history-card {
-		display: flex;
-		flex-direction: column;
-		gap: 0.45rem;
-		padding: 0.9rem 1.1rem;
-	}
-
-	.job-card-top {
-		display: flex;
-		justify-content: space-between;
-		align-items: flex-start;
-		gap: 0.5rem;
-	}
-
-	.job-card-title-group {
-		min-width: 0;
-	}
-
-	.job-card-title {
-		font-size: 0.95rem;
-		color: var(--text-primary);
-		margin: 0 0 0.2rem 0;
-		font-weight: 600;
-		word-break: break-word;
-	}
-
-	.job-card-meta {
-		display: flex;
-		gap: 0.35rem;
-		align-items: center;
-		flex-wrap: wrap;
-	}
-
-	.meta-badge {
-		font-size: 0.68rem;
-		padding: 0.1rem 0.4rem;
-	}
-
-	.meta-status {
-		font-size: 0.68rem;
-		padding: 0.08rem 0.35rem;
-	}
-
-	.job-card-date {
-		font-size: 0.68rem;
-		color: var(--text-muted);
-	}
-
-	.job-card-budget {
-		color: var(--accent);
-		font-size: 1rem;
-		white-space: nowrap;
-		flex-shrink: 0;
-	}
-
-	.job-card-desc {
-		font-size: 0.82rem;
-		color: var(--text-secondary);
-		line-height: 1.4;
-		margin: 0;
-	}
-
-	.job-card-bottom {
-		font-size: 0.74rem;
-		color: var(--text-muted);
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		margin-top: 0.2rem;
-		border-top: 1px solid var(--border-color);
-		padding-top: 0.45rem;
-		flex-wrap: wrap;
-		gap: 0.35rem;
-	}
-
-	.highlight-worker {
-		color: var(--text-primary);
-	}
-
-	.job-completed-tag {
-		color: var(--success);
-		display: inline-flex;
-		align-items: center;
-		gap: 0.25rem;
-	}
-
-	.completed-job-meta-box {
-		border-top: 1px solid var(--border-color);
-		padding-top: 0.45rem;
-		margin-top: 0.2rem;
-		display: flex;
-		flex-direction: column;
-		gap: 0.3rem;
-	}
-
-	.completed-job-meta-row {
-		font-size: 0.74rem;
-		color: var(--text-muted);
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		flex-wrap: wrap;
-		gap: 0.35rem;
-	}
-
-	.compact-rating {
-		font-size: 0.7rem;
-		padding: 0.1rem 0.35rem;
-	}
-
-	.completed-job-review-quote {
-		background: var(--bg-card);
-		padding: 0.45rem 0.7rem;
-		border-radius: var(--radius-sm);
-		font-size: 0.78rem;
-		color: var(--text-secondary);
-		font-style: italic;
-		border: 1px solid var(--border-color);
-	}
-
-	/* Modal Footer */
-	.modal-footer {
-		padding: 0.85rem 1.25rem;
-		border-top: 1px solid var(--border-color);
-		background: var(--bg-card);
-		display: flex;
-		justify-content: flex-end;
-		gap: 0.6rem;
-	}
-
-	.modal-footer-btn {
-		font-size: 0.85rem;
-		padding: 0.5rem 1rem;
-		display: inline-flex;
-		align-items: center;
-		gap: 0.35rem;
-	}
-
-	/* Responsive Media Queries */
-	@media (max-width: 640px) {
-		.profile-modal-backdrop {
-			padding: 0.5rem 0.35rem;
-			align-items: center;
-		}
-
-		.profile-modal-content {
-			width: 100%;
-			max-height: 94vh;
-			border-radius: var(--radius-md);
-		}
-
-		.modal-cover-banner {
-			height: 90px;
-		}
-
-		.modal-header-content {
-			padding: 0 0.85rem 0.85rem 0.85rem;
-		}
-
-		.modal-header-row {
-			flex-direction: column;
-			align-items: center;
-			text-align: center;
-			gap: 0.5rem;
-		}
-
-		.modal-user-left {
-			flex-direction: column;
-			align-items: center;
-			margin-top: -38px;
-			gap: 0.4rem;
-			width: 100%;
-		}
-
-		.modal-avatar {
-			width: 76px;
-			height: 76px;
-			font-size: 1.8rem;
-			border-width: 3.5px;
-		}
-
-		.modal-user-text {
-			padding-top: 0 !important;
-			align-items: center;
-			text-align: center;
-			gap: 0.35rem;
-			width: 100%;
-		}
-
-		.modal-user-name-row {
-			justify-content: center;
-		}
-
-		.modal-user-name {
-			font-size: 1.2rem;
-		}
-
-		.modal-user-badges {
-			justify-content: center;
-			gap: 0.35rem;
-		}
-
-		.modal-stats-group {
-			width: 100%;
-			padding-top: 0 !important;
-			justify-content: center;
-			gap: 0.5rem;
-			margin-top: 0.25rem;
-		}
-
-		.modal-stat-item {
-			flex: 1;
-			max-width: 140px;
-			min-width: 0;
-			padding: 0.4rem 0.55rem;
-		}
-
-		.modal-stat-value {
-			font-size: 1.05rem;
-		}
-
-		.modal-tabs-header {
-			padding: 0.5rem 0.75rem 0 0.75rem;
-			gap: 0.25rem;
-		}
-
-		.modal-tabs-header .tab-btn {
-			padding: 0.55rem 0.65rem;
-			font-size: 0.78rem;
-			gap: 0.3rem;
-		}
-
-		.subtabs-header {
-			padding-top: 0.35rem;
-		}
-
-		.subtabs-header .tab-btn {
-			padding: 0.45rem 0.6rem;
-			font-size: 0.75rem;
-		}
-
-		.modal-body-container {
-			padding: 0.85rem;
-			gap: 0.85rem;
-		}
-
-		.overview-grid {
-			grid-template-columns: 1fr;
-			gap: 0.75rem;
-		}
-
-		.modal-card {
-			padding: 0.85rem;
-		}
-
-		.modal-footer {
-			flex-direction: column-reverse;
-			padding: 0.75rem 0.85rem;
-			gap: 0.5rem;
-		}
-
-		.modal-footer-btn {
-			width: 100%;
-			justify-content: center;
-			padding: 0.6rem;
-		}
-	}
-</style>

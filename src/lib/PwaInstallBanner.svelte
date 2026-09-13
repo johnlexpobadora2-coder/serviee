@@ -108,20 +108,20 @@
 </script>
 
 {#if showInstallBanner && !isStandalone}
-	<div class="pwa-install-banner" role="banner" aria-label="Install Serviee App">
-		<div class="pwa-banner-content">
-			<img src="/ServieeLogo.png" alt="Serviee App Icon" class="pwa-app-icon" />
-			<div class="pwa-app-info">
-				<h4 class="pwa-app-title">Install Serviee App</h4>
-				<p class="pwa-app-desc">Install on your phone for faster and direct access!</p>
+	<div class="fixed bottom-5 left-1/2 -translate-x-1/2 w-[calc(100%-2.5rem)] max-w-[480px] bg-[var(--bg-card)] backdrop-blur-md border border-[var(--border-color)] rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow-2xl z-[9999]" role="banner" aria-label="Install Serviee App">
+		<div class="flex items-center gap-3 min-w-0">
+			<img src="/ServieeLogo.png" alt="Serviee App Icon" class="w-[42px] h-[42px] rounded-[0.65rem] object-cover shrink-0 shadow" />
+			<div class="flex flex-col min-w-0">
+				<h4 class="text-[0.95rem] font-bold text-[var(--text-primary)] m-0 leading-tight truncate">Install Serviee App</h4>
+				<p class="text-[0.78rem] text-[var(--text-muted)] m-0 leading-tight truncate">Install on your phone for faster and direct access!</p>
 			</div>
 		</div>
-		<div class="pwa-banner-actions">
-			<button type="button" class="btn-pwa-install" onclick={handleInstallClick}>
+		<div class="flex items-center gap-2 shrink-0">
+			<button type="button" class="inline-flex items-center gap-1.5 bg-gradient-to-br from-[var(--accent)] to-blue-600 hover:brightness-110 text-white text-[0.85rem] font-semibold py-2 px-3.5 rounded-[0.6rem] border-none cursor-pointer transition-all duration-200" onclick={handleInstallClick}>
 				<Download size={16} />
 				<span>Install</span>
 			</button>
-			<button type="button" class="btn-pwa-close" onclick={dismissBanner} aria-label="Dismiss banner">
+			<button type="button" class="bg-transparent border-none text-[var(--text-muted)] hover:bg-white/10 hover:text-[var(--text-primary)] p-1.5 rounded-lg cursor-pointer inline-flex items-center justify-center transition-colors duration-200" onclick={dismissBanner} aria-label="Dismiss banner">
 				<X size={18} />
 			</button>
 		</div>
@@ -130,7 +130,7 @@
 
 {#if showIosModal}
 	<div 
-		class="ios-modal-backdrop" 
+		class="fixed inset-0 bg-black/65 backdrop-blur-[6px] z-[10000] flex items-center justify-center p-5" 
 		onclick={(e) => { if (e.target === e.currentTarget) closeIosModal(); }} 
 		onkeydown={(e) => { if (e.key === 'Escape') closeIosModal(); }}
 		role="dialog" 
@@ -138,78 +138,78 @@
 		aria-labelledby="ios-modal-title"
 		tabindex="-1"
 	>
-		<div class="ios-modal-card" role="document">
-			<div class="ios-modal-header">
-				<div class="ios-modal-header-title">
-					<Smartphone class="ios-modal-icon" size={24} />
-					<h3 id="ios-modal-title">{isIos ? 'Install Serviee on iPhone / iPad' : 'Install Serviee App'}</h3>
+		<div class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-[1.25rem] w-full max-w-[440px] overflow-hidden shadow-2xl" role="document">
+			<div class="py-5 px-6 border-b border-[var(--border-color)] flex items-center justify-between">
+				<div class="flex items-center gap-2.5 text-[var(--text-primary)]">
+					<Smartphone size={24} />
+					<h3 id="ios-modal-title" class="text-[1.1rem] font-bold m-0">{isIos ? 'Install Serviee on iPhone / iPad' : 'Install Serviee App'}</h3>
 				</div>
-				<button type="button" class="btn-modal-close" onclick={closeIosModal}>
+				<button type="button" class="bg-transparent border-none text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/10 cursor-pointer p-1.5 rounded-lg transition-colors" onclick={closeIosModal}>
 					<X size={20} />
 				</button>
 			</div>
 
-			<div class="ios-modal-body">
-				<p class="ios-intro-text">Follow these steps to add Serviee to your Home Screen:</p>
+			<div class="p-6">
+				<p class="text-[0.9rem] text-[var(--text-secondary)] mt-0 mb-5">Follow these steps to add Serviee to your Home Screen:</p>
 
-				<ol class="ios-steps-list">
+				<ol class="list-none p-0 m-0 flex flex-col gap-4">
 					{#if isIos}
-						<li class="ios-step-item">
-							<div class="step-num">1</div>
-							<div class="step-content">
-								<p>Tap the <strong>Share button</strong> at the bottom of Safari browser.</p>
-								<div class="step-icon-badge">
+						<li class="flex gap-3.5 items-start bg-white/5 border border-white/10 p-3.5 rounded-2xl">
+							<div class="w-7 h-7 rounded-full bg-[var(--accent)] text-white font-bold text-[0.85rem] flex items-center justify-center shrink-0 mt-0.5">1</div>
+							<div class="flex flex-col gap-1.5">
+								<p class="m-0 text-[0.88rem] text-[var(--text-primary)] leading-snug">Tap the <strong>Share button</strong> at the bottom of Safari browser.</p>
+								<div class="inline-flex items-center gap-1.5 bg-black/25 py-1 px-2.5 rounded-md text-[0.78rem] text-[var(--text-muted)] w-fit">
 									<Share size={20} class="text-blue-400" />
 									<span>Share Icon</span>
 								</div>
 							</div>
 						</li>
-						<li class="ios-step-item">
-							<div class="step-num">2</div>
-							<div class="step-content">
-								<p>Scroll down and tap <strong>"Add to Home Screen"</strong>.</p>
-								<div class="step-icon-badge">
+						<li class="flex gap-3.5 items-start bg-white/5 border border-white/10 p-3.5 rounded-2xl">
+							<div class="w-7 h-7 rounded-full bg-[var(--accent)] text-white font-bold text-[0.85rem] flex items-center justify-center shrink-0 mt-0.5">2</div>
+							<div class="flex flex-col gap-1.5">
+								<p class="m-0 text-[0.88rem] text-[var(--text-primary)] leading-snug">Scroll down and tap <strong>"Add to Home Screen"</strong>.</p>
+								<div class="inline-flex items-center gap-1.5 bg-black/25 py-1 px-2.5 rounded-md text-[0.78rem] text-[var(--text-muted)] w-fit">
 									<PlusSquare size={20} class="text-emerald-400" />
 									<span>Add to Home Screen</span>
 								</div>
 							</div>
 						</li>
-						<li class="ios-step-item">
-							<div class="step-num">3</div>
-							<div class="step-content">
-								<p>Tap <strong>"Add"</strong> at the top right corner. You're all set!</p>
-								<div class="step-icon-badge">
+						<li class="flex gap-3.5 items-start bg-white/5 border border-white/10 p-3.5 rounded-2xl">
+							<div class="w-7 h-7 rounded-full bg-[var(--accent)] text-white font-bold text-[0.85rem] flex items-center justify-center shrink-0 mt-0.5">3</div>
+							<div class="flex flex-col gap-1.5">
+								<p class="m-0 text-[0.88rem] text-[var(--text-primary)] leading-snug">Tap <strong>"Add"</strong> at the top right corner. You're all set!</p>
+								<div class="inline-flex items-center gap-1.5 bg-black/25 py-1 px-2.5 rounded-md text-[0.78rem] text-[var(--text-muted)] w-fit">
 									<CheckCircle size={20} class="text-amber-400" />
 									<span>Tap Add</span>
 								</div>
 							</div>
 						</li>
 					{:else}
-						<li class="ios-step-item">
-							<div class="step-num">1</div>
-							<div class="step-content">
-								<p>Tap the browser <strong>Menu button (3 dots ⋮)</strong> at the top or bottom of the screen.</p>
-								<div class="step-icon-badge">
+						<li class="flex gap-3.5 items-start bg-white/5 border border-white/10 p-3.5 rounded-2xl">
+							<div class="w-7 h-7 rounded-full bg-[var(--accent)] text-white font-bold text-[0.85rem] flex items-center justify-center shrink-0 mt-0.5">1</div>
+							<div class="flex flex-col gap-1.5">
+								<p class="m-0 text-[0.88rem] text-[var(--text-primary)] leading-snug">Tap the browser <strong>Menu button (3 dots ⋮)</strong> at the top or bottom of the screen.</p>
+								<div class="inline-flex items-center gap-1.5 bg-black/25 py-1 px-2.5 rounded-md text-[0.78rem] text-[var(--text-muted)] w-fit">
 									<Smartphone size={20} class="text-blue-400" />
 									<span>Browser Menu</span>
 								</div>
 							</div>
 						</li>
-						<li class="ios-step-item">
-							<div class="step-num">2</div>
-							<div class="step-content">
-								<p>Select <strong>"Install app"</strong> or <strong>"Add to Home screen"</strong>.</p>
-								<div class="step-icon-badge">
+						<li class="flex gap-3.5 items-start bg-white/5 border border-white/10 p-3.5 rounded-2xl">
+							<div class="w-7 h-7 rounded-full bg-[var(--accent)] text-white font-bold text-[0.85rem] flex items-center justify-center shrink-0 mt-0.5">2</div>
+							<div class="flex flex-col gap-1.5">
+								<p class="m-0 text-[0.88rem] text-[var(--text-primary)] leading-snug">Select <strong>"Install app"</strong> or <strong>"Add to Home screen"</strong>.</p>
+								<div class="inline-flex items-center gap-1.5 bg-black/25 py-1 px-2.5 rounded-md text-[0.78rem] text-[var(--text-muted)] w-fit">
 									<PlusSquare size={20} class="text-emerald-400" />
 									<span>Install App</span>
 								</div>
 							</div>
 						</li>
-						<li class="ios-step-item">
-							<div class="step-num">3</div>
-							<div class="step-content">
-								<p>Confirm installation. The Serviee app icon will appear on your phone!</p>
-								<div class="step-icon-badge">
+						<li class="flex gap-3.5 items-start bg-white/5 border border-white/10 p-3.5 rounded-2xl">
+							<div class="w-7 h-7 rounded-full bg-[var(--accent)] text-white font-bold text-[0.85rem] flex items-center justify-center shrink-0 mt-0.5">3</div>
+							<div class="flex flex-col gap-1.5">
+								<p class="m-0 text-[0.88rem] text-[var(--text-primary)] leading-snug">Confirm installation. The Serviee app icon will appear on your phone!</p>
+								<div class="inline-flex items-center gap-1.5 bg-black/25 py-1 px-2.5 rounded-md text-[0.78rem] text-[var(--text-muted)] w-fit">
 									<CheckCircle size={20} class="text-amber-400" />
 									<span>Installed</span>
 								</div>
@@ -219,294 +219,11 @@
 				</ol>
 			</div>
 
-			<div class="ios-modal-footer">
-				<button type="button" class="btn-ios-done" onclick={closeIosModal}>
+			<div class="p-5 pt-4 border-t border-[var(--border-color)] flex justify-end">
+				<button type="button" class="w-full bg-[var(--accent)] hover:brightness-110 text-white text-[0.95rem] font-semibold py-3 rounded-xl border-none cursor-pointer transition-all duration-200" onclick={closeIosModal}>
 					Got it
 				</button>
 			</div>
 		</div>
 	</div>
 {/if}
-
-<style>
-	/* PWA Floating Bottom Banner */
-	.pwa-install-banner {
-		position: fixed;
-		bottom: 1.25rem;
-		left: 50%;
-		transform: translateX(-50%);
-		width: calc(100% - 2.5rem);
-		max-width: 480px;
-		background: var(--bg-card, rgba(15, 23, 42, 0.95));
-		backdrop-filter: blur(12px);
-		-webkit-backdrop-filter: blur(12px);
-		border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12));
-		border-radius: 1rem;
-		padding: 0.85rem 1rem;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.75rem;
-		box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
-		z-index: 9999;
-		animation: pwaSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-	}
-
-	@keyframes pwaSlideUp {
-		from {
-			opacity: 0;
-			transform: translate(-50%, 1.5rem);
-		}
-		to {
-			opacity: 1;
-			transform: translate(-50%, 0);
-		}
-	}
-
-	.pwa-banner-content {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-		min-width: 0;
-	}
-
-	.pwa-app-icon {
-		width: 42px;
-		height: 42px;
-		border-radius: 0.65rem;
-		object-fit: cover;
-		flex-shrink: 0;
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-	}
-
-	.pwa-app-info {
-		display: flex;
-		flex-direction: column;
-		min-width: 0;
-	}
-
-	.pwa-app-title {
-		font-size: 0.95rem;
-		font-weight: 700;
-		color: var(--text-primary, #f8fafc);
-		margin: 0;
-		line-height: 1.25;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	.pwa-app-desc {
-		font-size: 0.78rem;
-		color: var(--text-muted, #94a3b8);
-		margin: 0;
-		line-height: 1.2;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	.pwa-banner-actions {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		flex-shrink: 0;
-	}
-
-	.btn-pwa-install {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.35rem;
-		background: linear-gradient(135deg, var(--accent, #3b82f6), #2563eb);
-		color: #ffffff;
-		font-size: 0.85rem;
-		font-weight: 600;
-		padding: 0.5rem 0.9rem;
-		border-radius: 0.6rem;
-		border: none;
-		cursor: pointer;
-		transition: all 0.2s ease;
-	}
-
-	.btn-pwa-install:hover {
-		filter: brightness(1.1);
-	}
-
-	.btn-pwa-close {
-		background: transparent;
-		border: none;
-		color: var(--text-muted, #94a3b8);
-		padding: 0.4rem;
-		border-radius: 0.5rem;
-		cursor: pointer;
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		transition: background 0.2s;
-	}
-
-	.btn-pwa-close:hover {
-		background: rgba(255, 255, 255, 0.1);
-		color: var(--text-primary, #f8fafc);
-	}
-
-	/* iOS Safari Instruction Modal */
-	.ios-modal-backdrop {
-		position: fixed;
-		inset: 0;
-		background: rgba(0, 0, 0, 0.65);
-		backdrop-filter: blur(6px);
-		-webkit-backdrop-filter: blur(6px);
-		z-index: 10000;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: 1.25rem;
-		animation: fadeIn 0.2s ease;
-	}
-
-	@keyframes fadeIn {
-		from { opacity: 0; }
-		to { opacity: 1; }
-	}
-
-	.ios-modal-card {
-		background: var(--bg-card, #0f172a);
-		border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12));
-		border-radius: 1.25rem;
-		width: 100%;
-		max-width: 440px;
-		overflow: hidden;
-		box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-		animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-	}
-
-	@keyframes popIn {
-		from { opacity: 0; transform: scale(0.95); }
-		to { opacity: 1; transform: scale(1); }
-	}
-
-	.ios-modal-header {
-		padding: 1.25rem 1.5rem;
-		border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-	}
-
-	.ios-modal-header-title {
-		display: flex;
-		align-items: center;
-		gap: 0.6rem;
-		color: var(--text-primary, #f8fafc);
-	}
-
-	.ios-modal-header-title h3 {
-		font-size: 1.1rem;
-		font-weight: 700;
-		margin: 0;
-	}
-
-	.btn-modal-close {
-		background: transparent;
-		border: none;
-		color: var(--text-muted, #94a3b8);
-		cursor: pointer;
-		padding: 0.3rem;
-		border-radius: 0.5rem;
-	}
-
-	.ios-modal-body {
-		padding: 1.5rem;
-	}
-
-	.ios-intro-text {
-		font-size: 0.9rem;
-		color: var(--text-secondary, #cbd5e1);
-		margin-top: 0;
-		margin-bottom: 1.25rem;
-	}
-
-	.ios-steps-list {
-		list-style: none;
-		padding: 0;
-		margin: 0;
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-	}
-
-	.ios-step-item {
-		display: flex;
-		gap: 0.85rem;
-		align-items: flex-start;
-		background: var(--bg-hover, rgba(255, 255, 255, 0.04));
-		border: 1px solid var(--border-color, rgba(255, 255, 255, 0.06));
-		padding: 0.85rem 1rem;
-		border-radius: 0.85rem;
-	}
-
-	.step-num {
-		width: 28px;
-		height: 28px;
-		border-radius: 50%;
-		background: var(--accent, #3b82f6);
-		color: #ffffff;
-		font-weight: 700;
-		font-size: 0.85rem;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		flex-shrink: 0;
-		margin-top: 0.1rem;
-	}
-
-	.step-content {
-		display: flex;
-		flex-direction: column;
-		gap: 0.4rem;
-	}
-
-	.step-content p {
-		margin: 0;
-		font-size: 0.88rem;
-		color: var(--text-primary, #f8fafc);
-		line-height: 1.35;
-	}
-
-	.step-icon-badge {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.4rem;
-		background: rgba(0, 0, 0, 0.25);
-		padding: 0.25rem 0.6rem;
-		border-radius: 0.4rem;
-		font-size: 0.78rem;
-		color: var(--text-muted, #94a3b8);
-		width: fit-content;
-	}
-
-	.ios-modal-footer {
-		padding: 1rem 1.5rem 1.25rem;
-		border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
-		display: flex;
-		justify-content: flex-end;
-	}
-
-	.btn-ios-done {
-		width: 100%;
-		background: var(--accent, #3b82f6);
-		color: #ffffff;
-		font-size: 0.95rem;
-		font-weight: 600;
-		padding: 0.7rem;
-		border-radius: 0.65rem;
-		border: none;
-		cursor: pointer;
-		transition: background 0.2s;
-	}
-
-	.btn-ios-done:hover {
-		filter: brightness(1.1);
-	}
-</style>

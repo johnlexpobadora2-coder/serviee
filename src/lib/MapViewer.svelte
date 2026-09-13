@@ -9,10 +9,10 @@
 		Copy, 
 		Check, 
 		Navigation, 
-		Layers,
-		ZoomIn,
-		ZoomOut,
-		Share2
+		Layers, 
+		ZoomIn, 
+		ZoomOut, 
+		Share2 
 	} from 'lucide-svelte';
 
 	/**
@@ -31,9 +31,9 @@
 		longitude = 120.984222, 
 		title = 'Pinned Location', 
 		address = '', 
-		backUrl = '',
-		fullscreen = true,
-		onClose = null
+		backUrl = '', 
+		fullscreen = true, 
+		onClose = null 
 	} = $props();
 
 	let mapContainer = $state(null);
@@ -91,6 +91,8 @@
 		});
 	}
 
+	let resizeObserver = null;
+
 	async function initMap() {
 		if (!browser || !mapContainer) return;
 
@@ -140,12 +142,19 @@
 				// Invalidate size once rendered
 				setTimeout(() => {
 					if (mapInstance) mapInstance.invalidateSize();
-				}, 150);
+				}, 50);
+				setTimeout(() => {
+					if (mapInstance) mapInstance.invalidateSize();
+				}, 250);
+				setTimeout(() => {
+					if (mapInstance) mapInstance.invalidateSize();
+				}, 600);
 			} else {
 				mapInstance.setView([numLat, numLng], 16);
 				if (markerInstance) {
 					markerInstance.setLatLng([numLat, numLng]);
 				}
+				mapInstance.invalidateSize();
 			}
 		} catch (err) {
 			console.error('Failed to initialize MapViewer Leaflet:', err);
@@ -199,10 +208,10 @@
 			return;
 		}
 		if (browser) {
-			if (window.history.length > 1) {
-				window.history.back();
-			} else if (backUrl) {
+			if (backUrl) {
 				window.location.href = backUrl;
+			} else if (window.history.length > 1) {
+				window.history.back();
 			} else {
 				window.location.href = '/customer';
 			}
@@ -242,59 +251,71 @@
 
 	onMount(() => {
 		initMap();
+		if (browser && window.ResizeObserver && mapContainer) {
+			resizeObserver = new ResizeObserver(() => {
+				if (mapInstance) {
+					mapInstance.invalidateSize();
+				}
+			});
+			resizeObserver.observe(mapContainer);
+		}
 	});
 
 	onDestroy(() => {
 		if (copyTimer) clearTimeout(copyTimer);
+		if (resizeObserver) {
+			resizeObserver.disconnect();
+			resizeObserver = null;
+		}
 		if (mapInstance) {
 			mapInstance.remove();
 			mapInstance = null;
+			markerInstance = null;
 		}
 	});
 </script>
 
-<div class="serviee-map-view-container {fullscreen ? 'fullscreen-mode' : ''}">
+<div class="serviee-map-viewer-wrapper relative w-full h-full min-h-[100dvh] bg-slate-900 overflow-hidden select-none {fullscreen ? 'fixed inset-0 w-full h-[100dvh] z-[999]' : ''}">
 	<!-- Map Target Container -->
-	<div bind:this={mapContainer} class="map-viewport"></div>
+	<div bind:this={mapContainer} class="w-full h-full min-h-[100dvh] z-[1]"></div>
 
-	<!-- Top Floating Header Bar -->
-	<header class="map-top-bar">
+	<!-- Top Floating Header Bar (avoiding <header> HTML tag collision with global layout css) -->
+	<div role="banner" class="map-viewer-floating-header absolute top-4 left-4 right-4 max-sm:top-3 max-sm:left-3 max-sm:right-3 z-[1000] flex items-center justify-between gap-3 p-2.5 max-sm:p-2 bg-slate-900/90 backdrop-blur-md border border-white/15 rounded-2xl shadow-2xl text-white">
 		<button 
 			type="button" 
-			class="map-btn map-back-btn" 
+			class="inline-flex items-center justify-center gap-1.5 bg-white/10 hover:bg-white/20 active:bg-white/10 border border-white/15 text-white py-2 px-3.5 max-sm:p-2 rounded-xl text-[0.85rem] font-medium cursor-pointer transition-all duration-200" 
 			onclick={handleBack} 
 			title="Go back"
 			aria-label="Go back"
 		>
 			<ArrowLeft size={18} />
-			<span class="back-text">Back</span>
+			<span class="max-sm:hidden">Back</span>
 		</button>
 
-		<div class="map-title-wrap">
-			<div class="map-title-row">
-				<MapPin size={15} class="pin-icon" />
-				<h1 class="map-title">{title || 'Pinned Location'}</h1>
+		<div class="flex-1 min-w-0 text-center px-2">
+			<div class="flex items-center justify-center gap-1.5">
+				<MapPin size={15} class="text-emerald-500 shrink-0" />
+				<h1 class="text-[0.95rem] max-sm:text-[0.85rem] font-bold text-white m-0 truncate">{title || 'Pinned Location'}</h1>
 			</div>
 			{#if address}
-				<p class="map-address-sub">{address}</p>
+				<p class="text-[0.72rem] text-white/70 mt-0.5 truncate">{address}</p>
 			{/if}
 		</div>
 
-		<div class="map-top-actions">
+		<div class="flex items-center gap-1.5">
 			<button 
 				type="button" 
-				class="map-btn map-icon-btn" 
+				class="inline-flex items-center justify-center p-2 bg-white/10 hover:bg-white/20 active:bg-white/10 border border-white/15 text-white rounded-xl text-[0.85rem] font-medium cursor-pointer transition-all duration-200" 
 				onclick={toggleLayer} 
 				title="Switch between Street and Satellite view"
 				aria-label="Switch map layer"
 			>
 				<Layers size={17} />
-				<span class="btn-tooltip">{currentLayer === 'streets' ? 'Satellite' : 'Street'}</span>
 			</button>
 
 			<button 
 				type="button" 
-				class="map-btn map-icon-btn" 
+				class="inline-flex items-center justify-center p-2 bg-white/10 hover:bg-white/20 active:bg-white/10 border border-white/15 text-white rounded-xl text-[0.85rem] font-medium cursor-pointer transition-all duration-200" 
 				onclick={shareLocation} 
 				title="Share location"
 				aria-label="Share location"
@@ -302,23 +323,23 @@
 				<Share2 size={17} />
 			</button>
 		</div>
-	</header>
+	</div>
 
 	<!-- Right Floating Map Controls -->
-	<div class="map-floating-controls">
+	<div class="absolute right-4 top-[5.5rem] max-sm:right-3 max-sm:top-[4.8rem] z-[1000] flex flex-col gap-2.5">
 		<button 
 			type="button" 
-			class="map-control-btn" 
+			class="w-10 h-10 flex items-center justify-center bg-slate-900/90 backdrop-blur-md border border-white/15 text-white rounded-xl cursor-pointer transition-all duration-200 hover:bg-white/20 hover:border-white/30" 
 			onclick={recenterMap} 
 			title="Recenter location"
 			aria-label="Recenter map"
 		>
 			<Navigation size={18} />
 		</button>
-		<div class="map-zoom-group">
+		<div class="flex flex-col bg-slate-900/90 backdrop-blur-md border border-white/15 rounded-xl overflow-hidden">
 			<button 
 				type="button" 
-				class="map-control-btn zoom-btn" 
+				class="w-10 h-10 flex items-center justify-center bg-transparent border-none border-b border-white/10 text-white cursor-pointer transition-all duration-200 hover:bg-white/20" 
 				onclick={zoomIn} 
 				title="Zoom in"
 				aria-label="Zoom in"
@@ -327,7 +348,7 @@
 			</button>
 			<button 
 				type="button" 
-				class="map-control-btn zoom-btn" 
+				class="w-10 h-10 flex items-center justify-center bg-transparent border-none text-white cursor-pointer transition-all duration-200 hover:bg-white/20" 
 				onclick={zoomOut} 
 				title="Zoom out"
 				aria-label="Zoom out"
@@ -338,21 +359,21 @@
 	</div>
 
 	<!-- Bottom Info & Google Maps Launch Card -->
-	<div class="map-bottom-card">
-		<div class="map-bottom-card-inner">
-			<div class="map-bottom-info">
-				<div class="coords-tag">
-					<span class="coord-dot"></span>
-					<span class="coord-text">{numLat.toFixed(6)}, {numLng.toFixed(6)}</span>
+	<div class="absolute bottom-5 left-4 right-4 max-sm:bottom-4 max-sm:left-3 max-sm:right-3 z-[1000] max-w-[600px] mx-auto">
+		<div class="flex flex-col gap-3 bg-slate-900/90 backdrop-blur-md border border-white/15 rounded-2xl p-4 max-sm:p-3.5 shadow-2xl">
+			<div>
+				<div class="inline-flex items-center gap-2 bg-white/5 border border-white/10 py-1 px-2.5 rounded-full text-[0.75rem] text-white/90">
+					<span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+					<span class="font-mono text-[0.75rem] text-white">{numLat.toFixed(6)}, {numLng.toFixed(6)}</span>
 					<button 
 						type="button" 
-						class="copy-coord-btn" 
+						class="bg-transparent border-none inline-flex items-center gap-1 text-[0.7rem] text-white/70 hover:text-white hover:bg-white/10 cursor-pointer py-0.5 px-1.5 rounded transition-all duration-150" 
 						onclick={copyCoordinates} 
 						title="Copy coordinates"
 					>
 						{#if copied}
-							<Check size={13} color="var(--success, #10b981)" />
-							<span style="color: var(--success, #10b981);">Copied</span>
+							<Check size={13} class="text-emerald-400" />
+							<span class="text-emerald-400">Copied</span>
 						{:else}
 							<Copy size={13} />
 							<span>Copy</span>
@@ -360,16 +381,16 @@
 					</button>
 				</div>
 				{#if address}
-					<div class="map-address-full">{address}</div>
+					<div class="text-[0.8rem] text-white/90 mt-1.5 leading-relaxed">{address}</div>
 				{/if}
 			</div>
 
-			<div class="map-bottom-actions">
+			<div class="flex gap-2">
 				<a 
 					href={googleMapsUrl} 
 					target="_blank" 
 					rel="noopener noreferrer" 
-					class="google-maps-btn"
+					class="flex-1 inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white py-3 px-5 max-sm:py-2.5 max-sm:px-4 max-sm:text-[0.85rem] rounded-xl text-[0.9rem] font-semibold transition-colors duration-150 no-underline"
 				>
 					<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
 						<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
@@ -383,343 +404,15 @@
 </div>
 
 <style>
-	.serviee-map-view-container {
-		position: relative;
+	:global(.leaflet-container) {
+		width: 100% !important;
+		height: 100% !important;
+		background: #0f172a !important;
+		font-family: inherit !important;
+	}
+	.serviee-map-viewer-wrapper {
 		width: 100%;
 		height: 100%;
-		min-height: 400px;
-		background: #0f172a;
-		overflow: hidden;
-		user-select: none;
-	}
-
-	.serviee-map-view-container.fullscreen-mode {
-		position: fixed;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		width: 100vw;
-		height: 100dvh;
-		z-index: 99999;
-	}
-
-	.map-viewport {
-		width: 100%;
-		height: 100%;
-		z-index: 1;
-	}
-
-	/* Top Floating Header Bar */
-	.map-top-bar {
-		position: absolute;
-		top: 1rem;
-		left: 1rem;
-		right: 1rem;
-		z-index: 1000;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.75rem;
-		padding: 0.6rem 0.85rem;
-		background: rgba(15, 23, 42, 0.82);
-		backdrop-filter: blur(16px);
-		-webkit-backdrop-filter: blur(16px);
-		border: 1px solid rgba(255, 255, 255, 0.12);
-		border-radius: var(--radius-lg, 16px);
-		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-		color: #ffffff;
-	}
-
-	.map-btn {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		gap: 0.4rem;
-		background: rgba(255, 255, 255, 0.08);
-		border: 1px solid rgba(255, 255, 255, 0.12);
-		color: #ffffff;
-		padding: 0.5rem 0.85rem;
-		border-radius: var(--radius-md, 10px);
-		font-size: 0.85rem;
-		font-weight: 500;
-		cursor: pointer;
-		transition: all 0.2s ease;
-		text-decoration: none;
-	}
-
-	.map-btn:hover {
-		background: rgba(255, 255, 255, 0.16);
-		border-color: rgba(255, 255, 255, 0.25);
-		transform: translateY(-1px);
-	}
-
-	.map-btn:active {
-		transform: translateY(0);
-	}
-
-	.map-icon-btn {
-		padding: 0.5rem;
-		border-radius: var(--radius-md, 10px);
-		position: relative;
-	}
-
-	.btn-tooltip {
-		display: none;
-	}
-
-	.map-title-wrap {
-		flex: 1;
-		min-width: 0;
-		text-align: center;
-		padding: 0 0.5rem;
-	}
-
-	.map-title-row {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 0.4rem;
-	}
-
-	:global(.pin-icon) {
-		color: #10b981;
-		flex-shrink: 0;
-	}
-
-	.map-title {
-		font-size: 0.95rem;
-		font-weight: 700;
-		color: #ffffff;
-		margin: 0;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	.map-address-sub {
-		font-size: 0.72rem;
-		color: rgba(255, 255, 255, 0.7);
-		margin: 0.1rem 0 0 0;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	.map-top-actions {
-		display: flex;
-		align-items: center;
-		gap: 0.4rem;
-	}
-
-	/* Right floating map controls */
-	.map-floating-controls {
-		position: absolute;
-		right: 1rem;
-		top: 5.5rem;
-		z-index: 1000;
-		display: flex;
-		flex-direction: column;
-		gap: 0.6rem;
-	}
-
-	.map-control-btn {
-		width: 40px;
-		height: 40px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		background: rgba(15, 23, 42, 0.88);
-		backdrop-filter: blur(12px);
-		-webkit-backdrop-filter: blur(12px);
-		border: 1px solid rgba(255, 255, 255, 0.15);
-		color: #ffffff;
-		border-radius: var(--radius-md, 10px);
-		cursor: pointer;
-		transition: all 0.2s ease;
-	}
-
-	.map-control-btn:hover {
-		background: rgba(255, 255, 255, 0.18);
-		border-color: rgba(255, 255, 255, 0.3);
-		color: #ffffff;
-	}
-
-	.map-zoom-group {
-		display: flex;
-		flex-direction: column;
-		background: rgba(15, 23, 42, 0.88);
-		backdrop-filter: blur(12px);
-		-webkit-backdrop-filter: blur(12px);
-		border: 1px solid rgba(255, 255, 255, 0.15);
-		border-radius: var(--radius-md, 10px);
-		overflow: hidden;
-	}
-
-	.map-zoom-group .zoom-btn {
-		background: transparent;
-		border: none;
-		border-radius: 0;
-		box-shadow: none;
-	}
-
-	.map-zoom-group .zoom-btn:first-child {
-		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-	}
-
-	/* Bottom Floating Action Card */
-	.map-bottom-card {
-		position: absolute;
-		bottom: 1.25rem;
-		left: 1rem;
-		right: 1rem;
-		z-index: 1000;
-		max-width: 600px;
-		margin: 0 auto;
-	}
-
-	.map-bottom-card-inner {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-		background: rgba(15, 23, 42, 0.92);
-		backdrop-filter: blur(16px);
-		-webkit-backdrop-filter: blur(16px);
-		border: 1px solid rgba(255, 255, 255, 0.14);
-		border-radius: var(--radius-lg, 16px);
-		padding: 1rem 1.2rem;
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-	}
-
-	.coords-tag {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.5rem;
-		background: rgba(255, 255, 255, 0.06);
-		border: 1px solid rgba(255, 255, 255, 0.08);
-		padding: 0.3rem 0.6rem;
-		border-radius: 20px;
-		font-size: 0.75rem;
-		color: rgba(255, 255, 255, 0.9);
-	}
-
-	.coord-dot {
-		width: 7px;
-		height: 7px;
-		background: #10b981;
-		border-radius: 50%;
-	}
-
-	.coord-text {
-		font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-		font-size: 0.75rem;
-		color: #ffffff;
-	}
-
-	.copy-coord-btn {
-		background: transparent;
-		border: none;
-		display: inline-flex;
-		align-items: center;
-		gap: 0.25rem;
-		font-size: 0.7rem;
-		color: rgba(255, 255, 255, 0.65);
-		cursor: pointer;
-		padding: 0.15rem 0.35rem;
-		border-radius: 4px;
-		transition: all 0.15s ease;
-	}
-
-	.copy-coord-btn:hover {
-		background: rgba(255, 255, 255, 0.12);
-		color: #ffffff;
-	}
-
-	.map-address-full {
-		font-size: 0.8rem;
-		color: rgba(255, 255, 255, 0.85);
-		margin-top: 0.4rem;
-		line-height: 1.4;
-	}
-
-	.map-bottom-actions {
-		display: flex;
-		gap: 0.5rem;
-	}
-
-	.google-maps-btn {
-		flex: 1;
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		gap: 0.55rem;
-		background: #10b981;
-		color: #ffffff;
-		padding: 0.75rem 1.25rem;
-		border-radius: var(--radius-md, 10px);
-		font-size: 0.9rem;
-		font-weight: 600;
-		text-decoration: none;
-		transition: background-color 0.15s ease;
-	}
-
-	.google-maps-btn:hover {
-		background: #059669;
-	}
-
-	.google-maps-btn:active {
-		background: #047857;
-	}
-
-	@keyframes -global-pulse-ring {
-		0% {
-			transform: scale(0.6);
-			opacity: 0.9;
-		}
-		80%, 100% {
-			transform: scale(1.6);
-			opacity: 0;
-		}
-	}
-
-	@media (max-width: 640px) {
-		.map-top-bar {
-			top: 0.75rem;
-			left: 0.75rem;
-			right: 0.75rem;
-			padding: 0.5rem 0.7rem;
-		}
-
-		.back-text {
-			display: none;
-		}
-
-		.map-btn {
-			padding: 0.45rem 0.6rem;
-		}
-
-		.map-title {
-			font-size: 0.85rem;
-		}
-
-		.map-floating-controls {
-			top: 4.8rem;
-			right: 0.75rem;
-		}
-
-		.map-bottom-card {
-			bottom: 1rem;
-			left: 0.75rem;
-			right: 0.75rem;
-		}
-
-		.map-bottom-card-inner {
-			padding: 0.85rem 1rem;
-		}
-
-		.google-maps-btn {
-			padding: 0.65rem 1rem;
-			font-size: 0.85rem;
-		}
+		min-height: 100dvh;
 	}
 </style>

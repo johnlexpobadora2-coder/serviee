@@ -3,8 +3,6 @@
 	import { browser } from '$app/environment';
 	import { pushState, replaceState } from '$app/navigation';
 
-	import { mapModal } from '$lib/mapViewerModal.svelte.js';
-
 	let { 
 		activeConvId = $bindable(''), 
 		showGpsDropup = $bindable(false),
@@ -34,12 +32,6 @@
 	});
 
 	function handlePopState(e) {
-		// If map viewer modal was open, close map modal and keep the chat conversation open
-		if (mapModal.open) {
-			mapModal.handlePopState();
-			return;
-		}
-
 		// If current/popped state is still in chat conversation, retain the conversation
 		if (e?.state?.chatOpen && e?.state?.convId) {
 			activeConvId = e.state.convId;

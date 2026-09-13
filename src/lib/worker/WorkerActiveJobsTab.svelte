@@ -1,7 +1,6 @@
 <script>
 	import { User, MessageSquare, MapPin, ExternalLink, Clock, Loader2 } from 'lucide-svelte';
 	import { getGoogleMapsUrl, getServieeMapUrl, getEmbedMapUrl } from '$lib/gpsUtils.js';
-	import { mapModal } from '$lib/mapViewerModal.svelte.js';
 
 	let { 
 		activeJobs = [], 
@@ -168,10 +167,6 @@
 							<a 
 								href={getServieeMapUrl(job.latitude, job.longitude, job.title, job.location)} 
 								class="feed-job-directions-link"
-								onclick={(e) => {
-									e.preventDefault();
-									mapModal.openModal({ latitude: job.latitude, longitude: job.longitude, title: job.title, address: job.location });
-								}}
 								title="View Map"
 								aria-label="View Map"
 							>

@@ -27,8 +27,6 @@
 		"@lucide/svelte": "^1.39.0",
 		"@supabase/supabase-js": "^2.112.4",
 		"leaflet": "^1.9.4",
-		"lucide-svelte": "^1.0.1",
-		"nodemailer": "^10.0.1",
-		"resend": "^6.26.0"
+		"lucide-svelte": "^1.0.1"
 	}
 }
