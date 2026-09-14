@@ -191,17 +191,17 @@
 							<!-- Main Row -->
 							<div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
 								<!-- Left: Avatar + Identity Info -->
-								<div class="flex items-start sm:items-end gap-3.5 sm:gap-4 min-w-0">
+								<div class="flex flex-col sm:flex-row items-center sm:items-end gap-3 sm:gap-4 min-w-0 w-full sm:w-auto text-center sm:text-left">
 									<!-- Avatar with negative margin so ONLY the avatar overlaps the cover -->
-									<div class="-mt-10 sm:-mt-12 w-[76px] h-[76px] sm:w-[88px] sm:h-[88px] rounded-full border-4 border-[var(--bg-card)] bg-gradient-to-br from-[var(--accent)] via-purple-600 to-indigo-700 flex items-center justify-center text-[1.75rem] sm:text-[2.2rem] font-extrabold text-white shadow-xl ring-1 ring-black/5 dark:ring-white/10 shrink-0 select-none z-[2]">
+									<div class="-mt-10 sm:-mt-12 w-[80px] h-[80px] sm:w-[88px] sm:h-[88px] rounded-full border-4 border-[var(--bg-card)] bg-gradient-to-br from-[var(--accent)] via-purple-600 to-indigo-700 flex items-center justify-center text-[1.85rem] sm:text-[2.2rem] font-extrabold text-white shadow-xl ring-1 ring-black/5 dark:ring-white/10 shrink-0 select-none z-[2]">
 										{user.name
 											? user.name.charAt(0).toUpperCase()
 											: "U"}
 									</div>
 
 									<!-- User Name and meta badges (placed safely below banner in the card body) -->
-									<div class="pt-1.5 sm:pt-0 pb-1 flex flex-col gap-1.5 min-w-0 flex-1">
-										<div class="flex items-center gap-2 flex-wrap">
+									<div class="pt-0.5 sm:pt-0 pb-1 flex flex-col items-center sm:items-start gap-1.5 min-w-0 flex-1 w-full">
+										<div class="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
 											<h2 class="text-[1.25rem] sm:text-[1.4rem] font-bold leading-tight m-0 text-[var(--text-primary)] break-words">
 												{user.name}
 											</h2>
@@ -210,7 +210,7 @@
 											{/if}
 										</div>
 
-										<div class="flex items-center gap-1.5 flex-wrap">
+										<div class="flex items-center justify-center sm:justify-start gap-1.5 flex-wrap">
 											<span
 												class="badge {user.role === 'worker'
 													? 'badge-gardening'
@@ -236,7 +236,7 @@
 											{#if user.address}
 												<span class="text-[0.76rem] text-[var(--text-muted)] inline-flex items-center gap-1">
 													<MapPin size={12} class="shrink-0 text-sky-400" />
-													<span class="truncate max-w-[160px] sm:max-w-[200px]">{user.address}</span>
+													<span class="truncate max-w-[200px]">{user.address}</span>
 												</span>
 											{/if}
 										</div>

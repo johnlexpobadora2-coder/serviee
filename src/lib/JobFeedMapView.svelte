@@ -186,8 +186,8 @@
 
 			markersLayerGroup = L.layerGroup().addTo(mapInstance);
 
-			// Render all job pins
-			updateMarkers();
+			// Render all job pins on init
+			updateMarkers(true);
 
 			// Auto try getting user GPS location in background to center or show nearby
 			locateUser(false);
@@ -231,7 +231,7 @@
 		setMapLayer(currentLayer === 'streets' ? 'satellite' : 'streets');
 	}
 
-	function updateMarkers() {
+	function updateMarkers(fit = false) {
 		if (!mapInstance || !leafletLib || !markersLayerGroup) return;
 		const L = leafletLib;
 
@@ -251,15 +251,14 @@
 
 			marker.on('click', () => {
 				selectedJob = job;
-				mapInstance.panTo([lat, lng], { animate: true, duration: 0.5 });
-				updateMarkers(); // Refresh selected highlight
+				updateMarkers(false); // Refresh selected highlight without moving or panning map
 			});
 
 			markersLayerGroup.addLayer(marker);
 			bounds.extend([lat, lng]);
 		});
 
-		if (mappedJobs.length > 0 && bounds.isValid()) {
+		if (fit && mappedJobs.length > 0 && bounds.isValid()) {
 			mapInstance.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
 		}
 	}

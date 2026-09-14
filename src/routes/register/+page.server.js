@@ -1,6 +1,7 @@
 import { db, hashPassword } from '$lib/server/db.js';
 import { createSignedSession } from '$lib/server/session.js';
 import { redirect, fail } from '@sveltejs/kit';
+import { validateGmail, validatePassword, validatePhone } from '$lib/validation.js';
 
 export function load({ locals, url }) {
 	if (locals.user) {
@@ -31,9 +32,26 @@ export const actions = {
 			});
 		}
 
-		if (password.length < 6) {
+		const emailValidation = validateGmail(email);
+		if (!emailValidation.isValid) {
+			return fail(400, {
+				error: emailValidation.error,
+				name, email, phone, role, address
+			});
+		}
+
+		const phoneValidation = validatePhone(phone);
+		if (!phoneValidation.isValid) {
+			return fail(400, {
+				error: phoneValidation.error,
+				name, email, phone, role, address
+			});
+		}
+
+		const passwordValidation = validatePassword(password);
+		if (!passwordValidation.isValid) {
 			return fail(400, { 
-				error: 'Password must be at least 6 characters.', 
+				error: passwordValidation.error, 
 				name, email, phone, role, address 
 			});
 		}

@@ -116,7 +116,7 @@
 				mapInstance = L.map(mapContainer, {
 					center: [currentLat, currentLng],
 					zoom: 15,
-					zoomControl: true
+					zoomControl: false
 				});
 
 				L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

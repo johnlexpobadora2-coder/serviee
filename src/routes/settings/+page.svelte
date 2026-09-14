@@ -29,6 +29,8 @@
 	import LocationPickerModal from '$lib/LocationPickerModal.svelte';
 	import CityAutocomplete from '$lib/CityAutocomplete.svelte';
 	import DeleteAccountConfirmModal from '$lib/DeleteAccountConfirmModal.svelte';
+	import PasswordStrengthMeter from '$lib/PasswordStrengthMeter.svelte';
+	import { validatePassword, validatePhone } from '$lib/validation.js';
 	import { toast } from '$lib/toast.svelte.js';
 
 	let { data, form } = $props();
@@ -302,6 +304,14 @@
 					class="settings-form"
 					use:enhance={({ cancel }) => {
 						clientProfileError = '';
+						if (phone) {
+							const phoneCheck = validatePhone(phone);
+							if (!phoneCheck.isValid) {
+								toast.error(phoneCheck.error);
+								cancel();
+								return;
+							}
+						}
 						if (!address || !isAddressValid) {
 							const msg = 'Please search and select a valid City or Municipality from the suggestions.';
 							clientProfileError = msg;
@@ -604,7 +614,23 @@
 						method="POST"
 						action="?/updatePassword"
 						class="settings-form"
-						use:enhance={() => {
+						use:enhance={({ cancel }) => {
+							if (!currentPassword) {
+								toast.error('Please enter your current password.');
+								cancel();
+								return;
+							}
+							const newPassCheck = validatePassword(newPassword);
+							if (!newPassCheck.isValid) {
+								toast.error(newPassCheck.error);
+								cancel();
+								return;
+							}
+							if (newPassword !== confirmPassword) {
+								toast.error('New password and confirmation do not match.');
+								cancel();
+								return;
+							}
 							passwordSubmitting = true;
 							return async ({ update }) => {
 								passwordSubmitting = false;
@@ -636,11 +662,11 @@
 									id="newPassword"
 									name="newPassword"
 									bind:value={newPassword}
-									placeholder="Minimum 6 characters"
-									minlength="6"
+									placeholder="e.g. Pass@123"
 									required
 								/>
 							</div>
+							<PasswordStrengthMeter password={newPassword} />
 						</div>
 
 						<div class="form-group">
@@ -652,15 +678,23 @@
 									id="confirmPassword"
 									name="confirmPassword"
 									bind:value={confirmPassword}
-									placeholder="Re-type new password"
-									minlength="6"
+									placeholder="e.g. Pass@123"
 									required
 								/>
 							</div>
+							{#if confirmPassword && newPassword !== confirmPassword}
+								<small style="color: var(--error); font-size: 0.8rem; margin-top: 0.35rem; display: flex; align-items: center; gap: 0.3rem;">
+									<AlertCircle size={13} /> Passwords do not match
+								</small>
+							{:else if confirmPassword && newPassword === confirmPassword}
+								<small style="color: var(--success); font-size: 0.8rem; margin-top: 0.35rem; display: flex; align-items: center; gap: 0.3rem;">
+									<Check size={13} /> Passwords match
+								</small>
+							{/if}
 						</div>
 
 						<div class="form-actions">
-							<button type="submit" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;" disabled={passwordSubmitting || !currentPassword || !newPassword || !confirmPassword}>
+							<button type="submit" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;" disabled={passwordSubmitting || !currentPassword || !validatePassword(newPassword).isValid || newPassword !== confirmPassword}>
 								{#if passwordSubmitting}
 									<span class="spinner spinner-sm"></span>
 									<span>Updating Password...</span>
@@ -781,7 +815,13 @@
 						method="POST" 
 						action="?/createComplementaryRole"
 						class="settings-form"
-						use:enhance={() => {
+						use:enhance={({ cancel }) => {
+							const passCheck = validatePassword(newRolePassword);
+							if (!passCheck.isValid) {
+								toast.error(passCheck.error);
+								cancel();
+								return;
+							}
 							createRoleSubmitting = true;
 							return async ({ update }) => {
 								createRoleSubmitting = false;
@@ -811,11 +851,11 @@
 									id="new-role-pass" 
 									name="password" 
 									bind:value={newRolePassword}
-									placeholder="At least 6 characters (must differ from your existing password)" 
+									placeholder="e.g. Pass@123" 
 									required
-									minlength="6"
 								/>
 							</div>
+							<PasswordStrengthMeter password={newRolePassword} />
 							<small class="field-hint">For security, your Client and Worker accounts under the same email must have different passwords.</small>
 						</div>
 
@@ -824,7 +864,7 @@
 								type="submit" 
 								class="btn btn-primary" 
 								style="display: inline-flex; align-items: center; gap: 0.5rem;"
-								disabled={createRoleSubmitting || newRolePassword.length < 6}
+								disabled={createRoleSubmitting || !validatePassword(newRolePassword).isValid}
 							>
 								{#if createRoleSubmitting}
 									<span class="spinner spinner-sm"></span>
@@ -1396,14 +1436,47 @@
 	}
 
 	@media (max-width: 600px) {
+		.settings-page {
+			margin: 1rem auto 2rem;
+			padding: 0 0.85rem;
+		}
+
+		.settings-container {
+			gap: 1.25rem;
+		}
+
+		.tab-panel {
+			padding: 1.4rem 1.2rem;
+			border-radius: var(--radius-lg);
+			gap: 1.35rem;
+		}
+
+		.user-profile-card {
+			flex-direction: column;
+			text-align: center;
+			padding: 1.35rem 1.2rem;
+			border-radius: var(--radius-lg);
+			gap: 0.85rem;
+		}
+
+		.skills-section,
+		.availability-section {
+			padding: 1rem 0.85rem;
+		}
+
+		.active-skills-container {
+			padding: 0.75rem;
+		}
+
 		.availability-cards-grid {
 			grid-template-columns: 1fr;
+			gap: 0.65rem;
 		}
 
 		.settings-tabs .tab-btn {
-			padding: 0.65rem 0.25rem !important;
-			font-size: 0.78rem !important;
-			gap: 0.3rem !important;
+			padding: 0.7rem 0.35rem !important;
+			font-size: 0.82rem !important;
+			gap: 0.35rem !important;
 		}
 
 		.tab-label {
@@ -1411,21 +1484,16 @@
 			display: inline-block;
 		}
 
-		.user-profile-card {
-			flex-direction: column;
-			text-align: center;
-		}
-
 		.name-badge-row {
 			justify-content: center;
 		}
 
 		.bio-label {
-			font-size: 0.84rem;
+			font-size: 0.88rem;
 		}
 
 		.bio-subtitle {
-			font-size: 0.76rem;
+			font-size: 0.78rem;
 		}
 
 		.form-actions {
@@ -1438,14 +1506,23 @@
 	}
 
 	@media (max-width: 380px) {
+		.settings-page {
+			padding: 0 0.65rem;
+		}
+
+		.tab-panel,
+		.user-profile-card {
+			padding: 1.15rem 0.9rem;
+		}
+
 		.settings-tabs .tab-btn {
-			font-size: 0.72rem !important;
-			padding: 0.5rem 0.15rem !important;
-			gap: 0.2rem !important;
+			font-size: 0.76rem !important;
+			padding: 0.6rem 0.2rem !important;
+			gap: 0.25rem !important;
 		}
 
 		.bio-subtitle {
-			font-size: 0.72rem;
+			font-size: 0.74rem;
 		}
 	}
 </style>

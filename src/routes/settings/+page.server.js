@@ -1,6 +1,7 @@
 import { db, hashPassword } from '$lib/server/db.js';
 import { createSignedSession } from '$lib/server/session.js';
 import { redirect, fail } from '@sveltejs/kit';
+import { validatePassword, validatePhone } from '$lib/validation.js';
 
 export async function load({ locals }) {
 	if (!locals.user) {
@@ -60,6 +61,16 @@ export const actions = {
 			});
 		}
 
+		if (phone) {
+			const phoneValidation = validatePhone(phone);
+			if (!phoneValidation.isValid) {
+				return fail(400, {
+					profileError: phoneValidation.error,
+					profileSuccess: false
+				});
+			}
+		}
+
 		try {
 			const updated = await db.users.updateProfile(locals.user.id, {
 				name,
@@ -106,9 +117,10 @@ export const actions = {
 			});
 		}
 
-		if (newPassword.length < 6) {
+		const passwordValidation = validatePassword(newPassword);
+		if (!passwordValidation.isValid) {
 			return fail(400, {
-				passwordError: 'New password must be at least 6 characters long.',
+				passwordError: passwordValidation.error,
 				passwordSuccess: false
 			});
 		}
@@ -204,8 +216,20 @@ export const actions = {
 			return fail(400, { createRoleError: 'Invalid role selection.' });
 		}
 
-		if (!password || password.length < 6) {
-			return fail(400, { createRoleError: 'Password must be at least 6 characters.' });
+		if (!password) {
+			return fail(400, { createRoleError: 'Password is required.' });
+		}
+
+		if (phone) {
+			const phoneValidation = validatePhone(phone);
+			if (!phoneValidation.isValid) {
+				return fail(400, { createRoleError: phoneValidation.error });
+			}
+		}
+
+		const passwordValidation = validatePassword(password);
+		if (!passwordValidation.isValid) {
+			return fail(400, { createRoleError: passwordValidation.error });
 		}
 
 		try {

@@ -1,10 +1,12 @@
 <script>
 	import { enhance } from '$app/forms';
-	import { AlertTriangle, MapPin, Navigation, Check, AlertCircle, X, UserPlus } from 'lucide-svelte';
+	import { AlertTriangle, MapPin, Navigation, Check, AlertCircle, X, UserPlus, Mail } from 'lucide-svelte';
 
 	import { getCurrentCoordinates, reverseGeocode } from '$lib/gpsUtils.js';
 	import LocationPickerModal from '$lib/LocationPickerModal.svelte';
 	import CityAutocomplete from '$lib/CityAutocomplete.svelte';
+	import PasswordStrengthMeter from '$lib/PasswordStrengthMeter.svelte';
+	import { validateGmail, validatePassword, validatePhone } from '$lib/validation.js';
 
 	let { data, form } = $props();
 
@@ -19,6 +21,16 @@
 	// svelte-ignore state_referenced_locally
 	let phone = $state(form?.phone ?? '');
 	let password = $state('');
+
+	let emailTouched = $state(false);
+	let emailValidation = $derived(validateGmail(email));
+	let isEmailValid = $derived(emailValidation.isValid);
+
+	let phoneTouched = $state(false);
+	let phoneValidation = $derived(validatePhone(phone));
+	let isPhoneValid = $derived(phoneValidation.isValid);
+
+	let passwordValidation = $derived(validatePassword(password));
 
 	let selectedRole = $derived(form?.role ?? data?.role ?? '');
 	// svelte-ignore state_referenced_locally
@@ -112,11 +124,40 @@
 
 		<form method="POST" use:enhance={({ cancel }) => {
 			clientError = '';
+
+			if (!email) {
+				clientError = 'Please enter your email address.';
+				cancel();
+				return;
+			}
+
+			const emailCheck = validateGmail(email);
+			if (!emailCheck.isValid) {
+				clientError = emailCheck.error;
+				cancel();
+				return;
+			}
+
+			const phoneCheck = validatePhone(phone);
+			if (!phoneCheck.isValid) {
+				clientError = phoneCheck.error;
+				cancel();
+				return;
+			}
+
 			if (!selectedAddress || !isAddressValid) {
 				clientError = 'Please search and select a valid City or Municipality from the suggestions, or use Auto GPS / Custom Pin.';
 				cancel();
 				return;
 			}
+
+			const passCheck = validatePassword(password);
+			if (!passCheck.isValid) {
+				clientError = passCheck.error;
+				cancel();
+				return;
+			}
+
 			loading = true;
 			return async ({ update }) => {
 				loading = false;
@@ -142,11 +183,17 @@
 					type="email" 
 					id="email" 
 					name="email" 
-					placeholder="juan@example.com" 
+					placeholder="juandelacruz@gmail.com" 
 					bind:value={email} 
+					onblur={() => emailTouched = true}
 					required 
-					style="padding: 0.75rem 1rem; font-size: 1rem;"
+					style="padding: 0.75rem 1rem; font-size: 1rem; {emailTouched && email && !isEmailValid ? 'border-color: var(--error);' : ''}"
 				/>
+				{#if emailTouched && email && !isEmailValid}
+					<small style="color: var(--error); font-size: 0.8rem; margin-top: 0.35rem; display: flex; align-items: center; gap: 0.3rem;">
+						<AlertCircle size={13} /> {emailValidation.error}
+					</small>
+				{/if}
 			</div>
 
 			<div class="form-group" style="margin-bottom: 1.25rem;">
@@ -157,14 +204,20 @@
 					name="phone" 
 					placeholder="09123456789" 
 					bind:value={phone} 
+					onblur={() => phoneTouched = true}
 					required 
-					style="padding: 0.75rem 1rem; font-size: 1rem;"
+					style="padding: 0.75rem 1rem; font-size: 1rem; {phoneTouched && phone && !isPhoneValid ? 'border-color: var(--error);' : ''}"
 				/>
+				{#if phoneTouched && phone && !isPhoneValid}
+					<small style="color: var(--error); font-size: 0.8rem; margin-top: 0.35rem; display: flex; align-items: center; gap: 0.3rem;">
+						<AlertCircle size={13} /> {phoneValidation.error}
+					</small>
+				{/if}
 			</div>
 
 			<div class="form-group" style="margin-bottom: 1.25rem;">
 				<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; flex-wrap: wrap; gap: 0.5rem;">
-					<label for="address" style="font-size: 0.95rem; margin-bottom: 0;">City/Municipality</label>
+					<label for="address" style="margin-bottom: 0; font-size: 0.95rem;">City/Municipality</label>
 					<div style="display: flex; gap: 0.4rem; align-items: center;">
 						<button 
 							type="button" 
@@ -228,17 +281,18 @@
 				</select>
 			</div>
 
-			<div class="form-group" style="margin-bottom: 2.25rem;">
+			<div class="form-group" style="margin-bottom: 2rem;">
 				<label for="password" style="font-size: 0.95rem; margin-bottom: 0.4rem;">Password</label>
 				<input 
 					type="password" 
 					id="password" 
 					name="password" 
-					placeholder="At least 6 characters" 
+					placeholder="e.g. Juan@123" 
 					bind:value={password}
 					required 
 					style="padding: 0.75rem 1rem; font-size: 1rem;"
 				/>
+				<PasswordStrengthMeter {password} />
 			</div>
 
 			<button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.85rem 1.25rem; font-size: 1.05rem; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;" disabled={loading} id="register-submit-btn">

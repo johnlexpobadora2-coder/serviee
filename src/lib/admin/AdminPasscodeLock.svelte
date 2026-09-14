@@ -266,8 +266,12 @@
 	}
 
 	@media (max-width: 480px) {
+		.admin-lock-wrapper {
+			padding: 1rem 0.5rem;
+		}
+
 		.admin-lock-card {
-			padding: 2rem 1.25rem;
+			padding: 1.75rem 1rem;
 			border-radius: var(--radius-md, 0.75rem);
 		}
 
