@@ -10,12 +10,12 @@
 	import CustomerTabsNav from '$lib/customer/CustomerTabsNav.svelte';
 	import CustomerFeedTab from '$lib/customer/CustomerFeedTab.svelte';
 	import CustomerActiveJobsTab from '$lib/customer/CustomerActiveJobsTab.svelte';
-	import CustomerChatTab from '$lib/customer/CustomerChatTab.svelte';
+	import ChatTab from '$lib/ChatTab.svelte';
 	import CustomerProfileTab from '$lib/customer/CustomerProfileTab.svelte';
 	import CustomerRatingModal from '$lib/customer/CustomerRatingModal.svelte';
 	import CustomerDeleteJobModal from '$lib/customer/CustomerDeleteJobModal.svelte';
 	import CustomerEditJobModal from '$lib/customer/CustomerEditJobModal.svelte';
-	import CustomerImagePreviewModal from '$lib/customer/CustomerImagePreviewModal.svelte';
+	import ImagePreviewModal from '$lib/ImagePreviewModal.svelte';
 
 	import { getSmartCache, setSmartCache, removeSmartCache } from '$lib/smartCache.js';
 	import { savedJobs } from '$lib/savedJobs.svelte.js';
@@ -506,32 +506,6 @@
 		}
 	}
 
-	async function refreshChatData() {
-		try {
-			const res = await fetch('/api/conversations');
-			if (res.ok) {
-				const result = await res.json();
-				if (result.conversations) {
-					const existingMap = new Map(conversations.map(c => [c.id, c]));
-					conversations = result.conversations.map(newConv => {
-						const existing = existingMap.get(newConv.id);
-						if (existing && existing.messagesLoaded) {
-							return {
-								...newConv,
-								messages: existing.messages,
-								messagesLoaded: true,
-								hasMore: existing.hasMore
-							};
-						}
-						return newConv;
-					});
-				}
-			}
-		} catch (err) {
-			console.error('Failed to refresh chat data:', err);
-		}
-	}
-
 	let activeConversation = $derived(
 		displayedConversations.find(c => c.id === activeConvId)
 	);
@@ -773,7 +747,7 @@
 			if (msg.sender_id !== data.user?.id) {
 				playNotificationSound();
 			}
-			refreshChatData();
+			fetchConversations(true);
 		}
 	}
 
@@ -836,7 +810,7 @@
 		deletingConversation = true;
 
 		try {
-			const res = await fetch('/api/conversations/delete', {
+			await fetch('/api/conversations/delete', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -1101,12 +1075,13 @@
 	}
 
 	// Refetch and toast when form actions return
-	let lastHandledFormSuccess = null;
+	let lastHandledForm = null;
 	$effect(() => {
-		const successMsg = form?.success;
-		if (successMsg && successMsg !== lastHandledFormSuccess) {
-			lastHandledFormSuccess = successMsg;
-			toast.success(successMsg);
+		if (!form || form === lastHandledForm) return;
+		lastHandledForm = form;
+
+		if (form.success) {
+			toast.success(form.success);
 			untrack(() => {
 				removeSmartCache(`${data.user?.id}_customer_active_jobs`);
 				removeSmartCache(`${data.user?.id}_customer_feed_default`);
@@ -1117,15 +1092,8 @@
 				fetchConversations(false);
 				if (profileLoaded) fetchProfileData();
 			});
-		}
-	});
-
-	let lastHandledFormError = null;
-	$effect(() => {
-		const errorMsg = form?.error;
-		if (errorMsg && errorMsg !== lastHandledFormError) {
-			lastHandledFormError = errorMsg;
-			toast.error(errorMsg);
+		} else if (form.error) {
+			toast.error(form.error);
 		}
 	});
 </script>
@@ -1183,7 +1151,8 @@
 		onopenratingmodal={openRatingModal} 
 	/>
 {:else if activeTab === 'chat'}
-	<CustomerChatTab 
+	<ChatTab 
+		userRole="customer"
 		conversations={displayedConversations} 
 		{activeConversation} 
 		bind:activeConvId 
@@ -1269,7 +1238,7 @@
 
 <MobileChatHistory bind:activeConvId bind:showGpsDropup {activeTab} />
 
-<CustomerImagePreviewModal bind:previewImageModalUrl />
+<ImagePreviewModal bind:previewImageModalUrl />
 
 <ConfirmDeleteModal 
 	bind:show={showDeleteConfirmModal} 

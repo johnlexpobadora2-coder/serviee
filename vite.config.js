@@ -19,6 +19,14 @@ export default defineConfig({
 			adapter: adapter()
 		})
 	],
+	optimizeDeps: {
+		include: ['@supabase/supabase-js', 'leaflet', 'lucide-svelte']
+	},
+	server: {
+		fs: {
+			strict: true
+		}
+	},
 	ssr: {
 		noExternal: ['@lucide/svelte', 'lucide-svelte']
 	}

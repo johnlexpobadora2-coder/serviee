@@ -1,0 +1,131 @@
+/**
+ * Server-Side Security Utilities for Serviee
+ * Includes:
+ * 1. Sliding-window in-memory Rate Limiter with automatic memory cleanup
+ * 2. Reverse-proxy aware Client IP Resolver
+ * 3. Anti-XSS String Sanitizer
+ */
+
+// In-Memory Storage for Rate Limiting
+// Key: identifier (e.g., "login:192.168.1.1") -> Array of hit timestamps
+const rateLimitMap = new Map();
+
+// Periodic cleanup every 5 minutes to prevent memory leaks on long-running VPS servers
+if (typeof setInterval !== 'undefined') {
+	setInterval(() => {
+		const now = Date.now();
+		for (const [key, timestamps] of rateLimitMap.entries()) {
+			// Remove entries older than 10 minutes
+			const validTimestamps = timestamps.filter(t => now - t < 10 * 60 * 1000);
+			if (validTimestamps.length === 0) {
+				rateLimitMap.delete(key);
+			} else {
+				rateLimitMap.set(key, validTimestamps);
+			}
+		}
+	}, 5 * 60 * 1000);
+}
+
+/**
+ * Check and record a rate limit hit for a given identifier.
+ * @param {string} identifier - Unique key (e.g., `login:${ip}` or `admin:${ip}`)
+ * @param {Object} options
+ * @param {number} [options.limit=10] - Maximum allowed attempts in the time window
+ * @param {number} [options.windowMs=60000] - Time window in milliseconds (default: 1 min)
+ * @returns {{ allowed: boolean, remaining: number, retryAfterSeconds: number }}
+ */
+export function checkRateLimit(identifier, { limit = 10, windowMs = 60000 } = {}) {
+	if (!identifier) return { allowed: true, remaining: limit, retryAfterSeconds: 0 };
+
+	const now = Date.now();
+	const windowStart = now - windowMs;
+
+	// Retrieve existing timestamps and filter out old ones outside current window
+	const existing = rateLimitMap.get(identifier) || [];
+	const recentTimestamps = existing.filter(t => t > windowStart);
+
+	if (recentTimestamps.length >= limit) {
+		const oldestInWindow = recentTimestamps[0];
+		const retryAfterMs = Math.max(0, oldestInWindow + windowMs - now);
+		const retryAfterSeconds = Math.ceil(retryAfterMs / 1000);
+		
+		return {
+			allowed: false,
+			remaining: 0,
+			retryAfterSeconds
+		};
+	}
+
+	// Record the current hit
+	recentTimestamps.push(now);
+	rateLimitMap.set(identifier, recentTimestamps);
+
+	return {
+		allowed: true,
+		remaining: limit - recentTimestamps.length,
+		retryAfterSeconds: 0
+	};
+}
+
+/**
+ * Reset rate limit for an identifier (e.g. upon successful authentication)
+ * @param {string} identifier 
+ */
+export function resetRateLimit(identifier) {
+	if (identifier) {
+		rateLimitMap.delete(identifier);
+	}
+}
+
+/**
+ * Resolves the client IP address across direct connections and reverse proxies (Nginx, Caddy, Cloudflare).
+ * @param {import('@sveltejs/kit').RequestEvent} event
+ * @returns {string}
+ */
+export function getClientIp(event) {
+	if (!event || !event.request) return '127.0.0.1';
+
+	// Check standard proxy headers first
+	const cfIp = event.request.headers.get('cf-connecting-ip');
+	if (cfIp) return cfIp.trim();
+
+	const xRealIp = event.request.headers.get('x-real-ip');
+	if (xRealIp) return xRealIp.trim();
+
+	const xForwardedFor = event.request.headers.get('x-forwarded-for');
+	if (xForwardedFor) {
+		// Take the first client IP in the comma-separated chain
+		const ips = xForwardedFor.split(',');
+		if (ips.length > 0 && ips[0].trim()) {
+			return ips[0].trim();
+		}
+	}
+
+	// Fallback to SvelteKit event.getClientAddress() if available
+	try {
+		if (typeof event.getClientAddress === 'function') {
+			return event.getClientAddress() || '127.0.0.1';
+		}
+	} catch (e) {
+		// getClientAddress may throw if headers aren't trusted or in dev
+	}
+
+	return '127.0.0.1';
+}
+
+/**
+ * Sanitizes a string by stripping dangerous HTML tags and event handlers to prevent XSS.
+ * @param {string} input 
+ * @returns {string}
+ */
+export function sanitizeInput(input) {
+	if (typeof input !== 'string') return input;
+
+	return input
+		.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+		.replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+		.replace(/on\w+\s*=\s*(['"]).*?\1/gi, '')
+		.replace(/javascript\s*:/gi, '')
+		.replace(/data\s*:\s*text\/html/gi, '')
+		.trim();
+}

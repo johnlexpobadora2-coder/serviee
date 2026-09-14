@@ -11,6 +11,7 @@
 	import AdminJobsTab from '$lib/admin/AdminJobsTab.svelte';
 	import AdminReviewsTab from '$lib/admin/AdminReviewsTab.svelte';
 	import AdminSystemTab from '$lib/admin/AdminSystemTab.svelte';
+	import AdminAuditLogsTab from '$lib/admin/AdminAuditLogsTab.svelte';
 	import AdminDeleteModal from '$lib/admin/AdminDeleteModal.svelte';
 	import AdminEditAddressModal from '$lib/admin/AdminEditAddressModal.svelte';
 	import AdminResetPasswordModal from '$lib/admin/AdminResetPasswordModal.svelte';
@@ -35,7 +36,7 @@
 	}
 
 	// Navigation Tabs
-	let activeTab = $state('overview'); // 'overview' | 'users' | 'jobs' | 'reviews' | 'system'
+	let activeTab = $state('overview'); // 'overview' | 'users' | 'jobs' | 'reviews' | 'system' | 'audit'
 
 	// Search & Filters
 	let userSearch = $state('');
@@ -46,6 +47,9 @@
 
 	let reviewSearch = $state('');
 	let reviewRatingFilter = $state('all');
+
+	let auditSearch = $state('');
+	let auditActionFilter = $state('all');
 
 	// Delete Modal State
 	let deleteModal = $state({
@@ -175,6 +179,7 @@
 				userCount={data.users?.length || 0} 
 				jobCount={data.jobs?.length || 0} 
 				reviewCount={data.reviews?.length || 0} 
+				auditCount={data.auditLogs?.length || 0}
 			/>
 
 			<div class="space-y-4 sm:space-y-6">
@@ -214,6 +219,12 @@
 					/>
 				{:else if activeTab === 'system'}
 					<AdminSystemTab onlock={lockAdmin} />
+				{:else if activeTab === 'audit'}
+					<AdminAuditLogsTab 
+						bind:auditSearch 
+						bind:auditActionFilter 
+						auditLogs={data.auditLogs || []} 
+					/>
 				{/if}
 			</div>
 		</div>

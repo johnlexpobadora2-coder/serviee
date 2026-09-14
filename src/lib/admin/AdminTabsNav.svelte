@@ -1,11 +1,12 @@
 <script>
-	import { Activity, Users, Briefcase, Star, Settings } from 'lucide-svelte';
+	import { Activity, Users, Briefcase, Star, Settings, ShieldCheck } from 'lucide-svelte';
 
 	let { 
 		activeTab = $bindable('overview'), 
 		userCount = 0, 
 		jobCount = 0, 
-		reviewCount = 0 
+		reviewCount = 0,
+		auditCount = 0
 	} = $props();
 </script>
 
@@ -69,4 +70,17 @@
 		<Settings size={18} class="tab-icon" />
 		<span class="tab-label">System Status</span>
 	</button>
+
+	<button 
+		type="button" 
+		class="tab-btn {activeTab === 'audit' ? 'active' : ''}" 
+		onclick={() => activeTab = 'audit'}
+		id="tab-audit-btn"
+		title="Audit Logs ({auditCount})"
+		aria-label="Audit Logs"
+	>
+		<ShieldCheck size={18} class="tab-icon" />
+		<span class="tab-label">Audit Logs ({auditCount})</span>
+	</button>
 </div>
+

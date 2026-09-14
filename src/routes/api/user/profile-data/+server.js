@@ -24,13 +24,7 @@ export async function GET({ locals }) {
 			}
 
 			const userMap = await db.users.findByIds(Array.from(workerAndApplicantIds));
-			const workerStatsMap = new Map();
-			await Promise.all(
-				Array.from(workerAndApplicantIds).map(async (id) => {
-					const stats = await db.reviews.getStatsForWorker(id);
-					workerStatsMap.set(id, stats);
-				})
-			);
+			const workerStatsMap = await db.reviews.getStatsForWorkersBatch(Array.from(workerAndApplicantIds));
 
 			const hydratedPosts = posts.map(post => {
 				let assignedWorker = null;

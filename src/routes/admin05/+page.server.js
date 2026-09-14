@@ -1,5 +1,6 @@
 import { db } from '$lib/server/db.js';
 import { verifyAdminPasscode, createAdminSessionToken, verifyAdminSessionToken } from '$lib/server/session.js';
+import { checkRateLimit, resetRateLimit, getClientIp } from '$lib/server/security.js';
 import { fail } from '@sveltejs/kit';
 
 export async function load({ cookies }) {
@@ -24,15 +25,17 @@ export async function load({ cookies }) {
 			},
 			users: [],
 			jobs: [],
-			reviews: []
+			reviews: [],
+			auditLogs: []
 		};
 	}
 
 	try {
-		const [users, jobs, reviews] = await Promise.all([
+		const [users, jobs, reviews, auditLogs] = await Promise.all([
 			db.users.listAll().catch(() => []),
 			db.jobs.listAll().catch(() => []),
-			db.reviews.listAll().catch(() => [])
+			db.reviews.listAll().catch(() => []),
+			db.auditLogs.listAll().catch(() => [])
 		]);
 
 		// Hydrate user lookups for reviews and jobs
@@ -92,7 +95,8 @@ export async function load({ cookies }) {
 			},
 			users: safeUsers,
 			jobs,
-			reviews: hydratedReviews
+			reviews: hydratedReviews,
+			auditLogs
 		};
 	} catch (err) {
 		console.error('Error loading admin dataset:', err);
@@ -113,21 +117,49 @@ export async function load({ cookies }) {
 			},
 			users: [],
 			jobs: [],
-			reviews: []
+			reviews: [],
+			auditLogs: []
 		};
 	}
 }
 
 export const actions = {
-	loginAdmin: async ({ request, cookies }) => {
+	loginAdmin: async (event) => {
+		const { request, cookies } = event;
+		const clientIp = getClientIp(event);
+
+		// Strict Admin Brute-Force Rate Limiting (5 tries per 2 minutes)
+		const rateCheck = checkRateLimit(`admin_auth:${clientIp}`, { limit: 5, windowMs: 120 * 1000 });
+		if (!rateCheck.allowed) {
+			console.warn(`🛡️ Admin rate limit exceeded for IP: ${clientIp}`);
+			await db.auditLogs.record({
+				adminId: 'anonymous',
+				action: 'ADMIN_LOGIN_FAILED',
+				details: { reason: 'Rate limit exceeded' },
+				ip: clientIp
+			});
+			return fail(429, {
+				authError: `Too many failed admin attempts. Please wait ${rateCheck.retryAfterSeconds} seconds.`
+			});
+		}
+
 		const data = await request.formData();
 		const passcode = data.get('passcode')?.toString() || '';
 
 		if (!verifyAdminPasscode(passcode)) {
+			console.warn(`⚠️ Invalid admin passcode attempt from IP: ${clientIp}`);
+			await db.auditLogs.record({
+				adminId: 'anonymous',
+				action: 'ADMIN_LOGIN_FAILED',
+				details: { reason: 'Invalid secret passcode attempt' },
+				ip: clientIp
+			});
 			return fail(401, {
 				authError: 'Invalid Secret Passcode. Access denied.'
 			});
 		}
+
+		resetRateLimit(`admin_auth:${clientIp}`);
 
 		const token = createAdminSessionToken();
 		cookies.set('admin_session', token, {
@@ -138,15 +170,56 @@ export const actions = {
 			maxAge: 60 * 60 * 24 // 24 hours
 		});
 
+		await db.auditLogs.record({
+			adminId: 'admin_master',
+			action: 'ADMIN_LOGIN_SUCCESS',
+			ip: clientIp
+		});
+
 		return { success: true, authSuccess: true };
 	},
 
-	logoutAdmin: async ({ cookies }) => {
+	logoutAdmin: async (event) => {
+		const { cookies } = event;
+		const clientIp = getClientIp(event);
+
+		await db.auditLogs.record({
+			adminId: 'admin_master',
+			action: 'ADMIN_LOGOUT',
+			ip: clientIp
+		});
+
 		cookies.delete('admin_session', { path: '/admin05' });
 		return { success: true, loggedOut: true };
 	},
 
-	updateUserAddress: async ({ request, cookies }) => {
+	clearAuditLogs: async (event) => {
+		const { cookies } = event;
+		const clientIp = getClientIp(event);
+
+		if (!verifyAdminSessionToken(cookies.get('admin_session'))) {
+			return fail(401, { message: 'Unauthorized. Admin authentication required.' });
+		}
+
+		try {
+			await db.auditLogs.clearAll();
+			await db.auditLogs.record({
+				adminId: 'admin_master',
+				action: 'CLEAR_AUDIT_LOGS',
+				details: { note: 'Admin purged audit log history' },
+				ip: clientIp
+			});
+			return { success: true, message: 'Audit logs history cleared successfully.' };
+		} catch (err) {
+			console.error('Failed to clear audit logs:', err);
+			return fail(500, { message: err.message || 'Failed to clear audit logs' });
+		}
+	},
+
+	updateUserAddress: async (event) => {
+		const { request, cookies } = event;
+		const clientIp = getClientIp(event);
+
 		if (!verifyAdminSessionToken(cookies.get('admin_session'))) {
 			return fail(401, { message: 'Unauthorized. Admin authentication required.' });
 		}
@@ -163,6 +236,16 @@ export const actions = {
 
 		try {
 			await db.users.updateProfile(userId, { address: newAddress });
+			
+			await db.auditLogs.record({
+				adminId: 'admin_master',
+				action: 'UPDATE_USER_ADDRESS',
+				targetId: userId,
+				targetType: 'user',
+				details: { newAddress },
+				ip: clientIp
+			});
+
 			return { success: true, message: 'User address updated successfully.' };
 		} catch (err) {
 			console.error('Failed to update user address:', err);
@@ -170,7 +253,10 @@ export const actions = {
 		}
 	},
 
-	resetUserPassword: async ({ request, cookies }) => {
+	resetUserPassword: async (event) => {
+		const { request, cookies } = event;
+		const clientIp = getClientIp(event);
+
 		if (!verifyAdminSessionToken(cookies.get('admin_session'))) {
 			return fail(401, { message: 'Unauthorized. Admin authentication required.' });
 		}
@@ -189,6 +275,15 @@ export const actions = {
 
 		try {
 			await db.users.adminResetPassword(userId, newPassword.trim());
+
+			await db.auditLogs.record({
+				adminId: 'admin_master',
+				action: 'RESET_USER_PASSWORD',
+				targetId: userId,
+				targetType: 'user',
+				ip: clientIp
+			});
+
 			return { success: true, message: 'User password successfully reset/changed.' };
 		} catch (err) {
 			console.error('Failed to reset user password:', err);
@@ -196,13 +291,16 @@ export const actions = {
 		}
 	},
 
-	deleteUser: async ({ request, cookies }) => {
+	deleteUser: async (event) => {
+		const { request, cookies } = event;
+		const clientIp = getClientIp(event);
+
 		if (!verifyAdminSessionToken(cookies.get('admin_session'))) {
 			return fail(401, { message: 'Unauthorized. Admin authentication required.' });
 		}
 
 		const data = await request.formData();
-		const userId = data.get('userId');
+		const userId = data.get('userId')?.toString();
 
 		if (!userId) {
 			return fail(400, { message: 'User ID is required' });
@@ -210,6 +308,15 @@ export const actions = {
 
 		try {
 			await db.users.delete(userId);
+
+			await db.auditLogs.record({
+				adminId: 'admin_master',
+				action: 'DELETE_USER',
+				targetId: userId,
+				targetType: 'user',
+				ip: clientIp
+			});
+
 			return { success: true, message: 'User deleted successfully.' };
 		} catch (err) {
 			console.error('Failed to delete user:', err);
@@ -217,13 +324,16 @@ export const actions = {
 		}
 	},
 
-	deleteJob: async ({ request, cookies }) => {
+	deleteJob: async (event) => {
+		const { request, cookies } = event;
+		const clientIp = getClientIp(event);
+
 		if (!verifyAdminSessionToken(cookies.get('admin_session'))) {
 			return fail(401, { message: 'Unauthorized. Admin authentication required.' });
 		}
 
 		const data = await request.formData();
-		const jobId = data.get('jobId');
+		const jobId = data.get('jobId')?.toString();
 
 		if (!jobId) {
 			return fail(400, { message: 'Job ID is required' });
@@ -231,6 +341,15 @@ export const actions = {
 
 		try {
 			await db.jobs.delete(jobId);
+
+			await db.auditLogs.record({
+				adminId: 'admin_master',
+				action: 'DELETE_JOB',
+				targetId: jobId,
+				targetType: 'job',
+				ip: clientIp
+			});
+
 			return { success: true, message: 'Job post deleted successfully.' };
 		} catch (err) {
 			console.error('Failed to delete job post:', err);
@@ -238,14 +357,17 @@ export const actions = {
 		}
 	},
 
-	updateJobStatus: async ({ request, cookies }) => {
+	updateJobStatus: async (event) => {
+		const { request, cookies } = event;
+		const clientIp = getClientIp(event);
+
 		if (!verifyAdminSessionToken(cookies.get('admin_session'))) {
 			return fail(401, { message: 'Unauthorized. Admin authentication required.' });
 		}
 
 		const data = await request.formData();
-		const jobId = data.get('jobId');
-		const status = data.get('status');
+		const jobId = data.get('jobId')?.toString();
+		const status = data.get('status')?.toString();
 
 		if (!jobId || !status) {
 			return fail(400, { message: 'Job ID and Status are required' });
@@ -253,6 +375,16 @@ export const actions = {
 
 		try {
 			await db.jobs.updateStatus(jobId, status);
+
+			await db.auditLogs.record({
+				adminId: 'admin_master',
+				action: 'UPDATE_JOB_STATUS',
+				targetId: jobId,
+				targetType: 'job',
+				details: { status },
+				ip: clientIp
+			});
+
 			return { success: true, message: `Job status updated to ${status}.` };
 		} catch (err) {
 			console.error('Failed to update job status:', err);
@@ -260,13 +392,16 @@ export const actions = {
 		}
 	},
 
-	deleteReview: async ({ request, cookies }) => {
+	deleteReview: async (event) => {
+		const { request, cookies } = event;
+		const clientIp = getClientIp(event);
+
 		if (!verifyAdminSessionToken(cookies.get('admin_session'))) {
 			return fail(401, { message: 'Unauthorized. Admin authentication required.' });
 		}
 
 		const data = await request.formData();
-		const reviewId = data.get('reviewId');
+		const reviewId = data.get('reviewId')?.toString();
 
 		if (!reviewId) {
 			return fail(400, { message: 'Review ID is required' });
@@ -274,6 +409,15 @@ export const actions = {
 
 		try {
 			await db.reviews.delete(reviewId);
+
+			await db.auditLogs.record({
+				adminId: 'admin_master',
+				action: 'DELETE_REVIEW',
+				targetId: reviewId,
+				targetType: 'review',
+				ip: clientIp
+			});
+
 			return { success: true, message: 'Review removed successfully.' };
 		} catch (err) {
 			console.error('Failed to delete review:', err);
@@ -281,4 +425,5 @@ export const actions = {
 		}
 	}
 };
+
 

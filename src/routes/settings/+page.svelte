@@ -3,7 +3,6 @@
 		User, 
 		Lock, 
 		Shield, 
-		CheckCircle2, 
 		AlertCircle, 
 		Phone, 
 		MapPin, 
@@ -20,8 +19,6 @@
 		Plus,
 		X,
 		FileText,
-		CheckCheck,
-		Sparkles,
 		Activity
 	} from 'lucide-svelte';
 	import { enhance } from '$app/forms';
@@ -37,17 +34,7 @@
 
 	let activeTab = $state('profile'); // 'profile' | 'security' | 'roles'
 
-	$effect(() => {
-		if (form?.passwordError || form?.passwordSuccess) {
-			activeTab = 'security';
-		} else if (form?.switchError || form?.createRoleError) {
-			activeTab = 'roles';
-		} else if (form?.profileError || form?.profileSuccess) {
-			activeTab = 'profile';
-		}
-	});
-
-	// Local form states initialized from loaded user data
+	// Form states initialized from user data
 	// svelte-ignore state_referenced_locally
 	let name = $state(data.user?.name || '');
 	// svelte-ignore state_referenced_locally
@@ -64,6 +51,31 @@
 	// svelte-ignore state_referenced_locally
 	let isAddressValid = $state(!!(data.user?.address));
 	let clientProfileError = $state('');
+
+	// GPS & Modal States
+	let detectingGps = $state(false);
+	let gpsStatus = $state(null); // { type: 'success' | 'error', message: string }
+	let showPickerModal = $state(false);
+	let showDeleteAccountModal = $state(false);
+
+	// Security & Role states
+	let currentPassword = $state('');
+	let newPassword = $state('');
+	let confirmPassword = $state('');
+	let switchPassword = $state('');
+	let newRolePassword = $state('');
+	// svelte-ignore state_referenced_locally
+	let newRoleName = $state(data.user?.name || '');
+	// svelte-ignore state_referenced_locally
+	let newRolePhone = $state(data.user?.phone || '');
+	// svelte-ignore state_referenced_locally
+	let newRoleAddress = $state(data.user?.address || '');
+
+	// Submission loaders
+	let profileSubmitting = $state(false);
+	let passwordSubmitting = $state(false);
+	let switchSubmitting = $state(false);
+	let createRoleSubmitting = $state(false);
 
 	const POPULAR_SKILLS = [
 		'Plumbing / Tubero',
@@ -102,41 +114,6 @@
 		skills = skills.filter(s => s !== skill);
 	}
 
-	// GPS States
-	let detectingGps = $state(false);
-	let gpsStatus = $state(null); // { type: 'success' | 'error', message: string }
-	let showPickerModal = $state(false);
-	let showDeleteAccountModal = $state(false);
-
-	let lastHandledProfileSuccess = null;
-	let lastHandledProfileError = null;
-	let lastHandledPasswordSuccess = null;
-	let lastHandledPasswordError = null;
-	let lastHandledSwitchError = null;
-	let lastHandledCreateRoleError = null;
-	let lastHandledDeleteError = null;
-
-	$effect(() => {
-		if (form?.profileSuccess && form.profileSuccess !== lastHandledProfileSuccess) {
-			lastHandledProfileSuccess = form.profileSuccess;
-			toast.success(form.profileSuccess);
-			const u = form.user || data.user;
-			if (u) {
-				name = u.name || '';
-				phone = u.phone || '';
-				address = u.address || '';
-				bio = u.bio || '';
-				availability_status = u.availability_status || 'available';
-				skills = Array.isArray(u.skills) ? [...u.skills] : [];
-				isAddressValid = !!(u.address);
-			}
-		}
-		if (form?.profileError && form.profileError !== lastHandledProfileError) {
-			lastHandledProfileError = form.profileError;
-			toast.error(form.profileError);
-		}
-	});
-
 	async function handleAutoGps() {
 		detectingGps = true;
 		gpsStatus = null;
@@ -144,7 +121,6 @@
 		try {
 			const coords = await getCurrentCoordinates();
 			const geo = await reverseGeocode(coords.latitude, coords.longitude);
-			
 			const detectedCity = geo.city || geo.displayName || '';
 			
 			if (detectedCity) {
@@ -175,133 +151,133 @@
 		showPickerModal = false;
 	}
 
-	// Security states
-	let currentPassword = $state('');
-	let newPassword = $state('');
-	let confirmPassword = $state('');
-
-	// Role Switcher states
-	let switchPassword = $state('');
-	let newRolePassword = $state('');
-	// svelte-ignore state_referenced_locally
-	let newRoleName = $state(data.user?.name || '');
-	// svelte-ignore state_referenced_locally
-	let newRolePhone = $state(data.user?.phone || '');
-	// svelte-ignore state_referenced_locally
-	let newRoleAddress = $state(data.user?.address || '');
-
+	// Unified Toast & Form Response Handler
+	let lastFormId = null;
 	$effect(() => {
-		if (form?.passwordSuccess && form.passwordSuccess !== lastHandledPasswordSuccess) {
-			lastHandledPasswordSuccess = form.passwordSuccess;
+		if (!form || form === lastFormId) return;
+		lastFormId = form;
+
+		if ('profileSuccess' in form && form.profileSuccess) {
+			activeTab = 'profile';
+			toast.success(form.profileSuccess);
+			const u = form.user || data.user;
+			if (u) {
+				name = u.name || '';
+				phone = u.phone || '';
+				address = u.address || '';
+				bio = u.bio || '';
+				availability_status = u.availability_status || 'available';
+				skills = Array.isArray(u.skills) ? [...u.skills] : [];
+				isAddressValid = !!(u.address);
+			}
+		} else if ('profileError' in form && form.profileError) {
+			activeTab = 'profile';
+			toast.error(form.profileError);
+		} else if ('passwordSuccess' in form && form.passwordSuccess) {
+			activeTab = 'security';
 			toast.success(form.passwordSuccess);
 			currentPassword = '';
 			newPassword = '';
 			confirmPassword = '';
-		}
-		if (form?.passwordError && form.passwordError !== lastHandledPasswordError) {
-			lastHandledPasswordError = form.passwordError;
+		} else if ('passwordError' in form && form.passwordError) {
+			activeTab = 'security';
 			toast.error(form.passwordError);
-		}
-		if (form?.switchError && form.switchError !== lastHandledSwitchError) {
-			lastHandledSwitchError = form.switchError;
+		} else if ('switchError' in form && form.switchError) {
+			activeTab = 'roles';
 			toast.error(form.switchError);
-		}
-		if (form?.createRoleError && form.createRoleError !== lastHandledCreateRoleError) {
-			lastHandledCreateRoleError = form.createRoleError;
+		} else if ('createRoleError' in form && form.createRoleError) {
+			activeTab = 'roles';
 			toast.error(form.createRoleError);
-		}
-		if (form?.deleteError && form.deleteError !== lastHandledDeleteError) {
-			lastHandledDeleteError = form.deleteError;
+		} else if ('deleteError' in form && form.deleteError) {
+			activeTab = 'security';
 			toast.error(form.deleteError);
 			showDeleteAccountModal = true;
 		}
 	});
-
-	let profileSubmitting = $state(false);
-	let passwordSubmitting = $state(false);
-	let switchSubmitting = $state(false);
-	let createRoleSubmitting = $state(false);
 </script>
 
 <svelte:head>
 	<title>Account Settings | Serviee</title>
 </svelte:head>
 
-<div class="settings-page">
-	<div class="settings-container">
+<div class="max-w-[800px] mx-auto my-4 sm:my-8 px-2.5 min-[380px]:px-3.5 sm:px-4">
+	<div class="flex flex-col gap-5 sm:gap-6">
 		<!-- Navigation Breadcrumb / Back Link -->
-		<div class="top-nav">
-			<a href={data.user.role === 'customer' ? '/customer' : '/worker'} class="back-link">
+		<div class="flex items-center">
+			<a 
+				href={data.user.role === 'customer' ? '/customer' : '/worker'} 
+				class="inline-flex items-center gap-2 text-[var(--text-secondary)] text-[0.9rem] font-medium transition-colors hover:text-[var(--accent)]"
+			>
 				<ArrowLeft size={18} />
 				Back to Dashboard
 			</a>
 		</div>
 
 		<!-- User Hero Header Banner -->
-		<div class="user-profile-card">
-			<div class="avatar-circle">
+		<div class="flex flex-col sm:flex-row items-center text-center sm:text-left gap-3.5 sm:gap-5 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-[var(--radius-lg)] p-3.5 min-[380px]:p-4.5 sm:p-6 shadow-[var(--shadow-md)]">
+			<div class="w-16 h-16 rounded-full bg-linear-to-br from-[var(--accent)] to-[hsl(280,80%,60%)] text-white text-[1.8rem] font-bold flex items-center justify-center shrink-0">
 				{data.user.name ? data.user.name.charAt(0).toUpperCase() : 'U'}
 			</div>
-			<div class="user-info">
-				<div class="name-badge-row">
-					<h2>{data.user.name}</h2>
-					<span class="role-badge {data.user.role}">
+			<div class="flex flex-col gap-1">
+				<div class="flex items-center justify-center sm:justify-start gap-3 flex-wrap">
+					<h2 class="m-0 text-[1.4rem] font-semibold text-[var(--text-primary)]">{data.user.name}</h2>
+					<span class="px-3.5 py-1 rounded-full text-[0.8rem] font-medium capitalize leading-tight border-0 {data.user.role === 'customer' ? 'bg-[hsla(330,85%,65%,0.2)] text-[#f472b6] [html.light_&]:bg-[#fce7f3] [html.light_&]:text-[#be185d]' : 'bg-[hsla(142,70%,50%,0.2)] text-[#4ade80] [html.light_&]:bg-[#bbf7d0] [html.light_&]:text-[#15803d]'}">
 						{data.user.role === 'customer' ? 'Client' : 'Worker'}
 					</span>
 				</div>
-				<p class="user-email"><Mail size={14} /> {data.user.email}</p>
+				<p class="flex items-center justify-center sm:justify-start gap-1.5 text-[var(--text-muted)] text-[0.85rem] m-0"><Mail size={14} /> {data.user.email}</p>
 			</div>
 		</div>
 
 		<!-- Settings Tabs -->
-		<div class="tabs-header settings-tabs" role="tablist">
+		<div class="grid grid-cols-3 gap-1.5 sm:gap-2 mb-0 w-full" role="tablist">
 			<button
 				type="button"
-				class="tab-btn"
+				class="tab-btn !inline-flex !items-center !justify-center gap-1 min-[380px]:gap-1.5 sm:gap-2 w-full px-1 min-[380px]:px-1.5 sm:px-3 py-2.5 sm:py-3 text-center shrink text-[0.76rem] min-[380px]:text-[0.82rem] sm:text-[0.9rem]"
 				class:active={activeTab === 'profile'}
 				onclick={() => (activeTab = 'profile')}
 				role="tab"
 				aria-selected={activeTab === 'profile'}
 			>
 				<User size={18} />
-				<span class="tab-label">Profile</span>
+				<span class="leading-tight inline-block">Profile</span>
 			</button>
 			<button
 				type="button"
-				class="tab-btn"
+				class="tab-btn !inline-flex !items-center !justify-center gap-1 min-[380px]:gap-1.5 sm:gap-2 w-full px-1 min-[380px]:px-1.5 sm:px-3 py-2.5 sm:py-3 text-center shrink text-[0.76rem] min-[380px]:text-[0.82rem] sm:text-[0.9rem]"
 				class:active={activeTab === 'security'}
 				onclick={() => (activeTab = 'security')}
 				role="tab"
 				aria-selected={activeTab === 'security'}
 			>
 				<Shield size={18} />
-				<span class="tab-label">Security</span>
+				<span class="leading-tight inline-block">Security</span>
 			</button>
 			<button
 				type="button"
-				class="tab-btn"
+				class="tab-btn !inline-flex !items-center !justify-center gap-1 min-[380px]:gap-1.5 sm:gap-2 w-full px-1 min-[380px]:px-1.5 sm:px-3 py-2.5 sm:py-3 text-center shrink text-[0.76rem] min-[380px]:text-[0.82rem] sm:text-[0.9rem]"
 				class:active={activeTab === 'roles'}
 				onclick={() => (activeTab = 'roles')}
 				role="tab"
 				aria-selected={activeTab === 'roles'}
 			>
 				<Repeat size={18} />
-				<span class="tab-label">Switch Role</span>
+				<span class="leading-tight inline-block">Switch Role</span>
 			</button>
 		</div>
 
 		<!-- Tab Content 1: Profile Customization -->
 		{#if activeTab === 'profile'}
-			<div class="tab-panel">
-				<div class="panel-header">
-					<h3>Profile Customization</h3>
-					<p>Update your public profile details and contact information.</p>
+			<div class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-[var(--radius-lg)] p-3.5 min-[380px]:p-5 sm:p-7 shadow-[var(--shadow-md)] flex flex-col gap-5 sm:gap-6">
+				<div>
+					<h3 class="text-[1.2rem] font-semibold text-[var(--text-primary)] mb-1">Profile Customization</h3>
+					<p class="text-[var(--text-muted)] text-[0.85rem] m-0">Update your public profile details and contact information.</p>
 				</div>
 
 				<form
 					method="POST"
 					action="?/updateProfile"
-					class="settings-form"
+					class="flex flex-col gap-5"
 					use:enhance={({ cancel }) => {
 						clientProfileError = '';
 						if (phone) {
@@ -326,10 +302,10 @@
 						};
 					}}
 				>
-					<div class="form-group">
-						<label for="name">Full Name</label>
-						<div class="input-wrapper">
-							<User size={18} class="input-icon" />
+					<div class="flex flex-col gap-1.5">
+						<label for="name" class="font-medium text-[0.88rem] text-[var(--text-secondary)]">Full Name</label>
+						<div class="relative flex items-center">
+							<User size={18} class="absolute left-3.5 text-[var(--text-muted)] pointer-events-none" />
 							<input
 								type="text"
 								id="name"
@@ -337,46 +313,48 @@
 								bind:value={name}
 								placeholder="Enter your full name"
 								required
+								class="w-full py-2.5 pr-3.5 pl-10.5 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] text-[var(--text-primary)] text-[0.9rem] font-sans transition-colors focus:outline-none focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--accent-light)]"
 							/>
 						</div>
 					</div>
 
-					<div class="form-group">
-						<label for="email">Email Address</label>
-						<div class="input-wrapper disabled">
-							<Mail size={18} class="input-icon" />
+					<div class="flex flex-col gap-1.5">
+						<label for="email" class="font-medium text-[0.88rem] text-[var(--text-secondary)]">Email Address</label>
+						<div class="relative flex items-center">
+							<Mail size={18} class="absolute left-3.5 text-[var(--text-muted)] pointer-events-none" />
 							<input
 								type="email"
 								id="email"
 								value={data.user.email}
 								disabled
+								class="w-full py-2.5 pr-3.5 pl-10.5 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] text-[var(--text-primary)] text-[0.9rem] font-sans opacity-60 cursor-not-allowed"
 							/>
 						</div>
-						<small class="field-hint">Email address is tied to your account identity.</small>
+						<small class="text-[0.78rem] text-[var(--text-muted)]">Email address is tied to your account identity.</small>
 					</div>
 
-					<div class="form-group">
-						<label for="phone">Phone Number</label>
-						<div class="input-wrapper">
-							<Phone size={18} class="input-icon" />
+					<div class="flex flex-col gap-1.5">
+						<label for="phone" class="font-medium text-[0.88rem] text-[var(--text-secondary)]">Phone Number</label>
+						<div class="relative flex items-center">
+							<Phone size={18} class="absolute left-3.5 text-[var(--text-muted)] pointer-events-none" />
 							<input
 								type="tel"
 								id="phone"
 								name="phone"
 								bind:value={phone}
 								placeholder="e.g. 09171234567"
+								class="w-full py-2.5 pr-3.5 pl-10.5 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] text-[var(--text-primary)] text-[0.9rem] font-sans transition-colors focus:outline-none focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--accent-light)]"
 							/>
 						</div>
 					</div>
 
-					<div class="form-group" style="margin-bottom: 1.25rem;">
-						<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; flex-wrap: wrap; gap: 0.5rem;">
-							<label for="address" style="margin-bottom: 0;">City/Municipality</label>
-							<div style="display: flex; gap: 0.4rem; align-items: center;">
+					<div class="flex flex-col gap-1.5 mb-5">
+						<div class="flex justify-between items-center mb-1.5 flex-wrap gap-2">
+							<label for="address" class="font-medium text-[0.88rem] text-[var(--text-secondary)] mb-0">City/Municipality</label>
+							<div class="flex gap-1.5 items-center">
 								<button 
 									type="button" 
-									class="btn btn-outline" 
-									style="padding: 0.25rem 0.6rem; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.3rem; border-color: var(--accent); color: var(--accent-hover); border-radius: var(--radius-sm);"
+									class="btn btn-outline py-1 px-2.5 text-xs inline-flex items-center gap-1 border-[var(--accent)] text-[var(--accent-hover)] hover:opacity-90 rounded"
 									onclick={() => showPickerModal = true}
 									id="settings-btn-custom-gps"
 									title="Pin custom location on map"
@@ -385,15 +363,14 @@
 								</button>
 								<button 
 									type="button" 
-									class="btn btn-primary" 
-									style="padding: 0.25rem 0.7rem; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.3rem; border-radius: var(--radius-sm);"
+									class="btn btn-primary py-1 px-3 text-xs inline-flex items-center gap-1 rounded"
 									onclick={handleAutoGps}
 									disabled={detectingGps}
 									id="settings-btn-auto-gps"
 									title="Auto-detect location from GPS"
 								>
 									{#if detectingGps}
-										<span class="spinner spinner-sm" style="width: 12px; height: 12px; border-width: 2px;"></span>
+										<span class="spinner spinner-sm w-3 h-3 border-2"></span>
 										<span>Detecting...</span>
 									{:else}
 										<Navigation size={13} /> Auto GPS
@@ -415,11 +392,11 @@
 						/>
 
 						{#if gpsStatus}
-							<div style="margin-top: 0.45rem; font-size: 0.82rem; display: flex; align-items: center; gap: 0.35rem; {gpsStatus.type === 'success' ? 'color: var(--success);' : 'color: var(--error);'}">
+							<div class="mt-1.5 text-xs flex items-center gap-1.5 {gpsStatus.type === 'success' ? 'text-[var(--success)]' : 'text-[var(--error)]'}">
 								{#if gpsStatus.type === 'success'}
-									<Check size={14} style="flex-shrink: 0;" />
+									<Check size={14} class="shrink-0" />
 								{:else}
-									<AlertCircle size={14} style="flex-shrink: 0;" />
+									<AlertCircle size={14} class="shrink-0" />
 								{/if}
 								<span>{gpsStatus.message}</span>
 							</div>
@@ -427,17 +404,17 @@
 					</div>
 
 					<!-- Bio / About Me -->
-					<div class="form-group">
-						<div class="bio-label-header">
-							<label for="bio" class="bio-label">
-								<FileText size={16} class="bio-icon" />
-								<span class="bio-title">Bio / About Me</span>
+					<div class="flex flex-col gap-1.5">
+						<div class="flex justify-between items-center flex-wrap gap-1.5 mb-1">
+							<label for="bio" class="inline-flex items-center flex-wrap gap-1.5 mb-0 font-semibold text-[0.88rem] text-[var(--text-primary)] cursor-pointer">
+								<FileText size={16} class="text-[var(--accent)] shrink-0" />
+								<span>Bio / About Me</span>
 							</label>
-							<span class="bio-char-count">
+							<span class="text-xs text-[var(--text-muted)] font-medium shrink-0">
 								{bio.length}/500
 							</span>
 						</div>
-						<div class="textarea-wrapper">
+						<div>
 							<textarea
 								id="bio"
 								name="bio"
@@ -447,10 +424,10 @@
 								placeholder={data.user.role === 'worker' 
 									? "e.g. 5+ years experience in plumbing and electrical works. Reliable, equipped with complete tools and quality service."
 									: "e.g. Homeowner in Davao City looking for reliable plumbers and electricians for regular home maintenance."}
-								class="custom-textarea"
+								class="w-full p-3 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] text-[var(--text-primary)] text-[0.9rem] leading-relaxed resize-y min-h-[80px] font-sans transition-colors focus:outline-none focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--accent-light)]"
 							></textarea>
 						</div>
-						<small class="field-hint">
+						<small class="text-[0.78rem] text-[var(--text-muted)]">
 							{data.user.role === 'worker' 
 								? 'Brief description visible to clients on your profile.' 
 								: 'Brief introduction visible to workers on your profile.'}
@@ -459,24 +436,24 @@
 
 					{#if data.user.role === 'worker'}
 						<!-- Availability Status Toggle (For Workers) -->
-						<div class="form-group availability-section">
-							<label style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.35rem;">
+						<div class="p-3.5 sm:p-4 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] flex flex-col gap-1.5">
+							<label class="flex items-center gap-1.5 mb-1 text-[0.88rem] font-medium text-[var(--text-secondary)]">
 								<Activity size={16} style="color: {availability_status === 'available' ? 'var(--success)' : '#f59e0b'};" />
 								Availability Status
 							</label>
-							<div class="availability-cards-grid">
+							<div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 mt-1">
 								<button
 									type="button"
-									class="availability-select-card {availability_status === 'available' ? 'selected-available' : ''}"
+									class="flex items-center gap-2.5 p-3.5 rounded-[var(--radius-md)] border-[1.5px] cursor-pointer text-left transition-all hover:border-[var(--text-muted)] hover:-translate-y-0.5 {availability_status === 'available' ? 'border-[var(--success)] bg-[var(--success-light)] ring-1 ring-[var(--success)]' : 'border-[var(--border-color)] bg-[var(--bg-card)]'}"
 									onclick={() => (availability_status = 'available')}
 								>
-									<div class="status-pulse-dot available-pulse"></div>
-									<div class="availability-card-info">
-										<strong>Available for Jobs</strong>
-										<span>Accepting job requests • Visible for hire</span>
+									<div class="w-3 h-3 rounded-full shrink-0 bg-[var(--success)] shadow-[0_0_0_3px_rgba(16,185,129,0.25)]"></div>
+									<div class="flex-1 min-w-0">
+										<strong class="text-[0.88rem] block mb-0.5 text-[var(--text-primary)]">Available for Jobs</strong>
+										<span class="text-[0.74rem] text-[var(--text-muted)] block leading-tight">Accepting job requests • Visible for hire</span>
 									</div>
 									{#if availability_status === 'available'}
-										<div class="check-badge available-badge">
+										<div class="w-5.5 h-5.5 rounded-full flex items-center justify-center shrink-0 bg-[var(--success)] text-white">
 											<Check size={14} />
 										</div>
 									{/if}
@@ -484,16 +461,16 @@
 
 								<button
 									type="button"
-									class="availability-select-card {availability_status === 'busy' ? 'selected-busy' : ''}"
+									class="flex items-center gap-2.5 p-3.5 rounded-[var(--radius-md)] border-[1.5px] cursor-pointer text-left transition-all hover:border-[var(--text-muted)] hover:-translate-y-0.5 {availability_status === 'busy' ? 'border-[#f59e0b] bg-[rgba(245,158,11,0.12)] ring-1 ring-[#f59e0b]' : 'border-[var(--border-color)] bg-[var(--bg-card)]'}"
 									onclick={() => (availability_status = 'busy')}
 								>
-									<div class="status-pulse-dot busy-pulse"></div>
-									<div class="availability-card-info">
-										<strong>Busy / On Leave</strong>
-										<span>Temporarily not accepting new jobs</span>
+									<div class="w-3 h-3 rounded-full shrink-0 bg-[#f59e0b] shadow-[0_0_0_3px_rgba(245,158,11,0.25)]"></div>
+									<div class="flex-1 min-w-0">
+										<strong class="text-[0.88rem] block mb-0.5 text-[var(--text-primary)]">Busy / On Leave</strong>
+										<span class="text-[0.74rem] text-[var(--text-muted)] block leading-tight">Temporarily not accepting new jobs</span>
 									</div>
 									{#if availability_status === 'busy'}
-										<div class="check-badge busy-badge">
+										<div class="w-5.5 h-5.5 rounded-full flex items-center justify-center shrink-0 bg-[#f59e0b] text-white">
 											<Check size={14} />
 										</div>
 									{/if}
@@ -503,33 +480,33 @@
 						</div>
 
 						<!-- Skills / Services Offered (For Workers) -->
-						<div class="form-group skills-section">
-							<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.25rem;">
-								<label style="display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0;">
-									<Wrench size={16} style="color: var(--accent);" />
+						<div class="p-3.5 sm:p-4 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] flex flex-col gap-1.5">
+							<div class="flex justify-between items-center flex-wrap gap-2 mb-1">
+								<label class="flex items-center gap-1.5 mb-0 text-[0.88rem] font-medium text-[var(--text-secondary)]">
+									<Wrench size={16} class="text-[var(--accent)]" />
 									Skills & Services Offered
 								</label>
-								<span class="skills-counter-badge">
+								<span class="text-xs font-semibold py-0.5 px-2 bg-[var(--accent-light)] text-[var(--accent-hover)] rounded-full">
 									{skills.length} {skills.length === 1 ? 'skill' : 'skills'} selected
 								</span>
 							</div>
-							<small class="field-hint" style="margin-bottom: 0.5rem; display: block;">
+							<small class="text-[0.78rem] text-[var(--text-muted)] mb-2 block">
 								Click tags or type custom skills to help clients find your services easily.
 							</small>
 
 							<!-- Popular Preset Chips -->
-							<div class="skills-chips-flow">
+							<div class="flex flex-wrap gap-2 mb-3.5">
 								{#each POPULAR_SKILLS as presetSkill}
 									{@const isSelected = skills.includes(presetSkill)}
 									<button
 										type="button"
-										class="skill-chip-btn {isSelected ? 'chip-active' : ''}"
+										class="inline-flex items-center gap-1.5 py-1.5 px-3 text-xs sm:text-[0.8rem] rounded-full border transition-all cursor-pointer select-none {isSelected ? 'bg-[var(--accent)] text-white border-[var(--accent)] font-medium shadow-xs' : 'border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-secondary)] hover:border-[var(--accent)] hover:text-[var(--accent-hover)]'}"
 										onclick={() => toggleSkill(presetSkill)}
 									>
 										{#if isSelected}
-											<Check size={13} class="chip-icon" />
+											<Check size={13} />
 										{:else}
-											<Plus size={13} class="chip-icon" />
+											<Plus size={13} />
 										{/if}
 										<span>{presetSkill}</span>
 									</button>
@@ -537,11 +514,12 @@
 							</div>
 
 							<!-- Custom Skill Adder Box -->
-							<div class="custom-skill-input-row">
+							<div class="flex gap-2 items-center mb-3.5">
 								<input
 									type="text"
 									placeholder="Add a custom skill (e.g. CCTV Setup, Tile Work)..."
 									bind:value={newSkillInput}
+									class="flex-1 py-2 px-3 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-[var(--radius-md)] text-[var(--text-primary)] text-[0.85rem] font-sans focus:outline-none focus:border-[var(--border-focus)]"
 									onkeydown={(e) => {
 										if (e.key === 'Enter') {
 											e.preventDefault();
@@ -551,7 +529,7 @@
 								/>
 								<button
 									type="button"
-									class="btn btn-secondary btn-sm add-skill-btn"
+									class="btn btn-secondary btn-sm py-1.5 px-3 text-xs inline-flex items-center gap-1 shrink-0"
 									onclick={addCustomSkill}
 									disabled={!newSkillInput.trim()}
 								>
@@ -561,15 +539,15 @@
 
 							<!-- Active Selected Skills Box -->
 							{#if skills.length > 0}
-								<div class="active-skills-container">
-									<span class="active-skills-label">Your Active Skills on Profile:</span>
-									<div class="active-skills-tags">
+								<div class="mt-2 p-3 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-[var(--radius-md)]">
+									<span class="text-[0.72rem] font-semibold text-[var(--text-muted)] uppercase tracking-wider block mb-1.5">Your Active Skills on Profile:</span>
+									<div class="flex flex-wrap gap-1.5">
 										{#each skills as skill}
-											<span class="active-skill-pill">
+											<span class="inline-flex items-center gap-1.5 py-1 px-2.5 text-[0.8rem] bg-[var(--accent-light)] text-[var(--accent-hover)] rounded-full font-medium border border-black/5">
 												<span>{skill}</span>
 												<button
 													type="button"
-													class="remove-skill-tag-btn"
+													class="bg-transparent border-0 text-[var(--accent-hover)] cursor-pointer inline-flex items-center justify-center p-0.5 rounded-full opacity-75 transition-opacity hover:opacity-100 hover:bg-black/10"
 													onclick={() => removeSkill(skill)}
 													aria-label={`Remove ${skill}`}
 													title="Remove skill"
@@ -586,8 +564,8 @@
 						</div>
 					{/if}
 
-					<div class="form-actions">
-						<button type="submit" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;" disabled={profileSubmitting}>
+					<div class="mt-2 flex justify-stretch sm:justify-end [&>button]:w-full sm:[&>button]:w-auto">
+						<button type="submit" class="btn btn-primary inline-flex items-center justify-center gap-2" disabled={profileSubmitting}>
 							{#if profileSubmitting}
 								<span class="spinner spinner-sm"></span>
 								<span>Saving Changes...</span>
@@ -602,18 +580,18 @@
 
 		<!-- Tab Content 2: Security -->
 		{#if activeTab === 'security'}
-			<div class="space-y-6">
+			<div class="flex flex-col gap-6">
 				<!-- Change Password Card -->
-				<div class="tab-panel">
-					<div class="panel-header">
-						<h3>Change Password</h3>
-						<p>Ensure your account remains safe with a strong, unique password.</p>
+				<div class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-[var(--radius-lg)] p-3.5 min-[380px]:p-5 sm:p-7 shadow-[var(--shadow-md)] flex flex-col gap-5 sm:gap-6">
+					<div>
+						<h3 class="text-[1.2rem] font-semibold text-[var(--text-primary)] mb-1">Change Password</h3>
+						<p class="text-[var(--text-muted)] text-[0.85rem] m-0">Ensure your account remains safe with a strong, unique password.</p>
 					</div>
 
 					<form
 						method="POST"
 						action="?/updatePassword"
-						class="settings-form"
+						class="flex flex-col gap-5"
 						use:enhance={({ cancel }) => {
 							if (!currentPassword) {
 								toast.error('Please enter your current password.');
@@ -638,10 +616,10 @@
 							};
 						}}
 					>
-						<div class="form-group">
-							<label for="currentPassword">Current Password</label>
-							<div class="input-wrapper">
-								<KeyRound size={18} class="input-icon" />
+						<div class="flex flex-col gap-1.5">
+							<label for="currentPassword" class="font-medium text-[0.88rem] text-[var(--text-secondary)]">Current Password</label>
+							<div class="relative flex items-center">
+								<KeyRound size={18} class="absolute left-3.5 text-[var(--text-muted)] pointer-events-none" />
 								<input
 									type="password"
 									id="currentPassword"
@@ -649,14 +627,15 @@
 									bind:value={currentPassword}
 									placeholder="Enter current password"
 									required
+									class="w-full py-2.5 pr-3.5 pl-10.5 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] text-[var(--text-primary)] text-[0.9rem] font-sans transition-colors focus:outline-none focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--accent-light)]"
 								/>
 							</div>
 						</div>
 
-						<div class="form-group">
-							<label for="newPassword">New Password</label>
-							<div class="input-wrapper">
-								<Lock size={18} class="input-icon" />
+						<div class="flex flex-col gap-1.5">
+							<label for="newPassword" class="font-medium text-[0.88rem] text-[var(--text-secondary)]">New Password</label>
+							<div class="relative flex items-center">
+								<Lock size={18} class="absolute left-3.5 text-[var(--text-muted)] pointer-events-none" />
 								<input
 									type="password"
 									id="newPassword"
@@ -664,15 +643,16 @@
 									bind:value={newPassword}
 									placeholder="e.g. Pass@123"
 									required
+									class="w-full py-2.5 pr-3.5 pl-10.5 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] text-[var(--text-primary)] text-[0.9rem] font-sans transition-colors focus:outline-none focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--accent-light)]"
 								/>
 							</div>
 							<PasswordStrengthMeter password={newPassword} />
 						</div>
 
-						<div class="form-group">
-							<label for="confirmPassword">Confirm New Password</label>
-							<div class="input-wrapper">
-								<Lock size={18} class="input-icon" />
+						<div class="flex flex-col gap-1.5">
+							<label for="confirmPassword" class="font-medium text-[0.88rem] text-[var(--text-secondary)]">Confirm New Password</label>
+							<div class="relative flex items-center">
+								<Lock size={18} class="absolute left-3.5 text-[var(--text-muted)] pointer-events-none" />
 								<input
 									type="password"
 									id="confirmPassword"
@@ -680,21 +660,22 @@
 									bind:value={confirmPassword}
 									placeholder="e.g. Pass@123"
 									required
+									class="w-full py-2.5 pr-3.5 pl-10.5 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] text-[var(--text-primary)] text-[0.9rem] font-sans transition-colors focus:outline-none focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--accent-light)]"
 								/>
 							</div>
 							{#if confirmPassword && newPassword !== confirmPassword}
-								<small style="color: var(--error); font-size: 0.8rem; margin-top: 0.35rem; display: flex; align-items: center; gap: 0.3rem;">
+								<small class="text-[var(--error)] text-xs mt-1.5 flex items-center gap-1">
 									<AlertCircle size={13} /> Passwords do not match
 								</small>
 							{:else if confirmPassword && newPassword === confirmPassword}
-								<small style="color: var(--success); font-size: 0.8rem; margin-top: 0.35rem; display: flex; align-items: center; gap: 0.3rem;">
+								<small class="text-[var(--success)] text-xs mt-1.5 flex items-center gap-1">
 									<Check size={13} /> Passwords match
 								</small>
 							{/if}
 						</div>
 
-						<div class="form-actions">
-							<button type="submit" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;" disabled={passwordSubmitting || !currentPassword || !validatePassword(newPassword).isValid || newPassword !== confirmPassword}>
+						<div class="mt-2 flex justify-stretch sm:justify-end [&>button]:w-full sm:[&>button]:w-auto">
+							<button type="submit" class="btn btn-primary inline-flex items-center justify-center gap-2" disabled={passwordSubmitting || !currentPassword || !validatePassword(newPassword).isValid || newPassword !== confirmPassword}>
 								{#if passwordSubmitting}
 									<span class="spinner spinner-sm"></span>
 									<span>Updating Password...</span>
@@ -706,27 +687,25 @@
 					</form>
 				</div>
 
-
 				<!-- Danger Zone Card -->
-				<div class="tab-panel danger-zone-panel">
-					<div class="panel-header">
-						<div style="display: flex; align-items: center; gap: 0.5rem;">
-							<ShieldAlert size={20} style="color: #ef4444;" />
-							<h3 style="margin: 0; color: #ef4444;">Danger Zone</h3>
+				<div class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-[var(--radius-lg)] p-3.5 min-[380px]:p-5 sm:p-7 shadow-[var(--shadow-md)] flex flex-col gap-5 sm:gap-6">
+					<div>
+						<div class="flex items-center gap-2">
+							<ShieldAlert size={20} class="text-red-500" />
+							<h3 class="m-0 text-red-500 text-[1.2rem] font-semibold">Danger Zone</h3>
 						</div>
-						<p>Permanently delete your account and all associated data from the Serviee platform.</p>
+						<p class="text-[var(--text-muted)] text-[0.85rem] mt-1 mb-0">Permanently delete your account and all associated data from the Serviee platform.</p>
 					</div>
 
-					<div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+					<div class="flex justify-between items-center gap-4 flex-wrap">
 						<div>
-							<div style="font-weight: 600; font-size: 0.95rem; color: var(--text-primary);">Delete Account</div>
-							<div style="font-size: 0.82rem; color: var(--text-secondary);">Once deleted, your profile, active job posts, and reviews cannot be recovered.</div>
+							<div class="font-semibold text-sm text-[var(--text-primary)]">Delete Account</div>
+							<div class="text-xs text-[var(--text-secondary)]">Once deleted, your profile, active job posts, and reviews cannot be recovered.</div>
 						</div>
 
 						<button 
 							type="button" 
-							class="btn btn-danger" 
-							style="background-color: #ef4444; border-color: #ef4444; color: #ffffff; display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.55rem 1.15rem; font-size: 0.88rem;"
+							class="btn btn-danger bg-red-500 border-red-500 text-white inline-flex items-center gap-1.5 py-2 px-4.5 text-sm w-full sm:w-auto justify-center"
 							onclick={() => showDeleteAccountModal = true}
 						>
 							<Trash2 size={16} />
@@ -739,15 +718,15 @@
 
 		<!-- Tab Content 3: Switch Role (Client ↔ Worker) -->
 		{#if activeTab === 'roles'}
-			<div class="tab-panel">
+			<div class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-[var(--radius-lg)] p-3.5 min-[380px]:p-5 sm:p-7 shadow-[var(--shadow-md)] flex flex-col gap-5 sm:gap-6">
 				{#if data.hasComplementaryAccount}
 					<!-- Case A: Complementary Account already exists -->
-					<div class="panel-header">
-						<div style="display: flex; align-items: center; gap: 0.5rem;">
-							<Repeat size={20} class="text-accent" />
-							<h3 style="margin: 0;">Switch to {data.complementaryRole === 'customer' ? 'Client' : 'Worker'} Profile</h3>
+					<div>
+						<div class="flex items-center gap-2">
+							<Repeat size={20} class="text-[var(--accent)]" />
+							<h3 class="m-0 text-[1.2rem] font-semibold text-[var(--text-primary)]">Switch to {data.complementaryRole === 'customer' ? 'Client' : 'Worker'} Profile</h3>
 						</div>
-						<p>
+						<p class="text-[var(--text-muted)] text-[0.85rem] mt-1 mb-0">
 							You already have a registered <strong>{data.complementaryRole === 'customer' ? 'Client' : 'Worker'}</strong> account ({data.complementaryAccountName || data.user.name}) under <code>{data.user.email}</code>.
 						</p>
 					</div>
@@ -755,7 +734,7 @@
 					<form 
 						method="POST" 
 						action="?/switchRole"
-						class="settings-form"
+						class="flex flex-col gap-5"
 						use:enhance={() => {
 							switchSubmitting = true;
 							return async ({ update }) => {
@@ -766,10 +745,10 @@
 					>
 						<input type="hidden" name="targetRole" value={data.complementaryRole} />
 
-						<div class="form-group">
-							<label for="switch-password">Password for your {data.complementaryRole === 'customer' ? 'Client' : 'Worker'} Account</label>
-							<div class="input-wrapper">
-								<KeyRound size={18} class="input-icon" />
+						<div class="flex flex-col gap-1.5">
+							<label for="switch-password" class="font-medium text-[0.88rem] text-[var(--text-secondary)]">Password for your {data.complementaryRole === 'customer' ? 'Client' : 'Worker'} Account</label>
+							<div class="relative flex items-center">
+								<KeyRound size={18} class="absolute left-3.5 text-[var(--text-muted)] pointer-events-none" />
 								<input 
 									type="password" 
 									id="switch-password" 
@@ -777,16 +756,16 @@
 									bind:value={switchPassword}
 									placeholder="Enter {data.complementaryRole === 'customer' ? 'Client' : 'Worker'} password" 
 									required
+									class="w-full py-2.5 pr-3.5 pl-10.5 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] text-[var(--text-primary)] text-[0.9rem] font-sans transition-colors focus:outline-none focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--accent-light)]"
 								/>
 							</div>
-							<small class="field-hint">Enter the password for your other role to authenticate and switch dashboards.</small>
+							<small class="text-[0.78rem] text-[var(--text-muted)]">Enter the password for your other role to authenticate and switch dashboards.</small>
 						</div>
 
-						<div class="form-actions">
+						<div class="mt-2 flex justify-stretch sm:justify-end [&>button]:w-full sm:[&>button]:w-auto">
 							<button 
 								type="submit" 
-								class="btn btn-primary" 
-								style="display: inline-flex; align-items: center; gap: 0.5rem;"
+								class="btn btn-primary inline-flex items-center justify-center gap-2"
 								disabled={switchSubmitting || !switchPassword}
 							>
 								{#if switchSubmitting}
@@ -801,12 +780,12 @@
 					</form>
 				{:else}
 					<!-- Case B: Complementary Account does not exist yet -->
-					<div class="panel-header">
-						<div style="display: flex; align-items: center; gap: 0.5rem;">
-							<UserPlus size={20} class="text-accent" />
-							<h3 style="margin: 0;">Create a {data.complementaryRole === 'customer' ? 'Client' : 'Worker'} Profile</h3>
+					<div>
+						<div class="flex items-center gap-2">
+							<UserPlus size={20} class="text-[var(--accent)]" />
+							<h3 class="m-0 text-[1.2rem] font-semibold text-[var(--text-primary)]">Create a {data.complementaryRole === 'customer' ? 'Client' : 'Worker'} Profile</h3>
 						</div>
-						<p>
+						<p class="text-[var(--text-muted)] text-[0.85rem] mt-1 mb-0">
 							Want to both {data.user.role === 'customer' ? 'hire and offer services as a Worker' : 'find sideline jobs and post jobs as a Client'}? Set up your {data.complementaryRole === 'customer' ? 'Client' : 'Worker'} profile below using your same email.
 						</p>
 					</div>
@@ -814,7 +793,7 @@
 					<form 
 						method="POST" 
 						action="?/createComplementaryRole"
-						class="settings-form"
+						class="flex flex-col gap-5"
 						use:enhance={({ cancel }) => {
 							const passCheck = validatePassword(newRolePassword);
 							if (!passCheck.isValid) {
@@ -834,18 +813,18 @@
 						<input type="hidden" name="phone" value={newRolePhone} />
 						<input type="hidden" name="address" value={newRoleAddress} />
 
-						<div class="form-group">
-							<label for="new-role-email">Registered Email</label>
-							<div class="input-wrapper disabled">
-								<Mail size={18} class="input-icon" />
-								<input type="email" id="new-role-email" value={data.user.email} disabled />
+						<div class="flex flex-col gap-1.5">
+							<label for="new-role-email" class="font-medium text-[0.88rem] text-[var(--text-secondary)]">Registered Email</label>
+							<div class="relative flex items-center">
+								<Mail size={18} class="absolute left-3.5 text-[var(--text-muted)] pointer-events-none" />
+								<input type="email" id="new-role-email" value={data.user.email} disabled class="w-full py-2.5 pr-3.5 pl-10.5 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] text-[var(--text-primary)] text-[0.9rem] font-sans opacity-60 cursor-not-allowed" />
 							</div>
 						</div>
 
-						<div class="form-group">
-							<label for="new-role-pass">Create Password for {data.complementaryRole === 'customer' ? 'Client' : 'Worker'} Profile</label>
-							<div class="input-wrapper">
-								<Lock size={18} class="input-icon" />
+						<div class="flex flex-col gap-1.5">
+							<label for="new-role-pass" class="font-medium text-[0.88rem] text-[var(--text-secondary)]">Create Password for {data.complementaryRole === 'customer' ? 'Client' : 'Worker'} Profile</label>
+							<div class="relative flex items-center">
+								<Lock size={18} class="absolute left-3.5 text-[var(--text-muted)] pointer-events-none" />
 								<input 
 									type="password" 
 									id="new-role-pass" 
@@ -853,17 +832,17 @@
 									bind:value={newRolePassword}
 									placeholder="e.g. Pass@123" 
 									required
+									class="w-full py-2.5 pr-3.5 pl-10.5 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] text-[var(--text-primary)] text-[0.9rem] font-sans transition-colors focus:outline-none focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--accent-light)]"
 								/>
 							</div>
 							<PasswordStrengthMeter password={newRolePassword} />
-							<small class="field-hint">For security, your Client and Worker accounts under the same email must have different passwords.</small>
+							<small class="text-[0.78rem] text-[var(--text-muted)]">For security, your Client and Worker accounts under the same email must have different passwords.</small>
 						</div>
 
-						<div class="form-actions">
+						<div class="mt-2 flex justify-stretch sm:justify-end [&>button]:w-full sm:[&>button]:w-auto">
 							<button 
 								type="submit" 
-								class="btn btn-primary" 
-								style="display: inline-flex; align-items: center; gap: 0.5rem;"
+								class="btn btn-primary inline-flex items-center justify-center gap-2"
 								disabled={createRoleSubmitting || !validatePassword(newRolePassword).isValid}
 							>
 								{#if createRoleSubmitting}
@@ -892,638 +871,3 @@
 	bind:show={showDeleteAccountModal}
 	deleteError={form?.deleteError || ''}
 />
-
-<style>
-	.settings-page {
-		max-width: 800px;
-		margin: 2rem auto;
-		padding: 0 1rem;
-	}
-
-	.settings-container {
-		display: flex;
-		flex-direction: column;
-		gap: 1.5rem;
-	}
-
-	.top-nav {
-		display: flex;
-		align-items: center;
-	}
-
-	.back-link {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.5rem;
-		color: var(--text-secondary);
-		font-size: 0.9rem;
-		font-weight: 500;
-		transition: color var(--transition-fast);
-	}
-
-	.back-link:hover {
-		color: var(--accent);
-	}
-
-	.user-profile-card {
-		display: flex;
-		align-items: center;
-		gap: 1.25rem;
-		background: var(--bg-card);
-		border: 1px solid var(--border-color);
-		border-radius: var(--radius-lg);
-		padding: 1.5rem;
-		box-shadow: var(--shadow-md);
-	}
-
-	.avatar-circle {
-		width: 64px;
-		height: 64px;
-		border-radius: var(--radius-full);
-		background: linear-gradient(135deg, var(--accent), hsl(280, 80%, 60%));
-		color: #ffffff;
-		font-size: 1.8rem;
-		font-weight: 700;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		flex-shrink: 0;
-	}
-
-	.user-info {
-		display: flex;
-		flex-direction: column;
-		gap: 0.25rem;
-	}
-
-	.name-badge-row {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-		flex-wrap: wrap;
-	}
-
-	.name-badge-row h2 {
-		margin: 0;
-		font-size: 1.4rem;
-	}
-
-	.role-badge {
-		padding: 0.3rem 0.85rem;
-		border-radius: var(--radius-full);
-		font-size: 0.8rem;
-		font-weight: 500;
-		text-transform: capitalize;
-		border: none !important;
-		line-height: 1.25;
-	}
-
-	.role-badge.customer {
-		background: hsla(330, 85%, 65%, 0.2);
-		color: #f472b6;
-	}
-
-	.role-badge.worker {
-		background: hsla(142, 70%, 50%, 0.2);
-		color: #4ade80;
-	}
-
-	:global(html.light) .role-badge.customer {
-		background: #fce7f3;
-		color: #be185d;
-	}
-
-	:global(html.light) .role-badge.worker {
-		background: #bbf7d0;
-		color: #15803d;
-	}
-
-	.user-email {
-		display: flex;
-		align-items: center;
-		gap: 0.4rem;
-		color: var(--text-muted);
-		font-size: 0.85rem;
-	}
-
-	.tabs-header.settings-tabs {
-		display: grid !important;
-		grid-template-columns: repeat(3, 1fr) !important;
-		gap: 0.5rem !important;
-		margin-bottom: 0 !important;
-		overflow-x: visible !important;
-		white-space: normal !important;
-		width: 100% !important;
-	}
-
-	.settings-tabs .tab-btn {
-		display: inline-flex !important;
-		align-items: center !important;
-		justify-content: center !important;
-		gap: 0.5rem !important;
-		width: 100% !important;
-		padding: 0.75rem 0.5rem !important;
-		text-align: center !important;
-		flex-shrink: 1 !important;
-		white-space: normal !important;
-		font-size: 0.9rem !important;
-	}
-
-	.tab-panel {
-		background: var(--bg-card);
-		border: 1px solid var(--border-color);
-		border-radius: var(--radius-lg);
-		padding: 1.75rem;
-		box-shadow: var(--shadow-md);
-		display: flex;
-		flex-direction: column;
-		gap: 1.5rem;
-	}
-
-	.danger-zone-panel {
-		border: 1px solid var(--border-color);
-		background: var(--bg-card);
-	}
-
-	.panel-header h3 {
-		font-size: 1.2rem;
-		margin-bottom: 0.25rem;
-	}
-
-	.panel-header p {
-		color: var(--text-muted);
-		font-size: 0.85rem;
-	}
-
-	.alert {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-		padding: 0.85rem 1rem;
-		border-radius: var(--radius-md);
-		font-size: 0.9rem;
-		font-weight: 500;
-	}
-
-	.alert-success {
-		background: var(--success-light);
-		color: var(--success);
-		border: 1px solid var(--success);
-	}
-
-	.alert-error {
-		background: var(--error-light);
-		color: var(--error);
-		border: 1px solid var(--error);
-	}
-
-	.settings-form {
-		display: flex;
-		flex-direction: column;
-		gap: 1.25rem;
-	}
-
-	.form-group {
-		display: flex;
-		flex-direction: column;
-		gap: 0.4rem;
-	}
-
-	.form-group label {
-		font-weight: 500;
-		font-size: 0.88rem;
-		color: var(--text-secondary);
-	}
-
-	.input-wrapper {
-		position: relative;
-		display: flex;
-		align-items: center;
-	}
-
-	.input-wrapper :global(.input-icon) {
-		position: absolute;
-		left: 0.85rem;
-		color: var(--text-muted);
-		pointer-events: none;
-	}
-
-	.input-wrapper input {
-		width: 100%;
-		padding: 0.7rem 0.85rem 0.7rem 2.6rem;
-		background-color: var(--bg-input);
-		border: 1px solid var(--border-color);
-		border-radius: var(--radius-md);
-		color: var(--text-primary);
-		font-family: inherit;
-		font-size: 0.9rem;
-		transition: border-color var(--transition-fast);
-	}
-
-	.input-wrapper input:focus {
-		outline: none;
-		border-color: var(--border-focus);
-		box-shadow: 0 0 0 2px var(--accent-light);
-	}
-
-	.input-wrapper.disabled input {
-		opacity: 0.6;
-		cursor: not-allowed;
-	}
-
-	.field-hint {
-		font-size: 0.78rem;
-		color: var(--text-muted);
-	}
-
-	.form-actions {
-		margin-top: 0.5rem;
-		display: flex;
-		justify-content: flex-end;
-	}
-
-	.custom-textarea {
-		width: 100%;
-		padding: 0.75rem 0.85rem;
-		background-color: var(--bg-input);
-		border: 1px solid var(--border-color);
-		border-radius: var(--radius-md);
-		color: var(--text-primary);
-		font-family: inherit;
-		font-size: 0.9rem;
-		line-height: 1.5;
-		resize: vertical;
-		min-height: 80px;
-		transition: border-color var(--transition-fast);
-	}
-
-	.custom-textarea:focus {
-		outline: none;
-		border-color: var(--border-focus);
-		box-shadow: 0 0 0 2px var(--accent-light);
-	}
-
-	/* Availability Cards */
-	.availability-section {
-		padding: 1rem;
-		background: var(--bg-input);
-		border: 1px solid var(--border-color);
-		border-radius: var(--radius-md);
-	}
-
-	.availability-cards-grid {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 0.75rem;
-		margin-top: 0.35rem;
-	}
-
-	.availability-select-card {
-		display: flex;
-		align-items: center;
-		gap: 0.65rem;
-		padding: 0.85rem;
-		border-radius: var(--radius-md);
-		border: 1.5px solid var(--border-color);
-		background: var(--bg-card);
-		cursor: pointer;
-		text-align: left;
-		transition: all var(--transition-fast);
-	}
-
-	.availability-select-card:hover {
-		border-color: var(--text-muted);
-		transform: translateY(-1px);
-	}
-
-	.availability-select-card.selected-available {
-		border-color: var(--success);
-		background: var(--success-light);
-		box-shadow: 0 0 0 1px var(--success);
-	}
-
-	.availability-select-card.selected-busy {
-		border-color: #f59e0b;
-		background: rgba(245, 158, 11, 0.12);
-		box-shadow: 0 0 0 1px #f59e0b;
-	}
-
-	.status-pulse-dot {
-		width: 12px;
-		height: 12px;
-		border-radius: 50%;
-		flex-shrink: 0;
-	}
-
-	.available-pulse {
-		background: var(--success);
-		box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
-	}
-
-	.busy-pulse {
-		background: #f59e0b;
-		box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25);
-	}
-
-	.availability-card-info {
-		flex: 1;
-		min-width: 0;
-	}
-
-	.availability-card-info strong {
-		font-size: 0.88rem;
-		display: block;
-		margin-bottom: 0.15rem;
-		color: var(--text-primary);
-	}
-
-	.availability-card-info span {
-		font-size: 0.74rem;
-		color: var(--text-muted);
-		display: block;
-		line-height: 1.25;
-	}
-
-	.check-badge {
-		width: 22px;
-		height: 22px;
-		border-radius: 50%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		flex-shrink: 0;
-	}
-
-	.available-badge {
-		background: var(--success);
-		color: #ffffff;
-	}
-
-	.busy-badge {
-		background: #f59e0b;
-		color: #ffffff;
-	}
-
-	/* Skills Section */
-	.skills-section {
-		padding: 1rem;
-		background: var(--bg-input);
-		border: 1px solid var(--border-color);
-		border-radius: var(--radius-md);
-	}
-
-	.skills-counter-badge {
-		font-size: 0.75rem;
-		font-weight: 600;
-		padding: 0.15rem 0.55rem;
-		background: var(--accent-light);
-		color: var(--accent-hover);
-		border-radius: var(--radius-full);
-	}
-
-	.skills-chips-flow {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.45rem;
-		margin-bottom: 0.85rem;
-	}
-
-	.skill-chip-btn {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.35rem;
-		padding: 0.35rem 0.7rem;
-		font-size: 0.8rem;
-		border-radius: var(--radius-full);
-		border: 1px solid var(--border-color);
-		background: var(--bg-card);
-		color: var(--text-secondary);
-		cursor: pointer;
-		transition: all var(--transition-fast);
-		user-select: none;
-	}
-
-	.skill-chip-btn:hover {
-		border-color: var(--accent);
-		color: var(--accent-hover);
-		background: var(--bg-card-hover);
-	}
-
-	.skill-chip-btn.chip-active {
-		background: var(--accent);
-		color: #ffffff;
-		border-color: var(--accent);
-		font-weight: 500;
-		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-	}
-
-	.custom-skill-input-row {
-		display: flex;
-		gap: 0.5rem;
-		align-items: center;
-		margin-bottom: 0.85rem;
-	}
-
-	.custom-skill-input-row input {
-		flex: 1;
-		padding: 0.55rem 0.8rem;
-		background: var(--bg-card);
-		border: 1px solid var(--border-color);
-		border-radius: var(--radius-md);
-		color: var(--text-primary);
-		font-size: 0.85rem;
-		font-family: inherit;
-	}
-
-	.custom-skill-input-row input:focus {
-		outline: none;
-		border-color: var(--border-focus);
-	}
-
-	.active-skills-container {
-		margin-top: 0.5rem;
-		padding: 0.75rem;
-		background: var(--bg-card);
-		border: 1px solid var(--border-color);
-		border-radius: var(--radius-md);
-	}
-
-	.active-skills-label {
-		font-size: 0.72rem;
-		font-weight: 600;
-		color: var(--text-muted);
-		text-transform: uppercase;
-		letter-spacing: 0.04em;
-		display: block;
-		margin-bottom: 0.4rem;
-	}
-
-	.active-skills-tags {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.4rem;
-	}
-
-	.active-skill-pill {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.35rem;
-		padding: 0.25rem 0.6rem;
-		font-size: 0.8rem;
-		background: var(--accent-light);
-		color: var(--accent-hover);
-		border-radius: var(--radius-full);
-		font-weight: 500;
-		border: 1px solid rgba(0, 0, 0, 0.05);
-	}
-
-	.remove-skill-tag-btn {
-		background: none;
-		border: none;
-		color: var(--accent-hover);
-		cursor: pointer;
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		padding: 0.1rem;
-		border-radius: 50%;
-		opacity: 0.75;
-		transition: opacity var(--transition-fast);
-	}
-
-	.remove-skill-tag-btn:hover {
-		opacity: 1;
-		background: rgba(0, 0, 0, 0.1);
-	}
-
-	.bio-label-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		flex-wrap: wrap;
-		gap: 0.4rem;
-		margin-bottom: 0.35rem;
-	}
-
-	.bio-label {
-		display: inline-flex;
-		align-items: center;
-		flex-wrap: wrap;
-		gap: 0.35rem;
-		margin-bottom: 0;
-		font-weight: 600;
-		font-size: 0.88rem;
-		color: var(--text-primary);
-		cursor: pointer;
-	}
-
-	.bio-icon {
-		color: var(--accent);
-		flex-shrink: 0;
-	}
-
-	.bio-subtitle {
-		font-weight: normal;
-		color: var(--text-muted);
-		font-size: 0.8rem;
-	}
-
-	.bio-char-count {
-		font-size: 0.75rem;
-		color: var(--text-muted);
-		font-weight: 500;
-		flex-shrink: 0;
-	}
-
-	@media (max-width: 600px) {
-		.settings-page {
-			margin: 1rem auto 2rem;
-			padding: 0 0.85rem;
-		}
-
-		.settings-container {
-			gap: 1.25rem;
-		}
-
-		.tab-panel {
-			padding: 1.4rem 1.2rem;
-			border-radius: var(--radius-lg);
-			gap: 1.35rem;
-		}
-
-		.user-profile-card {
-			flex-direction: column;
-			text-align: center;
-			padding: 1.35rem 1.2rem;
-			border-radius: var(--radius-lg);
-			gap: 0.85rem;
-		}
-
-		.skills-section,
-		.availability-section {
-			padding: 1rem 0.85rem;
-		}
-
-		.active-skills-container {
-			padding: 0.75rem;
-		}
-
-		.availability-cards-grid {
-			grid-template-columns: 1fr;
-			gap: 0.65rem;
-		}
-
-		.settings-tabs .tab-btn {
-			padding: 0.7rem 0.35rem !important;
-			font-size: 0.82rem !important;
-			gap: 0.35rem !important;
-		}
-
-		.tab-label {
-			line-height: 1.25;
-			display: inline-block;
-		}
-
-		.name-badge-row {
-			justify-content: center;
-		}
-
-		.bio-label {
-			font-size: 0.88rem;
-		}
-
-		.bio-subtitle {
-			font-size: 0.78rem;
-		}
-
-		.form-actions {
-			justify-content: stretch;
-		}
-
-		.form-actions button {
-			width: 100%;
-		}
-	}
-
-	@media (max-width: 380px) {
-		.settings-page {
-			padding: 0 0.65rem;
-		}
-
-		.tab-panel,
-		.user-profile-card {
-			padding: 1.15rem 0.9rem;
-		}
-
-		.settings-tabs .tab-btn {
-			font-size: 0.76rem !important;
-			padding: 0.6rem 0.2rem !important;
-			gap: 0.25rem !important;
-		}
-
-		.bio-subtitle {
-			font-size: 0.74rem;
-		}
-	}
-</style>
-

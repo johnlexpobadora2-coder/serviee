@@ -1,7 +1,7 @@
 <script>
 	import '../index.css';
 	import 'leaflet/dist/leaflet.css';
-	import { Menu, X, Settings, LogOut, LogIn, UserPlus, Home, PlusCircle, User, ShieldCheck, Download } from 'lucide-svelte';
+	import { Menu, X, Settings, LogOut, LogIn, UserPlus, Home, PlusCircle, Download } from 'lucide-svelte';
 	import ThemeToggle from '$lib/ThemeToggle.svelte';
 	import PwaInstallBanner from '$lib/PwaInstallBanner.svelte';
 	import LogoutConfirmModal from '$lib/LogoutConfirmModal.svelte';

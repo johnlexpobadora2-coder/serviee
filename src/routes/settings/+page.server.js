@@ -1,5 +1,6 @@
 import { db, hashPassword } from '$lib/server/db.js';
 import { createSignedSession } from '$lib/server/session.js';
+import { sanitizeInput } from '$lib/server/security.js';
 import { redirect, fail } from '@sveltejs/kit';
 import { validatePassword, validatePhone } from '$lib/validation.js';
 
@@ -7,14 +8,18 @@ export async function load({ locals }) {
 	if (!locals.user) {
 		throw redirect(303, '/login');
 	}
-	const freshUser = await db.users.findById(locals.user.id);
+
+	const complementaryRole = locals.user.role === 'customer' ? 'worker' : 'customer';
+
+	const [freshUser, complementaryAccount] = await Promise.all([
+		db.users.findById(locals.user.id),
+		db.users.getComplementaryAccount(locals.user.email, locals.user.role)
+	]);
+
 	if (freshUser) {
 		const { password_hash, ...safeUser } = freshUser;
 		locals.user = safeUser;
 	}
-
-	const complementaryRole = locals.user.role === 'customer' ? 'worker' : 'customer';
-	const complementaryAccount = await db.users.getComplementaryAccount(locals.user.email, locals.user.role);
 
 	return {
 		user: locals.user,
@@ -31,11 +36,16 @@ export const actions = {
 		}
 
 		const data = await request.formData();
-		const name = data.get('name')?.toString().trim();
-		const phone = data.get('phone')?.toString().trim();
-		const address = data.get('address')?.toString().trim();
-		const bio = data.get('bio')?.toString().trim() || '';
+		const rawName = data.get('name')?.toString().trim();
+		const rawPhone = data.get('phone')?.toString().trim();
+		const rawAddress = data.get('address')?.toString().trim();
+		const rawBio = data.get('bio')?.toString().trim() || '';
 		const availability_status = data.get('availability_status')?.toString().trim() || 'available';
+
+		const name = sanitizeInput(rawName);
+		const phone = sanitizeInput(rawPhone);
+		const address = sanitizeInput(rawAddress);
+		const bio = sanitizeInput(rawBio);
 
 		let skills = [];
 		const skillsRaw = data.get('skills')?.toString();
@@ -43,15 +53,15 @@ export const actions = {
 			try {
 				const parsed = JSON.parse(skillsRaw);
 				if (Array.isArray(parsed)) {
-					skills = parsed.map(s => String(s).trim()).filter(Boolean);
+					skills = parsed.map(s => sanitizeInput(String(s).trim())).filter(Boolean);
 				} else {
-					skills = skillsRaw.split(',').map(s => s.trim()).filter(Boolean);
+					skills = skillsRaw.split(',').map(s => sanitizeInput(s.trim())).filter(Boolean);
 				}
 			} catch {
-				skills = skillsRaw.split(',').map(s => s.trim()).filter(Boolean);
+				skills = skillsRaw.split(',').map(s => sanitizeInput(s.trim())).filter(Boolean);
 			}
 		} else {
-			skills = data.getAll('skills').map(s => String(s).trim()).filter(Boolean);
+			skills = data.getAll('skills').map(s => sanitizeInput(String(s).trim())).filter(Boolean);
 		}
 
 		if (!name) {

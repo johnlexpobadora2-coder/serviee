@@ -17,7 +17,7 @@ export async function GET({ locals, url }) {
 			return json(threadResult);
 		}
 
-		const conversations = await db.messages.listConversationsForUser(locals.user.id);
+		const conversations = await db.messages.listConversationsForUser(locals.user.id, locals.user);
 		return json({ conversations });
 	} catch (error) {
 		return json({ error: error.message || 'Failed to fetch messages' }, { status: 500 });

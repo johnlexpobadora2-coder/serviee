@@ -10,9 +10,9 @@
 	import WorkerTabsNav from '$lib/worker/WorkerTabsNav.svelte';
 	import WorkerFeedTab from '$lib/worker/WorkerFeedTab.svelte';
 	import WorkerActiveJobsTab from '$lib/worker/WorkerActiveJobsTab.svelte';
-	import WorkerChatTab from '$lib/worker/WorkerChatTab.svelte';
+	import ChatTab from '$lib/ChatTab.svelte';
 	import WorkerProfileTab from '$lib/worker/WorkerProfileTab.svelte';
-	import WorkerImagePreviewModal from '$lib/worker/WorkerImagePreviewModal.svelte';
+	import ImagePreviewModal from '$lib/ImagePreviewModal.svelte';
 	import { getSmartCache, setSmartCache, removeSmartCache } from '$lib/smartCache.js';
 	import { savedJobs } from '$lib/savedJobs.svelte.js';
 	import { toast } from '$lib/toast.svelte.js';
@@ -1071,7 +1071,8 @@
 		onopenchat={openChat} 
 	/>
 {:else if activeTab === "chat"}
-	<WorkerChatTab 
+	<ChatTab 
+		userRole="worker"
 		conversations={displayedConversations} 
 		{activeConversation} 
 		bind:activeConvId 
@@ -1128,7 +1129,7 @@
 
 <MobileChatHistory bind:activeConvId bind:showGpsDropup {activeTab} />
 
-<WorkerImagePreviewModal bind:previewImageModalUrl />
+<ImagePreviewModal bind:previewImageModalUrl />
 
 <ConfirmDeleteModal 
 	bind:show={showDeleteConfirmModal} 

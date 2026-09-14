@@ -3,6 +3,7 @@
 	import { parseGpsMessage, parseImageMessage } from '$lib/gpsUtils.js';
 
 	let { 
+		userRole = 'customer', // 'customer' | 'worker'
 		conversations = [], 
 		activeConversation = null, 
 		activeConvId = $bindable(''), 
@@ -45,13 +46,17 @@
 		<div class="chat-thread-list">
 			{#if !conversations || conversations.length === 0}
 				<div style="padding: 2rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
-					No active chats yet.<br />Click "Chat / Inquire" on any job post to contact clients.
+					{#if userRole === 'worker'}
+						No active chats yet.<br />Click "Chat / Inquire" on any job post to contact clients.
+					{:else}
+						No active chats yet.<br />When workers inquire on your job posts, chats will appear here.
+					{/if}
 				</div>
 			{:else}
 				{#each conversations as conv (conv.id)}
 					<div class="chat-thread-item-wrapper" style="position: relative; display: flex; align-items: center;">
-						<button
-							type="button"
+						<button 
+							type="button" 
 							class="chat-thread-item {activeConversation?.id === conv.id ? 'active' : ''}"
 							style="flex: 1;"
 							onclick={() => onselectconversation(conv.id)}
@@ -65,14 +70,14 @@
 							<div class="chat-thread-info">
 								<div class="chat-thread-top">
 									<span class="chat-thread-name">{conv.other_user_name}</span>
-									<span class="chat-role-badge">Client</span>
+									<span class="chat-role-badge">{conv.other_user_role || (userRole === 'worker' ? 'Client' : 'Worker')}</span>
 								</div>
 								<div class="chat-thread-title">
 									<Pin size={11} style="flex-shrink: 0;" /> <span class="chat-thread-title-text">{conv.job_title}</span>
 								</div>
 								<div class="chat-thread-preview" style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
 									<span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-										{conv.last_message || "No messages yet."}
+										{conv.last_message || 'No messages yet.'}
 									</span>
 									{#if unreadConvIds.has(conv.id)}
 										<span class="badge-unread-counter" style="font-size: 0.65rem; height: 14px; min-width: 14px; padding: 0 3px;">•</span>
@@ -137,7 +142,7 @@
 				</div>
 			</div>
 
-			<div class="chat-messages-body" id="chat-messages-worker-body" onscroll={onchatscroll}>
+			<div class="chat-messages-body" id="chat-messages-{userRole}-body" onscroll={onchatscroll}>
 				{#if loadingMessagesConvId === activeConversation.id && (!activeConversation.messages || activeConversation.messages.length === 0)}
 					<div style="display: flex; align-items: center; justify-content: center; height: 100%; min-height: 180px; margin: auto;">
 						<div class="spinner spinner-accent"></div>
@@ -224,10 +229,7 @@
 									{/if}
 								</div>
 								<div class="chat-time {msg.sender_id === currentUserId ? 'sent' : 'received'}">
-									{new Date(msg.created_at).toLocaleTimeString("en-PH", {
-										hour: "2-digit",
-										minute: "2-digit",
-									})}
+									{new Date(msg.created_at).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' })}
 								</div>
 							</div>
 						</div>
@@ -247,21 +249,10 @@
 			</div>
 
 			<div class="chat-footer">
-				<form
-					onsubmit={onsendmessage}
-					style="display: flex; gap: 0.5rem; align-items: center; width: 100%;"
-				>
-					<input
-						type="hidden"
-						name="jobId"
-						value={activeConversation.job_id}
-					/>
-					<input
-						type="hidden"
-						name="receiverId"
-						value={activeConversation.other_user_id}
-					/>
-
+				<form onsubmit={onsendmessage} style="display: flex; gap: 0.5rem; align-items: center; width: 100%;">
+					<input type="hidden" name="jobId" value={activeConversation.job_id} />
+					<input type="hidden" name="receiverId" value={activeConversation.other_user_id} />
+					
 					<!-- Hidden File Input for Image Upload -->
 					<input 
 						type="file" 
@@ -379,7 +370,7 @@
 						class="chat-gps-btn chat-gps-desktop-btn" 
 						onclick={onopencustomlocationmodal}
 						disabled={sendingMessage || uploadingImage}
-						title="Search & pin any custom location or landmark"
+						title="Search & pin any custom location or friend's address"
 						style="border-color: var(--accent); color: var(--accent-hover);"
 					>
 						<Compass size={14} />
@@ -402,23 +393,17 @@
 						<span style="font-size: 0.8rem;">Send Pic</span>
 					</button>
 
-					<input
-						type="text"
-						name="content"
-						placeholder="Type your message here..."
+					<input 
+						type="text" 
+						name="content" 
+						placeholder="Type your message here..." 
 						bind:value={newMessageContent}
 						oninput={onhandletypinginput}
 						autocomplete="off"
-						required
 						class="chat-input-field"
 						style="flex: 1; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary);"
 					/>
-					<button
-						type="submit"
-						class="btn btn-primary chat-send-btn"
-						style="display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;"
-						disabled={sendingMessage || !newMessageContent.trim()}
-					>
+					<button type="submit" class="btn btn-primary chat-send-btn" style="display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;" disabled={sendingMessage || uploadingImage || !newMessageContent.trim()}>
 						{#if sendingMessage}
 							<span class="spinner spinner-sm"></span>
 						{/if}
@@ -429,9 +414,7 @@
 		{:else}
 			<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); flex-direction: column; gap: 0.75rem; padding: 2rem;">
 				<MessageSquare size={48} style="opacity: 0.6;" />
-				<p style="font-size: 0.95rem;">
-					Select an inquiry on the left to start messaging.
-				</p>
+				<p style="font-size: 0.95rem;">Select an inquiry on the left to start messaging.</p>
 			</div>
 		{/if}
 	</div>

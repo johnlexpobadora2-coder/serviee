@@ -270,15 +270,32 @@ export function parseImageMessage(content) {
 }
 
 /**
- * Compress and downscale an image File using HTML Canvas
+ * Compress, downscale and strip EXIF GPS metadata from an image File using HTML5 Canvas.
+ * Validates file MIME type and enforces a safe pre-compression size threshold (max 10MB).
  * @param {File} file
  * @param {number} [maxWidth=1200]
  * @param {number} [maxHeight=1200]
  * @param {number} [quality=0.8]
- * @returns {Promise<string>} Data URL of compressed image
+ * @returns {Promise<string>} Data URL of compressed image with EXIF metadata stripped
  */
 export function compressImageFile(file, maxWidth = 1200, maxHeight = 1200, quality = 0.8) {
 	return new Promise((resolve, reject) => {
+		if (!file) {
+			return reject(new Error('No image file provided.'));
+		}
+
+		// Security: Validate image MIME type
+		const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
+		if (file.type && !validTypes.includes(file.type.toLowerCase()) && !file.type.startsWith('image/')) {
+			return reject(new Error('Invalid file type. Please upload a standard image (JPEG, PNG, WebP).'));
+		}
+
+		// Security: Prevent browser memory exhaustion from excessively large files (Max 10MB raw)
+		const MAX_RAW_SIZE_BYTES = 10 * 1024 * 1024;
+		if (file.size > MAX_RAW_SIZE_BYTES) {
+			return reject(new Error('Image file is too large. Maximum allowed size is 10MB.'));
+		}
+
 		const reader = new FileReader();
 		reader.onload = (e) => {
 			const img = new Image();
@@ -300,12 +317,17 @@ export function compressImageFile(file, maxWidth = 1200, maxHeight = 1200, quali
 				canvas.width = width;
 				canvas.height = height;
 				const ctx = canvas.getContext('2d');
+				if (!ctx) {
+					return reject(new Error('Canvas context could not be created.'));
+				}
+
+				// Drawing pure pixel bitmap to canvas strips all EXIF headers & GPS tags
 				ctx.drawImage(img, 0, 0, width, height);
 
 				const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
 				resolve(compressedDataUrl);
 			};
-			img.onerror = () => reject(new Error('Failed to load image for compression.'));
+			img.onerror = () => reject(new Error('Failed to decode image data.'));
 			img.src = typeof e.target?.result === 'string' ? e.target.result : String(e.target?.result || '');
 		};
 		reader.onerror = () => reject(new Error('Failed to read image file.'));

@@ -1,5 +1,6 @@
 import { db, hashPassword } from '$lib/server/db.js';
 import { createSignedSession } from '$lib/server/session.js';
+import { checkRateLimit, resetRateLimit, getClientIp, sanitizeInput } from '$lib/server/security.js';
 import { redirect, fail } from '@sveltejs/kit';
 
 export function load({ locals, url }) {
@@ -16,13 +17,27 @@ export function load({ locals, url }) {
 }
 
 export const actions = {
-	default: async ({ request, cookies }) => {
+	default: async (event) => {
+		const { request, cookies } = event;
+		const clientIp = getClientIp(event);
+
+		// 1. Check Rate Limit (Max 10 login attempts per minute per IP)
+		const rateCheck = checkRateLimit(`login:${clientIp}`, { limit: 10, windowMs: 60 * 1000 });
+		if (!rateCheck.allowed) {
+			console.warn(`🛡️ Rate limit exceeded for IP: ${clientIp} on login.`);
+			return fail(429, {
+				error: `Too many login attempts. Please wait ${rateCheck.retryAfterSeconds} seconds before trying again.`,
+				email: ''
+			});
+		}
+
 		const data = await request.formData();
-		const email = data.get('email')?.toString().trim();
+		const rawEmail = data.get('email')?.toString().trim();
+		const email = sanitizeInput(rawEmail);
 		const password = data.get('password')?.toString();
 
 		console.log('--- LOGIN SUBMISSION ---');
-		console.log('Email:', email);
+		console.log('Email:', email, '| IP:', clientIp);
 
 		if (!email || !password) {
 			console.warn('⚠️ Validation failed: Missing email or password.');
@@ -47,10 +62,13 @@ export const actions = {
 				return fail(400, { error: 'Incorrect email or password. Please try again.', email });
 			}
 
+			// Successful authentication: Reset rate limit
+			resetRateLimit(`login:${clientIp}`);
+
 			console.log('✅ Authentication successful! User ID:', matchingUser.id, 'Role:', matchingUser.role);
 
 			// Set cryptographically signed session cookie (expires in 7 days)
-			const signedToken = createSignedSession(matchingUser.id);
+			const signedToken = createSignedSession(matchingUser.id, matchingUser.token_version || 1);
 			cookies.set('session_id', signedToken, {
 				path: '/',
 				httpOnly: true,
@@ -81,3 +99,4 @@ export const actions = {
 		}
 	}
 };
+

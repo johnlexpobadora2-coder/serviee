@@ -52,6 +52,13 @@ const USER_CACHE_TTL = 60 * 1000; // 60s TTL
 const workerStatsCache = new Map(); // workerId -> { data, timestamp }
 const STATS_CACHE_TTL = 30 * 1000; // 30s TTL
 
+const locationsCache = new Map(); // statusKey -> { data, timestamp }
+const LOCATIONS_CACHE_TTL = 60 * 1000; // 60s TTL
+
+let homeStatsCache = null;
+let homeStatsCacheTimestamp = 0;
+const HOME_STATS_CACHE_TTL = 30 * 1000; // 30s TTL
+
 export function invalidateUserCache(userId) {
 	if (userId) userCache.delete(userId);
 	else userCache.clear();
@@ -60,6 +67,15 @@ export function invalidateUserCache(userId) {
 export function invalidateWorkerStatsCache(workerId) {
 	if (workerId) workerStatsCache.delete(workerId);
 	else workerStatsCache.clear();
+}
+
+export function invalidateLocationsCache() {
+	locationsCache.clear();
+}
+
+export function invalidateHomeStatsCache() {
+	homeStatsCache = null;
+	homeStatsCacheTimestamp = 0;
 }
 
 export const db = {
@@ -125,10 +141,6 @@ export const db = {
 			return data || null;
 		},
 
-		async findByEmail(email) {
-			const users = await this.findAllByEmail(email);
-			return users[0] || null;
-		},
 
 		async findById(id) {
 			if (!id) return null;
@@ -183,15 +195,6 @@ export const db = {
 			return userMap;
 		},
 
-		async listWorkers() {
-			const supabase = getSupabase();
-			const { data, error } = await supabase
-				.from('users')
-				.select('*')
-				.eq('role', 'worker');
-			if (error) throw new Error(error.message);
-			return data || [];
-		},
 
 		async updateProfile(id, profile = {}) {
 			const { name, phone, address, bio, skills, availability_status } = profile;
@@ -413,6 +416,7 @@ export const db = {
 			const supabase = getSupabase();
 			const { error } = await supabase.from('job_posts').insert(newJob);
 			if (error) throw new Error(error.message);
+			invalidateLocationsCache();
 			return newJob;
 		},
 
@@ -589,13 +593,7 @@ export const db = {
 			}
 
 			const userMap = await db.users.findByIds(Array.from(workerAndApplicantIds));
-			const workerStatsMap = new Map();
-			await Promise.all(
-				Array.from(workerAndApplicantIds).map(async (id) => {
-					const stats = await db.reviews.getStatsForWorker(id);
-					workerStatsMap.set(id, stats);
-				})
-			);
+			const workerStatsMap = await db.reviews.getStatsForWorkersBatch(Array.from(workerAndApplicantIds));
 
 			const hydratedJobs = jobList.map(post => {
 				let assignedWorker = null;
@@ -697,6 +695,12 @@ export const db = {
 		},
 
 		async getAvailableLocations(status = null) {
+			const cacheKey = status || 'all';
+			const cached = locationsCache.get(cacheKey);
+			if (cached && Date.now() - cached.timestamp < LOCATIONS_CACHE_TTL) {
+				return cached.data;
+			}
+
 			const supabase = getSupabase();
 			let query = supabase.from('job_posts').select('location');
 			if (status) {
@@ -707,6 +711,8 @@ export const db = {
 			const locations = Array.from(
 				new Set((data || []).map(j => j.location?.trim()).filter(Boolean))
 			).sort((a, b) => a.localeCompare(b));
+
+			locationsCache.set(cacheKey, { data: locations, timestamp: Date.now() });
 			return locations;
 		},
 
@@ -756,6 +762,7 @@ export const db = {
 				.delete()
 				.eq('id', id);
 			if (error) throw new Error(error.message);
+			invalidateLocationsCache();
 			return true;
 		},
 
@@ -768,6 +775,7 @@ export const db = {
 				.select()
 				.single();
 			if (error) throw new Error(error.message);
+			invalidateLocationsCache();
 			return data;
 		}
 	},
@@ -869,6 +877,98 @@ export const db = {
 
 			workerStatsCache.set(workerId, { data: result, timestamp: Date.now() });
 			return result;
+		},
+
+		async getStatsForWorkersBatch(workerIds) {
+			if (!workerIds || workerIds.length === 0) return new Map();
+			const uniqueIds = Array.from(new Set(workerIds.filter(Boolean)));
+			if (uniqueIds.length === 0) return new Map();
+
+			const statsMap = new Map();
+			const missingIds = [];
+
+			for (const id of uniqueIds) {
+				const cached = workerStatsCache.get(id);
+				if (cached && Date.now() - cached.timestamp < STATS_CACHE_TTL) {
+					statsMap.set(id, cached.data);
+				} else {
+					missingIds.push(id);
+				}
+			}
+
+			if (missingIds.length === 0) {
+				return statsMap;
+			}
+
+			const supabase = getSupabase();
+
+			// Fetch reviews and completed jobs in parallel for all missing workers in single queries
+			const [reviewsRes, completedJobsRes] = await Promise.all([
+				supabase
+					.from('ratings_reviews')
+					.select('*')
+					.in('worker_id', missingIds)
+					.order('created_at', { ascending: false }),
+				supabase
+					.from('job_posts')
+					.select('worker_id')
+					.in('worker_id', missingIds)
+					.eq('status', 'completed')
+			]);
+
+			const allReviews = reviewsRes.data || [];
+			const allCompletedJobs = completedJobsRes.data || [];
+
+			const completedCountMap = new Map();
+			for (const job of allCompletedJobs) {
+				if (job.worker_id) {
+					completedCountMap.set(job.worker_id, (completedCountMap.get(job.worker_id) || 0) + 1);
+				}
+			}
+
+			const workerReviewsMap = new Map();
+			for (const rev of allReviews) {
+				if (!workerReviewsMap.has(rev.worker_id)) {
+					workerReviewsMap.set(rev.worker_id, []);
+				}
+				workerReviewsMap.get(rev.worker_id).push(rev);
+			}
+
+			const customerIds = Array.from(new Set(allReviews.map(r => r.customer_id).filter(Boolean)));
+			const customerMap = await db.users.findByIds(customerIds);
+
+			for (const workerId of missingIds) {
+				const workerReviews = workerReviewsMap.get(workerId) || [];
+				const count = completedCountMap.get(workerId) || 0;
+
+				let result;
+				if (workerReviews.length === 0) {
+					result = {
+						average_rating: 0,
+						total_reviews: 0,
+						completed_jobs_count: count,
+						reviews: []
+					};
+				} else {
+					const sum = workerReviews.reduce((acc, curr) => acc + curr.rating, 0);
+					const reviewsWithAuthor = workerReviews.map(r => ({
+						...r,
+						customer_name: customerMap.get(r.customer_id)?.name || 'Anonymous Client'
+					}));
+
+					result = {
+						average_rating: sum,
+						total_reviews: workerReviews.length,
+						completed_jobs_count: count,
+						reviews: reviewsWithAuthor
+					};
+				}
+
+				workerStatsCache.set(workerId, { data: result, timestamp: Date.now() });
+				statsMap.set(workerId, result);
+			}
+
+			return statsMap;
 		},
 
 		async listAll() {
@@ -1498,6 +1598,123 @@ export const db = {
 				throw err;
 			}
 		}
+	},
+
+	stats: {
+		async getHomepageStats() {
+			if (homeStatsCache && Date.now() - homeStatsCacheTimestamp < HOME_STATS_CACHE_TTL) {
+				return homeStatsCache;
+			}
+			const supabase = getSupabase();
+			try {
+				const [activeRes, completedRes, workersRes] = await Promise.all([
+					supabase.from('job_posts').select('*', { count: 'exact', head: true }).neq('status', 'completed'),
+					supabase.from('job_posts').select('*', { count: 'exact', head: true }).eq('status', 'completed'),
+					supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'worker')
+				]);
+
+				const stats = {
+					activeJobs: activeRes.count ?? 0,
+					completedJobs: completedRes.count ?? 0,
+					totalWorkers: workersRes.count ?? 0
+				};
+
+				homeStatsCache = stats;
+				homeStatsCacheTimestamp = Date.now();
+				return stats;
+			} catch (err) {
+				console.error('Error fetching homepage stats from DB:', err?.message);
+				return homeStatsCache || { activeJobs: 0, completedJobs: 0, totalWorkers: 0 };
+			}
+		}
+	},
+
+	auditLogs: {
+		/**
+		 * Record a sensitive security or administrative action
+		 * @param {Object} entry
+		 * @param {string} [entry.adminId]
+		 * @param {string} entry.action
+		 * @param {string} [entry.targetId]
+		 * @param {string} [entry.targetType]
+		 * @param {any} [entry.details]
+		 * @param {string} [entry.ip]
+		 */
+		async record({ adminId = 'admin_master', action, targetId = null, targetType = 'general', details = null, ip = '127.0.0.1' }) {
+			const supabase = getSupabase();
+			const timestamp = new Date().toISOString();
+			const logEntry = {
+				admin_id: adminId || 'admin_master',
+				action: action || 'UNKNOWN_ACTION',
+				target_id: targetId !== null && targetId !== undefined ? String(targetId) : null,
+				target_type: targetType || 'general',
+				details: details ? (typeof details === 'object' ? JSON.stringify(details) : String(details)) : null,
+				ip_address: ip || '127.0.0.1',
+				created_at: timestamp
+			};
+
+			console.log(`🛡️ [AUDIT LOG] ${timestamp} | Admin: ${adminId} | Action: ${action} | Target: ${targetId} | IP: ${ip}`);
+
+			try {
+				const { data, error } = await supabase.from('audit_logs').insert([logEntry]).select().single();
+				if (error) {
+					console.warn('Notice: audit_logs DB insert error:', error.message);
+					return { ...logEntry, id: crypto.randomUUID?.() || Date.now().toString() };
+				}
+				return data || logEntry;
+			} catch (err) {
+				console.warn('Notice: audit_logs DB write caught error:', err.message);
+				return logEntry;
+			}
+		},
+
+		/**
+		 * Fetch latest audit logs ordered by creation date descending
+		 * @param {number} [limit=250]
+		 * @returns {Promise<Array<any>>}
+		 */
+		async listAll(limit = 250) {
+			const supabase = getSupabase();
+			try {
+				const { data, error } = await supabase
+					.from('audit_logs')
+					.select('*')
+					.order('created_at', { ascending: false })
+					.limit(limit);
+
+				if (error) {
+					console.warn('Notice: Failed to fetch audit_logs from DB (table may not exist yet):', error.message);
+					return [];
+				}
+				return data || [];
+			} catch (err) {
+				console.warn('Notice: Error listing audit logs:', err.message);
+				return [];
+			}
+		},
+
+		/**
+		 * Clear all audit logs (admin maintenance)
+		 */
+		async clearAll() {
+			const supabase = getSupabase();
+			try {
+				const { error } = await supabase
+					.from('audit_logs')
+					.delete()
+					.neq('id', '00000000-0000-0000-0000-000000000000');
+
+				if (error) {
+					console.warn('Notice: Failed to clear audit_logs:', error.message);
+					throw error;
+				}
+				return true;
+			} catch (err) {
+				console.error('Error clearing audit logs:', err);
+				throw err;
+			}
+		}
 	}
 };
+
 

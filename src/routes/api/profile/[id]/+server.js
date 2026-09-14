@@ -31,12 +31,16 @@ export async function GET({ params, locals }) {
 		let allPosts = [];
 
 		if (targetUser.role === 'worker') {
-			const workerStats = await db.reviews.getStatsForWorker(userId);
+			const [workerStats, allWorkerJobs] = await Promise.all([
+				db.reviews.getStatsForWorker(userId),
+				db.jobs.listByWorker(userId)
+			]);
+
 			stats = {
 				...stats,
 				...workerStats
 			};
-			const allWorkerJobs = await db.jobs.listByWorker(userId);
+
 			completedJobs = allWorkerJobs
 				.filter(j => j.status === 'completed')
 				.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());

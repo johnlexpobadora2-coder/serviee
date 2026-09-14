@@ -77,6 +77,18 @@ CREATE TABLE IF NOT EXISTS public.saved_jobs (
     CONSTRAINT saved_jobs_user_job_unique UNIQUE (user_id, job_id)
 );
 
+-- Create audit_logs table for security and admin event tracking
+CREATE TABLE IF NOT EXISTS public.audit_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    admin_id TEXT NOT NULL,
+    action TEXT NOT NULL,
+    target_id TEXT,
+    target_type TEXT DEFAULT 'general',
+    details TEXT,
+    ip_address TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
 -- Disable Row Level Security (RLS) for testing and ease of use with the anon key
 ALTER TABLE public.users DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.job_posts DISABLE ROW LEVEL SECURITY;
@@ -84,6 +96,7 @@ ALTER TABLE public.ratings_reviews DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.conversation_deletions DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.saved_jobs DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.audit_logs DISABLE ROW LEVEL SECURITY;
 
 -- Fallback permissive RLS policies in case RLS is enabled on Supabase Dashboard
 DROP POLICY IF EXISTS "Allow anon all on users" ON public.users;
@@ -103,6 +116,9 @@ CREATE POLICY "Allow anon all on conversation_deletions" ON public.conversation_
 
 DROP POLICY IF EXISTS "Allow anon all on saved_jobs" ON public.saved_jobs;
 CREATE POLICY "Allow anon all on saved_jobs" ON public.saved_jobs FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow anon all on audit_logs" ON public.audit_logs;
+CREATE POLICY "Allow anon all on audit_logs" ON public.audit_logs FOR ALL USING (true) WITH CHECK (true);
 
 -- Performance Indexes
 CREATE INDEX IF NOT EXISTS idx_job_posts_customer_id ON public.job_posts(customer_id);
@@ -124,6 +140,10 @@ CREATE INDEX IF NOT EXISTS idx_ratings_reviews_customer_id ON public.ratings_rev
 CREATE INDEX IF NOT EXISTS idx_saved_jobs_user_id ON public.saved_jobs(user_id);
 CREATE INDEX IF NOT EXISTS idx_saved_jobs_job_id ON public.saved_jobs(job_id);
 
+CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON public.audit_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON public.audit_logs(action);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_admin_id ON public.audit_logs(admin_id);
+
 -- Enable Supabase Realtime on messages table
 ALTER TABLE public.messages REPLICA IDENTITY FULL;
 
@@ -133,3 +153,4 @@ BEGIN
     ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
   END IF;
 END $$;
+

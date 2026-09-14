@@ -25,6 +25,30 @@ export async function handle({ event, resolve }) {
 		event.locals.user = null;
 	}
 
-	return await resolve(event);
+	const response = await resolve(event);
+
+	// Security Hardening Headers
+	response.headers.set('X-Frame-Options', 'DENY');
+	response.headers.set('X-Content-Type-Options', 'nosniff');
+	response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+	response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self)');
+	
+	// Content Security Policy tailored for SvelteKit, Leaflet OpenStreetMap tiles & embeds, Google Fonts, and Supabase Realtime
+	const csp = [
+		"default-src 'self'",
+		"connect-src 'self' https://*.supabase.co wss://*.supabase.co https://nominatim.openstreetmap.org https://unpkg.com",
+		"img-src 'self' data: blob: https://*.supabase.co https://*.tile.openstreetmap.org https://*.openstreetmap.org https://images.unsplash.com https://unpkg.com",
+		"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com",
+		"font-src 'self' https://fonts.gstatic.com data:",
+		"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com",
+		"frame-src 'self' https://www.openstreetmap.org https://*.openstreetmap.org",
+		"frame-ancestors 'none'",
+		"base-uri 'self'",
+		"form-action 'self'"
+	].join('; ');
+
+	response.headers.set('Content-Security-Policy', csp);
+
+	return response;
 }
 
