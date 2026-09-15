@@ -80,6 +80,9 @@ export const actions = {
 			if (job.customer_id !== customerId) {
 				return fail(400, { error: 'Invalid client for this job post.' });
 			}
+			if (job.status !== 'open') {
+				return fail(400, { error: 'This job is no longer accepting applications.' });
+			}
 
 			// Automatically apply worker to post
 			await db.jobs.apply(jobId, locals.user.id);

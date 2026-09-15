@@ -51,6 +51,9 @@ export const actions = {
 			if (job.customer_id !== locals.user.id) {
 				return fail(403, { error: 'You are not authorized to assign workers for this job.' });
 			}
+			if (job.status === 'completed' || job.status === 'cancelled') {
+				return fail(400, { error: `Cannot assign worker to a ${job.status} job.` });
+			}
 
 			await db.jobs.assign(jobId, workerId);
 			return { success: 'Worker assigned successfully!' };
@@ -78,6 +81,12 @@ export const actions = {
 			}
 			if (job.customer_id !== locals.user.id) {
 				return fail(403, { error: 'You are not authorized to start this job.' });
+			}
+			if (!job.worker_id) {
+				return fail(400, { error: 'Please assign a worker first before starting the job.' });
+			}
+			if (job.status === 'completed') {
+				return fail(400, { error: 'This job has already been completed.' });
 			}
 
 			await db.jobs.updateStatus(jobId, 'in_progress');
@@ -110,11 +119,11 @@ export const actions = {
 			if (job.customer_id !== locals.user.id) {
 				return fail(403, { error: 'You are not authorized to complete or rate this job.' });
 			}
+			if (job.status === 'completed') {
+				return fail(400, { error: 'This job is already marked as completed.' });
+			}
 
-			// Update status to completed
-			await db.jobs.updateStatus(jobId, 'completed');
-
-			// Save rating & review
+			// 1. Save rating & review first (with idempotency protection)
 			await db.reviews.create({
 				job_id: jobId,
 				customer_id: locals.user.id,
@@ -122,6 +131,9 @@ export const actions = {
 				rating,
 				review_text: reviewText
 			});
+
+			// 2. Transition status to completed
+			await db.jobs.updateStatus(jobId, 'completed');
 
 			return { success: 'Job completed and review submitted successfully!' };
 		} catch (error) {

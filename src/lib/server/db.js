@@ -433,21 +433,23 @@ export const db = {
 		},
 
 		async apply(jobId, workerId) {
+			if (!jobId || !workerId) return;
 			const supabase = getSupabase();
 			const { data: job, error: fetchError } = await supabase
 				.from('job_posts')
-				.select('applicants')
+				.select('id, status, applicants')
 				.eq('id', jobId)
 				.single();
 			
 			if (fetchError || !job) throw new Error('Job post not found.');
+			if (job.status !== 'open') throw new Error('This job is no longer accepting applications.');
 
-			const applicants = job.applicants || [];
-			if (!applicants.includes(workerId)) {
-				applicants.push(workerId);
+			const existingApplicants = job.applicants || [];
+			if (!existingApplicants.includes(workerId)) {
+				const updatedApplicants = Array.from(new Set([...existingApplicants, workerId]));
 				const { error: updateError } = await supabase
 					.from('job_posts')
-					.update({ applicants })
+					.update({ applicants: updatedApplicants })
 					.eq('id', jobId);
 				if (updateError) throw new Error(updateError.message);
 			}
@@ -782,6 +784,22 @@ export const db = {
 
 	reviews: {
 		async create({ job_id, customer_id, worker_id, rating, review_text }) {
+			const supabase = getSupabase();
+
+			// Idempotency: prevent duplicate reviews for the same job and customer
+			if (job_id && customer_id) {
+				const { data: existing } = await supabase
+					.from('ratings_reviews')
+					.select('*')
+					.eq('job_id', job_id)
+					.eq('customer_id', customer_id)
+					.maybeSingle();
+
+				if (existing) {
+					return existing;
+				}
+			}
+
 			const parsed = parseInt(rating, 10);
 			const ratingVal = isNaN(parsed) ? 5 : Math.max(-5, Math.min(5, parsed));
 
@@ -795,7 +813,6 @@ export const db = {
 				created_at: new Date().toISOString()
 			};
 
-			const supabase = getSupabase();
 			const { error } = await supabase.from('ratings_reviews').insert(newReview);
 			if (error) throw new Error(error.message);
 			invalidateWorkerStatsCache(worker_id);
