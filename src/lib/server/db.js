@@ -2,6 +2,7 @@ import { env } from '$env/dynamic/public';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 import { getPhilippineCityCoordinates } from '$lib/philippinesLocations.js';
+import { encryptChatMessage, decryptMessageRecord } from '$lib/server/security.js';
 
 let supabaseInstance = null;
 
@@ -1014,21 +1015,24 @@ export const db = {
 		fallbackDeletions: [],
 
 		async send({ job_id, sender_id, receiver_id, content }) {
-			const msg = {
+			const cleanContent = content.trim();
+			const encryptedContent = encryptChatMessage(cleanContent);
+
+			const dbRecord = {
 				id: crypto.randomUUID(),
 				job_id,
 				sender_id,
 				receiver_id,
-				content: content.trim(),
+				content: encryptedContent,
 				created_at: new Date().toISOString()
 			};
 
 			const supabase = getSupabase();
-			const { error } = await supabase.from('messages').insert(msg);
+			const { error } = await supabase.from('messages').insert(dbRecord);
 			if (error) {
 				console.error('Supabase message insert error:', error.message);
 				// Still put in fallbackStore for instant local reflection if DB fails
-				this.fallbackStore.push(msg);
+				this.fallbackStore.push(dbRecord);
 				throw new Error(error.message);
 			}
 
@@ -1047,7 +1051,11 @@ export const db = {
 				d => !(d.job_id === job_id && d.user_id === sender_id && d.other_user_id === receiver_id)
 			);
 
-			return msg;
+			// Return decrypted plaintext to the caller for immediate UI display
+			return {
+				...dbRecord,
+				content: cleanContent
+			};
 		},
 
 		async delete(messageId, senderId) {
@@ -1256,7 +1264,7 @@ export const db = {
 
 			const map = new Map();
 			for (const m of [...dbMsgs, ...fallbackFiltered]) {
-				map.set(m.id, m);
+				map.set(m.id, decryptMessageRecord(m));
 			}
 
 			// Return sorted chronologically (oldest to newest) for smooth reading
@@ -1309,7 +1317,7 @@ export const db = {
 					continue;
 				}
 
-				map.set(m.id, m);
+				map.set(m.id, decryptMessageRecord(m));
 			}
 
 			// Return sorted chronologically (oldest to newest) for smooth reading

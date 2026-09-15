@@ -1,5 +1,5 @@
 <script>
-	import { MessageSquare, Pin, ArrowLeft, User, Trash2, MapPin, ExternalLink, Plus, Compass, Navigation, Image as ImageIcon } from 'lucide-svelte';
+	import { MessageSquare, Pin, ArrowLeft, User, Trash2, MapPin, ExternalLink, Plus, Compass, Navigation, Image as ImageIcon, Lock } from 'lucide-svelte';
 	import { parseGpsMessage, parseImageMessage } from '$lib/gpsUtils.js';
 
 	let { 
@@ -107,9 +107,14 @@
 						<span>Back</span>
 					</button>
 					<div style="min-width: 0;">
-						<h4 style="margin: 0; font-size: 1.05rem; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-							{activeConversation.other_user_name}
-						</h4>
+						<div style="display: flex; align-items: center; gap: 0.4rem; min-width: 0;">
+							<h4 style="margin: 0; font-size: 1.05rem; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+								{activeConversation.other_user_name}
+							</h4>
+							<span style="display: inline-flex; align-items: center; color: var(--text-muted); opacity: 0.7; flex-shrink: 0;" title="Encrypted & Private Chat">
+								<Lock size={12} style="color: var(--accent);" />
+							</span>
+						</div>
 						<span style="font-size: 0.78rem; color: var(--accent-hover); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
 							Job: {activeConversation.job_title}
 						</span>

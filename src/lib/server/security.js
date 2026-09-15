@@ -129,3 +129,104 @@ export function sanitizeInput(input) {
 		.replace(/data\s*:\s*text\/html/gi, '')
 		.trim();
 }
+
+import crypto from 'crypto';
+import { env } from '$env/dynamic/private';
+
+/**
+ * Derives a consistent 32-byte encryption key from environment secret
+ * @returns {Buffer}
+ */
+function getChatEncryptionKey() {
+	const secret = 
+		env.CHAT_ENCRYPTION_KEY || 
+		env.SUPABASE_SERVICE_ROLE_KEY || 
+		env.DATABASE_URL || 
+		'serviee-secure-chat-aes256gcm-vault-key-2026';
+	return crypto.createHash('sha256').update(secret).digest();
+}
+
+/**
+ * Encrypts chat message content using AES-256-GCM authenticated encryption.
+ * Format: enc:v1:<iv_b64>:<authTag_b64>:<ciphertext_b64>
+ * @param {string} plaintext 
+ * @returns {string}
+ */
+export function encryptChatMessage(plaintext) {
+	if (!plaintext || typeof plaintext !== 'string') return plaintext;
+	
+	// Avoid double-encryption if already encrypted
+	if (plaintext.startsWith('enc:v1:')) return plaintext;
+
+	try {
+		const key = getChatEncryptionKey();
+		const iv = crypto.randomBytes(12); // 96-bit IV recommended for GCM
+		const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+
+		let ciphertext = cipher.update(plaintext, 'utf8', 'base64');
+		ciphertext += cipher.final('base64');
+
+		const authTag = cipher.getAuthTag();
+
+		return `enc:v1:${iv.toString('base64')}:${authTag.toString('base64')}:${ciphertext}`;
+	} catch (err) {
+		console.error('Chat encryption error:', err);
+		return plaintext; // Fallback in case of unexpected crypto failure
+	}
+}
+
+/**
+ * Decrypts an encrypted chat message string.
+ * Gracefully returns original plaintext if not encrypted or backwards compatible.
+ * @param {string} payload 
+ * @returns {string}
+ */
+export function decryptChatMessage(payload) {
+	if (!payload || typeof payload !== 'string') return payload;
+
+	// Backwards compatibility for plain text legacy messages
+	if (!payload.startsWith('enc:v1:')) {
+		return payload;
+	}
+
+	try {
+		const parts = payload.split(':');
+		if (parts.length < 5) return payload;
+
+		// Format: ['enc', 'v1', iv_b64, authTag_b64, ciphertext_b64]
+		const ivB64 = parts[2];
+		const authTagB64 = parts[3];
+		const ciphertextB64 = parts.slice(4).join(':'); // Handle any colons in ciphertext safely
+
+		const key = getChatEncryptionKey();
+		const iv = Buffer.from(ivB64, 'base64');
+		const authTag = Buffer.from(authTagB64, 'base64');
+
+		const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+		decipher.setAuthTag(authTag);
+
+		let decrypted = decipher.update(ciphertextB64, 'base64', 'utf8');
+		decrypted += decipher.final('utf8');
+
+		return decrypted;
+	} catch (err) {
+		console.warn('Chat decryption error (possibly corrupted or modified):', err.message);
+		return '[Encrypted Message]';
+	}
+}
+
+/**
+ * Hydrate/decrypt a message record object safely
+ * @param {Object} msg 
+ * @returns {Object}
+ */
+export function decryptMessageRecord(msg) {
+	if (!msg) return msg;
+	if (typeof msg.content === 'string') {
+		return {
+			...msg,
+			content: decryptChatMessage(msg.content)
+		};
+	}
+	return msg;
+}
