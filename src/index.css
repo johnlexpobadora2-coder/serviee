@@ -2,21 +2,21 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-	--bg-base: hsl(222, 24%, 7%);
-	--bg-card: hsl(222, 20%, 11%);
-	--bg-input: hsl(222, 18%, 15%);
-	--bg-header: hsla(222, 24%, 7%, 0.85);
+	--bg-base: hsl(240, 6%, 6%);
+	--bg-card: hsl(240, 5%, 9%);
+	--bg-input: hsl(240, 4%, 13%);
+	--bg-header: hsla(240, 6%, 6%, 0.85);
 	
-	--accent: hsl(252, 78%, 62%);
-	--accent-hover: hsl(252, 85%, 68%);
-	--accent-light: hsla(252, 78%, 62%, 0.15);
+	--accent: hsl(270, 91%, 68%);
+	--accent-hover: hsl(270, 96%, 74%);
+	--accent-light: hsla(270, 91%, 68%, 0.15);
 	
-	--text-primary: hsl(210, 40%, 98%);
-	--text-secondary: hsl(215, 20%, 75%);
-	--text-muted: hsl(217, 15%, 50%);
+	--text-primary: hsl(0, 0%, 98%);
+	--text-secondary: hsl(240, 5%, 68%);
+	--text-muted: hsl(240, 4%, 48%);
 	
-	--border-color: hsl(222, 15%, 18%);
-	--border-focus: hsl(252, 78%, 62%);
+	--border-color: hsl(240, 4%, 16%);
+	--border-focus: hsl(270, 91%, 68%);
 	
 	--success: hsl(142, 70%, 45%);
 	--success-light: hsla(142, 70%, 45%, 0.15);
@@ -27,9 +27,9 @@
 	
 	--font-sans: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
 	
-	--shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
-	--shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
-	--shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.6);
+	--shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+	--shadow-md: 0 8px 24px rgba(0, 0, 0, 0.55);
+	--shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.75);
 	
 	--radius-sm: 4px;
 	--radius-md: 6px;
@@ -39,25 +39,25 @@
 	--transition-fast: 0.15s ease;
 	--transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 	
-	--glow: 0 0 24px hsla(252, 78%, 62%, 0.25);
+	--glow: 0 0 26px hsla(270, 91%, 68%, 0.32);
 }
 
 html.light, [data-theme="light"] {
-	--bg-base: #f8fafc;
+	--bg-base: #fafafa;
 	--bg-card: #ffffff;
-	--bg-input: #f1f5f9;
-	--bg-header: #ffffff;
+	--bg-input: #f4f4f5;
+	--bg-header: rgba(255, 255, 255, 0.88);
 	
-	--accent: hsl(252, 78%, 56%);
-	--accent-hover: hsl(252, 85%, 48%);
-	--accent-light: hsla(252, 78%, 58%, 0.1);
+	--accent: hsl(270, 82%, 54%);
+	--accent-hover: hsl(270, 88%, 46%);
+	--accent-light: hsla(270, 82%, 54%, 0.1);
 	
-	--text-primary: #0f172a;
-	--text-secondary: #475569;
-	--text-muted: #64748b;
+	--text-primary: #09090b;
+	--text-secondary: #52525b;
+	--text-muted: #71717a;
 	
-	--border-color: #e2e8f0;
-	--border-focus: hsl(252, 78%, 58%);
+	--border-color: #e4e4e7;
+	--border-focus: hsl(270, 82%, 54%);
 	
 	--success: hsl(142, 72%, 36%);
 	--success-light: hsla(142, 70%, 45%, 0.12);
@@ -66,11 +66,11 @@ html.light, [data-theme="light"] {
 	--error: hsl(350, 75%, 48%);
 	--error-light: hsla(350, 80%, 55%, 0.12);
 	
-	--shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
-	--shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.03);
-	--shadow-lg: 0 16px 32px -4px rgba(0, 0, 0, 0.08), 0 8px 16px -4px rgba(0, 0, 0, 0.04);
+	--shadow-sm: 0 1px 3px rgba(9, 9, 11, 0.05), 0 1px 2px rgba(9, 9, 11, 0.03);
+	--shadow-md: 0 4px 12px -2px rgba(9, 9, 11, 0.06), 0 2px 6px -1px rgba(9, 9, 11, 0.03);
+	--shadow-lg: 0 16px 32px -4px rgba(9, 9, 11, 0.09), 0 8px 16px -4px rgba(9, 9, 11, 0.04);
 	
-	--glow: 0 4px 20px hsla(252, 78%, 58%, 0.12);
+	--glow: 0 4px 20px hsla(270, 82%, 54%, 0.15);
 }
 
 html.light .badge-plumbing { background: #a5f3fc; color: #0e7490; }
@@ -907,14 +907,14 @@ select {
 	font-weight: 800 !important;
 	letter-spacing: -0.02em;
 	line-height: 1.1;
-	background: linear-gradient(135deg, hsl(252, 85%, 70%) 0%, var(--accent) 100%);
+	background: linear-gradient(135deg, hsl(270, 95%, 78%) 0%, var(--accent) 100%);
 	-webkit-background-clip: text;
 	background-clip: text;
 	-webkit-text-fill-color: transparent;
 }
 
 html.light .feed-job-budget {
-	background: linear-gradient(135deg, hsl(252, 85%, 48%) 0%, hsl(252, 90%, 38%) 100%);
+	background: linear-gradient(135deg, hsl(270, 85%, 48%) 0%, hsl(270, 90%, 38%) 100%);
 	-webkit-background-clip: text;
 	background-clip: text;
 	-webkit-text-fill-color: transparent;

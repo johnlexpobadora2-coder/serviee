@@ -235,7 +235,7 @@
 <!-- Call to Action Banner -->
 <section
 	class="card"
-	style="background: linear-gradient(135deg, hsl(252, 78%, 62%) 0%, hsl(252, 85%, 48%) 100%); border: none; border-radius: var(--radius-lg); text-align: center; padding: 4rem 2rem; margin: 4rem 0;"
+	style="background: linear-gradient(135deg, hsl(270, 85%, 58%) 0%, hsl(270, 90%, 42%) 100%); border: none; border-radius: var(--radius-lg); text-align: center; padding: 4rem 2rem; margin: 4rem 0;"
 >
 	<h2 style="font-size: 2.25rem; color: #fff; margin-bottom: 1rem;">
 		Are you looking for quick help or extra income?
@@ -402,13 +402,13 @@
 		background: linear-gradient(
 			135deg,
 			var(--accent) 0%,
-			hsl(252, 85%, 48%) 100%
+			hsl(270, 85%, 48%) 100%
 		);
 		color: #ffffff;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		box-shadow: 0 4px 16px hsla(252, 78%, 62%, 0.4);
+		box-shadow: 0 4px 16px hsla(270, 91%, 68%, 0.35);
 		z-index: 2;
 	}
 
