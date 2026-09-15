@@ -997,6 +997,43 @@ html.light .feed-job-budget {
 	color: var(--text-secondary);
 }
 
+.schedule-urgency-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.25rem;
+	padding: 0.15rem 0.45rem;
+	border-radius: 6px;
+	font-size: 0.72rem;
+	font-weight: 600;
+	letter-spacing: 0.01em;
+	line-height: 1.2;
+	white-space: nowrap;
+}
+
+.schedule-urgency-badge.rush {
+	background: rgba(239, 68, 68, 0.15);
+	color: #ef4444;
+	border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.schedule-urgency-badge.urgent {
+	background: rgba(245, 158, 11, 0.15);
+	color: #f59e0b;
+	border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.schedule-urgency-badge.upcoming {
+	background: rgba(99, 102, 241, 0.12);
+	color: var(--accent-hover);
+	border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+.schedule-urgency-badge.past {
+	background: rgba(148, 163, 184, 0.12);
+	color: var(--text-muted);
+	border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
 /* Price / Budget Range Filter Styles */
 .price-range-container {
 	display: flex;

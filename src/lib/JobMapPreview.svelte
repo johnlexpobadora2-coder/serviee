@@ -1,0 +1,263 @@
+<script>
+	import { MapPin, ChevronDown, ChevronUp, ExternalLink } from 'lucide-svelte';
+	import { getEmbedMapUrl, getServieeMapUrl } from '$lib/gpsUtils.js';
+
+	/**
+	 * @typedef {Object} Props
+	 * @property {number} latitude
+	 * @property {number} longitude
+	 * @property {string} [title='']
+	 * @property {string} [location='']
+	 * @property {boolean} [defaultOpen=false]
+	 * @property {string} [customClass='']
+	 */
+
+	/** @type {Props} */
+	let {
+		latitude,
+		longitude,
+		title = '',
+		location = '',
+		defaultOpen = false,
+		customClass = ''
+	} = $props();
+
+	let isExpanded = $state(false);
+
+	$effect(() => {
+		if (defaultOpen) {
+			isExpanded = true;
+		}
+	});
+
+	function toggleMap(e) {
+		e.stopPropagation();
+		isExpanded = !isExpanded;
+	}
+</script>
+
+{#if latitude && longitude}
+	<div class="job-map-preview-wrapper {customClass}">
+		<!-- Map Banner Bar -->
+		<div class="job-map-bar">
+			<div class="job-map-bar-left">
+				<span class="job-map-pin-badge">
+					<MapPin size={13} class="text-sky-400" />
+				</span>
+				<span class="job-map-label">
+					Pinned on Map
+					{#if location}
+						<span class="job-map-location-sub">• {location}</span>
+					{/if}
+				</span>
+			</div>
+
+			<div class="job-map-bar-actions">
+				<button
+					type="button"
+					class="job-map-toggle-btn {isExpanded ? 'active' : ''}"
+					onclick={toggleMap}
+					title={isExpanded ? 'Hide Map Preview' : 'Show Map Preview'}
+					aria-expanded={isExpanded}
+				>
+					{#if isExpanded}
+						<span>Hide Map</span>
+						<ChevronUp size={13} />
+					{:else}
+						<span>Preview Map</span>
+						<ChevronDown size={13} />
+					{/if}
+				</button>
+
+				<a
+					href={getServieeMapUrl(latitude, longitude, title, location)}
+					class="job-map-fullscreen-btn"
+					title="Open Fullscreen Interactive Map"
+					aria-label="Open Fullscreen Interactive Map"
+					onclick={(e) => e.stopPropagation()}
+				>
+					<ExternalLink size={12} />
+					<span class="job-map-full-text">View Map</span>
+				</a>
+			</div>
+		</div>
+
+		<!-- Interactive Map Embed (Rendered on-demand when expanded) -->
+		{#if isExpanded}
+			<div class="job-map-iframe-box animate-fade-in">
+				<div class="feed-job-map-iframe-container">
+					<iframe
+						title="Pinned Job Location Map"
+						src={getEmbedMapUrl(latitude, longitude)}
+						loading="lazy"
+					></iframe>
+				</div>
+			</div>
+		{/if}
+	</div>
+{/if}
+
+<style>
+	.job-map-preview-wrapper {
+		margin-top: 0.6rem;
+		margin-bottom: 0.4rem;
+		border-radius: var(--radius-md, 12px);
+		border: 1px solid var(--border-color);
+		background: var(--bg-card);
+		overflow: hidden;
+		transition: border-color 0.2s ease;
+	}
+
+	.job-map-preview-wrapper:hover {
+		border-color: rgba(99, 102, 241, 0.4);
+	}
+
+	.job-map-bar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+		padding: 0.45rem 0.75rem;
+		background: rgba(255, 255, 255, 0.02);
+		font-size: 0.8rem;
+		min-height: 38px;
+	}
+
+	.job-map-bar-left {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		min-width: 0;
+		flex: 1;
+	}
+
+	.job-map-pin-badge {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 22px;
+		height: 22px;
+		border-radius: 6px;
+		background: rgba(56, 189, 248, 0.12);
+		color: #38bdf8;
+		flex-shrink: 0;
+	}
+
+	.job-map-label {
+		font-weight: 600;
+		color: var(--text-primary);
+		font-size: 0.78rem;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.job-map-location-sub {
+		font-weight: 400;
+		color: var(--text-secondary);
+		margin-left: 0.25rem;
+	}
+
+	.job-map-bar-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+		flex-shrink: 0;
+	}
+
+	.job-map-toggle-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+		padding: 0.28rem 0.6rem;
+		font-size: 0.75rem;
+		font-weight: 500;
+		color: var(--text-secondary);
+		background: rgba(255, 255, 255, 0.05);
+		border: 1px solid var(--border-color);
+		border-radius: 6px;
+		cursor: pointer;
+		transition: all 0.15s ease;
+		line-height: 1.2;
+	}
+
+	.job-map-toggle-btn:hover {
+		color: var(--text-primary);
+		background: rgba(255, 255, 255, 0.09);
+		border-color: rgba(255, 255, 255, 0.2);
+	}
+
+	.job-map-toggle-btn.active {
+		color: var(--accent-hover);
+		background: rgba(99, 102, 241, 0.12);
+		border-color: rgba(99, 102, 241, 0.35);
+	}
+
+	.job-map-fullscreen-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+		padding: 0.28rem 0.6rem;
+		font-size: 0.75rem;
+		font-weight: 500;
+		color: var(--accent-hover);
+		background: rgba(99, 102, 241, 0.08);
+		border: 1px solid rgba(99, 102, 241, 0.3);
+		border-radius: 6px;
+		text-decoration: none;
+		transition: all 0.15s ease;
+		line-height: 1.2;
+	}
+
+	.job-map-fullscreen-btn:hover {
+		background: rgba(99, 102, 241, 0.18);
+		border-color: rgba(99, 102, 241, 0.5);
+		color: var(--accent-hover);
+	}
+
+	.job-map-iframe-box {
+		border-top: 1px solid var(--border-color);
+		position: relative;
+		overflow: hidden;
+	}
+
+	.feed-job-map-iframe-container {
+		position: relative;
+		width: 100%;
+		height: 160px;
+		overflow: hidden;
+	}
+
+	.feed-job-map-iframe-container iframe {
+		position: absolute;
+		top: -85px;
+		left: -10px;
+		width: calc(100% + 20px);
+		height: calc(100% + 170px);
+		border: 0;
+	}
+
+	@media (max-width: 480px) {
+		.job-map-full-text {
+			display: none;
+		}
+		.job-map-fullscreen-btn {
+			padding: 0.28rem 0.45rem;
+		}
+	}
+
+	.animate-fade-in {
+		animation: fadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	@keyframes fadeIn {
+		from {
+			opacity: 0;
+			transform: translateY(-4px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+</style>

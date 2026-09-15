@@ -1,5 +1,7 @@
 <script>
 	import { ClipboardList, CheckCircle2, Trash2, Star, Mail, Phone, MapPin, ShieldCheck, User as UserIcon, Clock, FileText, Settings } from 'lucide-svelte';
+	import JobDescription from '$lib/JobDescription.svelte';
+	import { formatRelativeTime, formatFullDateTime } from '$lib/jobCardUtils.js';
 
 	let { 
 		user = {}, 
@@ -181,16 +183,14 @@
 								</div>
 								<h3 class="feed-job-title">{job.title}</h3>
 								<div class="feed-job-posted-by">
-									<span class="feed-job-date">
+									<span class="feed-job-date" title={formatFullDateTime(job.created_at)}>
 										<Clock size={12} />
-										Posted: {new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+										Posted: {formatRelativeTime(job.created_at)}
 									</span>
 								</div>
 							</div>
 
-							<div style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; border-left: 2px solid var(--border-color); padding-left: 1rem;">
-								<p>{job.description}</p>
-							</div>
+							<JobDescription text={job.description} />
 
 							{#if job.assignedWorker}
 								<div style="border-top: 1px solid var(--border-color); padding-top: 0.75rem; margin-top: 0.25rem; font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem;">
@@ -238,16 +238,14 @@
 								</div>
 								<h3 class="feed-job-title">{job.title}</h3>
 								<div class="feed-job-posted-by">
-									<span class="feed-job-date">
+									<span class="feed-job-date" title={formatFullDateTime(job.created_at)}>
 										<Clock size={12} />
-										Posted: {new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+										Posted: {formatRelativeTime(job.created_at)}
 									</span>
 								</div>
 							</div>
 
-							<div style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; border-left: 2px solid var(--border-color); padding-left: 1rem;">
-								<p>{job.description}</p>
-							</div>
+							<JobDescription text={job.description} />
 
 							<div class="feed-job-footer">
 								<div class="feed-job-budget-wrap">

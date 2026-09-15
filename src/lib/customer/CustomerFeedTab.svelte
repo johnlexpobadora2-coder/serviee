@@ -23,6 +23,9 @@
 	import ShareJobModal from '$lib/ShareJobModal.svelte';
 	import SavedJobsDrawer from '$lib/SavedJobsDrawer.svelte';
 	import JobFeedMapView from '$lib/JobFeedMapView.svelte';
+	import JobMapPreview from '$lib/JobMapPreview.svelte';
+	import JobDescription from '$lib/JobDescription.svelte';
+	import { formatRelativeTime, formatFullDateTime, getScheduleUrgency } from '$lib/jobCardUtils.js';
 	import { savedJobs } from '$lib/savedJobs.svelte.js';
 
 	let { 
@@ -419,55 +422,44 @@
 										<strong class="posted-by-self">{job.customerName} (You)</strong>
 									{/if}
 								</div>
-								<span class="feed-job-date">
+								<span class="feed-job-date" title={formatFullDateTime(job.created_at)}>
 									<Clock size={12} />
-									{new Date(job.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+									{formatRelativeTime(job.created_at)}
 								</span>
 							</div>
 						</div>
 
 						<div class="feed-job-divider"></div>
 
-						<p class="feed-job-desc">
-							{job.description}
-						</p>
+						<JobDescription text={job.description} />
 
 						<div class="metadata-bar feed-job-meta">
 							<div style="display: flex; align-items: center; gap: 0.4rem;">
 								<MapPin size={15} style="color: #38bdf8; flex-shrink: 0;" />
 								<span><strong style="color: var(--text-primary);">Location:</strong> {job.location}</span>
 							</div>
-							<div style="display: flex; align-items: center; gap: 0.4rem;">
-								<Calendar size={15} style="color: #a78bfa; flex-shrink: 0;" />
-								<span><strong style="color: var(--text-primary);">Schedule:</strong> {new Date(job.target_date).toLocaleDateString('en-PH', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+							<div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
+								<div style="display: inline-flex; align-items: center; gap: 0.4rem;">
+									<Calendar size={15} style="color: #a78bfa; flex-shrink: 0;" />
+									<span><strong style="color: var(--text-primary);">Schedule:</strong> {new Date(job.target_date).toLocaleDateString('en-PH', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+								</div>
+								{#if getScheduleUrgency(job.target_date)}
+									{@const urgency = getScheduleUrgency(job.target_date)}
+									<span class="schedule-urgency-badge {urgency.type}">
+										{#if urgency.type === 'rush'}⚡{:else if urgency.type === 'urgent'}⏰{/if}
+										{urgency.label}
+									</span>
+								{/if}
 							</div>
 						</div>
 
 						{#if job.latitude && job.longitude}
-							<div class="feed-job-map-preview">
-								<div class="feed-job-map-header">
-									<div class="feed-job-map-title-wrap">
-										<span class="feed-job-map-pin-icon"><MapPin size={13} /></span>
-										<span class="feed-job-map-title-text">Pinned GPS Location ({job.latitude}, {job.longitude})</span>
-									</div>
-									<a 
-										href={getServieeMapUrl(job.latitude, job.longitude, job.title, job.location)} 
-										class="feed-job-directions-link"
-										title="View Map"
-										aria-label="View Map"
-									>
-										<MapPin size={14} class="feed-job-map-btn-icon" />
-										<span class="feed-job-map-btn-text">View Map</span>
-									</a>
-								</div>
-								<div class="feed-job-map-iframe-container">
-									<iframe 
-										title="Pinned Job Location Map"
-										src={getEmbedMapUrl(job.latitude, job.longitude)}
-										loading="lazy"
-									></iframe>
-								</div>
-							</div>
+							<JobMapPreview
+								latitude={job.latitude}
+								longitude={job.longitude}
+								title={job.title}
+								location={job.location}
+							/>
 						{/if}
 
 						<!-- Bottom Price & Action Footer -->
