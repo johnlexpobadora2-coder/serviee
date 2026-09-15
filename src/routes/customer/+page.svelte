@@ -699,6 +699,13 @@
 
 	function handleIncomingMessage(msg) {
 		if (!msg || !msg.job_id || !msg.sender_id || !msg.receiver_id || !conversations) return;
+
+		// If message is still raw ciphertext from postgres_changes fallback, refetch to get server-decrypted version
+		if (typeof msg.content === 'string' && msg.content.startsWith('enc:v1:')) {
+			fetchConversations(true);
+			return;
+		}
+
 		const otherUserId = msg.sender_id === data.user?.id ? msg.receiver_id : msg.sender_id;
 		const convKey = `${msg.job_id}_${otherUserId}`;
 

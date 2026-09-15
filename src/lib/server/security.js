@@ -133,17 +133,21 @@ export function sanitizeInput(input) {
 import crypto from 'crypto';
 import { env } from '$env/dynamic/private';
 
+let cachedChatKey = null;
+
 /**
- * Derives a consistent 32-byte encryption key from environment secret
+ * Derives and caches a consistent 32-byte encryption key from environment secret
  * @returns {Buffer}
  */
 function getChatEncryptionKey() {
+	if (cachedChatKey) return cachedChatKey;
 	const secret = 
 		env.CHAT_ENCRYPTION_KEY || 
 		env.SUPABASE_SERVICE_ROLE_KEY || 
 		env.DATABASE_URL || 
 		'serviee-secure-chat-aes256gcm-vault-key-2026';
-	return crypto.createHash('sha256').update(secret).digest();
+	cachedChatKey = crypto.createHash('sha256').update(secret).digest();
+	return cachedChatKey;
 }
 
 /**
