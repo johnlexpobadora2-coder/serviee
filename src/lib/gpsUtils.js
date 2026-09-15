@@ -321,14 +321,15 @@ export function parseImageMessage(content) {
 
 /**
  * Compress, downscale and strip EXIF GPS metadata from an image File using HTML5 Canvas.
- * Validates file MIME type and enforces a safe pre-compression size threshold (max 10MB).
+ * Validates file MIME type and enforces a safe pre-compression size threshold (max 15MB).
+ * Employs smart WebP compression with JPEG fallback to keep files lightweight (<250KB) while retaining crisp 1600px HD clarity.
  * @param {File} file
- * @param {number} [maxWidth=1200]
- * @param {number} [maxHeight=1200]
+ * @param {number} [maxWidth=1600]
+ * @param {number} [maxHeight=1600]
  * @param {number} [quality=0.8]
  * @returns {Promise<string>} Data URL of compressed image with EXIF metadata stripped
  */
-export function compressImageFile(file, maxWidth = 1200, maxHeight = 1200, quality = 0.8) {
+export function compressImageFile(file, maxWidth = 1600, maxHeight = 1600, quality = 0.8) {
 	return new Promise((resolve, reject) => {
 		if (!file) {
 			return reject(new Error('No image file provided.'));
@@ -340,10 +341,10 @@ export function compressImageFile(file, maxWidth = 1200, maxHeight = 1200, quali
 			return reject(new Error('Invalid file type. Please upload a standard image (JPEG, PNG, WebP).'));
 		}
 
-		// Security: Prevent browser memory exhaustion from excessively large files (Max 10MB raw)
-		const MAX_RAW_SIZE_BYTES = 10 * 1024 * 1024;
+		// Security: Prevent browser memory exhaustion from excessively large files (Max 15MB raw)
+		const MAX_RAW_SIZE_BYTES = 15 * 1024 * 1024;
 		if (file.size > MAX_RAW_SIZE_BYTES) {
-			return reject(new Error('Image file is too large. Maximum allowed size is 10MB.'));
+			return reject(new Error('Image file is too large. Maximum allowed size is 15MB.'));
 		}
 
 		const reader = new FileReader();
@@ -374,7 +375,13 @@ export function compressImageFile(file, maxWidth = 1200, maxHeight = 1200, quali
 				// Drawing pure pixel bitmap to canvas strips all EXIF headers & GPS tags
 				ctx.drawImage(img, 0, 0, width, height);
 
-				const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+				// Attempt WebP compression first (smaller size & sharper details)
+				let compressedDataUrl = canvas.toDataURL('image/webp', quality);
+				if (!compressedDataUrl.startsWith('data:image/webp')) {
+					// Fallback to JPEG if browser does not support WebP canvas export
+					compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+				}
+
 				resolve(compressedDataUrl);
 			};
 			img.onerror = () => reject(new Error('Failed to decode image data.'));

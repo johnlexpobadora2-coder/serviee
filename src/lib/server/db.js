@@ -1059,15 +1059,22 @@ export const db = {
 		},
 
 		async delete(messageId, senderId) {
-			const supabase = getSupabase();
-			const { error } = await supabase
-				.from('messages')
-				.delete()
-				.eq('id', messageId)
-				.eq('sender_id', senderId);
+			if (!messageId || !senderId) return false;
 
-			if (error) {
-				console.error('Supabase message delete error:', error.message);
+			const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(messageId);
+
+			const supabase = getSupabase();
+			if (isUuid) {
+				const { error } = await supabase
+					.from('messages')
+					.delete()
+					.eq('id', messageId)
+					.eq('sender_id', senderId);
+
+				if (error) {
+					console.error('Supabase message delete error:', error.message);
+					throw new Error(error.message);
+				}
 			}
 
 			this.fallbackStore = this.fallbackStore.filter(m => !(m.id === messageId && m.sender_id === senderId));

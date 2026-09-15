@@ -28,9 +28,9 @@ export async function POST({ request, locals }) {
 			return json({ error: 'You cannot send a message to yourself.' }, { status: 400 });
 		}
 
-		// 3. Payload Size Guard (Max 65KB string, sufficient for compressed image payload while preventing abuse)
-		if (content.length > 65000) {
-			return json({ error: 'Message content exceeds maximum allowed size.' }, { status: 400 });
+		// 3. Payload Size Guard (Max 500KB string, sufficient for compressed 1600px HD image payload while preventing abuse)
+		if (content.length > 500000) {
+			return json({ error: 'Message content exceeds maximum allowed size (500KB).' }, { status: 400 });
 		}
 
 		const message = await db.messages.send({

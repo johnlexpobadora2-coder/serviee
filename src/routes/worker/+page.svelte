@@ -735,7 +735,7 @@
 			await sendChatMessagePayload(imageMsgPayload);
 		} catch (err) {
 			console.error('Failed to process image:', err);
-			alert('Could not process selected image. Please try again.');
+			alert(err?.message || 'Could not process selected image. Please try again.');
 		} finally {
 			uploadingImage = false;
 		}
@@ -804,12 +804,49 @@
 		}
 	}
 
-	function handleIncomingMessageDelete(messageId) {
-		if (!messageId || !conversations) return;
-		conversations = conversations.map(c => ({
-			...c,
-			messages: (c.messages || []).filter(m => m.id !== messageId)
-		}));
+	function handleIncomingMessageDelete(deletePayload) {
+		if (!deletePayload || !conversations) return;
+		const targetId = typeof deletePayload === 'string' ? deletePayload : deletePayload.messageId;
+		const tempId = typeof deletePayload === 'object' ? deletePayload.tempId : null;
+		const senderId = typeof deletePayload === 'object' ? deletePayload.senderId : null;
+		const content = typeof deletePayload === 'object' ? deletePayload.content : null;
+
+		conversations = conversations.map(c => {
+			const existingMsgs = c.messages || [];
+			const filtered = existingMsgs.filter(m => {
+				if (targetId && m.id === targetId) return false;
+				if (tempId && m.id === tempId) return false;
+				if (senderId && content && m.sender_id === senderId && m.content === content) return false;
+				return true;
+			});
+
+			if (filtered.length !== existingMsgs.length) {
+				const lastMsg = filtered.length > 0 ? filtered[filtered.length - 1] : null;
+				return {
+					...c,
+					last_message: lastMsg ? formatMessagePreview(lastMsg.content) : 'No messages yet...',
+					last_message_at: lastMsg ? lastMsg.created_at : c.last_message_at,
+					messages: filtered
+				};
+			}
+			return c;
+		});
+		setSmartCache(`${data.user?.id}_conversations`, conversations);
+	}
+
+	function handleIncomingIdUpdate(updateData) {
+		if (!updateData || !updateData.tempId || !updateData.message || !conversations) return;
+		const { tempId, message } = updateData;
+		conversations = conversations.map(c => {
+			const existingMsgs = c.messages || [];
+			const idx = existingMsgs.findIndex(m => m.id === tempId);
+			if (idx !== -1) {
+				const updated = [...existingMsgs];
+				updated[idx] = message;
+				return { ...c, messages: updated };
+			}
+			return c;
+		});
 		setSmartCache(`${data.user?.id}_conversations`, conversations);
 	}
 
@@ -833,17 +870,32 @@
 		deletingMessage = true;
 
 		try {
-			handleIncomingMessageDelete(msgId);
+			const msgObj = (activeConversation.messages || []).find(m => m.id === msgId);
+			const deleteData = {
+				messageId: msgId,
+				tempId: msgObj && String(msgObj.id).startsWith('temp_') ? msgObj.id : null,
+				senderId: data.user?.id,
+				jobId: activeConversation.job_id,
+				content: msgObj?.content,
+				createdAt: msgObj?.created_at
+			};
+
+			handleIncomingMessageDelete(deleteData);
 			if (realtimeControls) {
-				realtimeControls.sendBroadcastDelete(msgId);
+				realtimeControls.sendBroadcastDelete(deleteData);
 			}
 			showDeleteConfirmModal = false;
 			messageToDeleteId = null;
-			await fetch('/api/messages/delete', {
+
+			const res = await fetch('/api/messages/delete', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ messageId: msgId })
 			});
+			const result = await res.json();
+			if (!res.ok || !result.success) {
+				console.error('Failed to delete message on server:', result.error);
+			}
 		} catch (err) {
 			console.error('Failed to delete message:', err);
 		} finally {
@@ -894,8 +946,11 @@
 			onMessage: (msg) => {
 				handleIncomingMessage(msg);
 			},
-			onDelete: (messageId) => {
-				handleIncomingMessageDelete(messageId);
+			onDelete: (deleteData) => {
+				handleIncomingMessageDelete(deleteData);
+			},
+			onIdUpdate: (updateData) => {
+				handleIncomingIdUpdate(updateData);
 			},
 			onTyping: ({ convId, isTyping }) => {
 				if (activeConversation && activeConversation.id === convId) {
@@ -1003,6 +1058,13 @@
 					return c;
 				});
 				setSmartCache(`${data.user?.id}_conversations`, conversations);
+
+				if (realtimeControls) {
+					realtimeControls.sendBroadcastIdUpdate({
+						tempId,
+						message: result.message
+					});
+				}
 			}
 		} catch (err) {
 			console.error('Failed to send message:', err);

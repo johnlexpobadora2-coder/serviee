@@ -46,18 +46,20 @@ export function playNotificationSound() {
  * @param {Object} options
  * @param {string} options.currentUserId
  * @param {(message: any) => void} options.onMessage
- * @param {(messageId: string) => void} [options.onDelete]
+ * @param {(deleteData: any) => void} [options.onDelete]
+ * @param {(updateData: { tempId: string, message: any }) => void} [options.onIdUpdate]
  * @param {(data: { convId: string, userId: string, isTyping: boolean }) => void} [options.onTyping]
  * @param {(status: string) => void} [options.onStatusChange]
- * @returns {{ channel: any, sendTypingSignal: Function, sendBroadcastMessage: Function, sendBroadcastDelete: Function, unsubscribe: Function }}
+ * @returns {{ channel: any, sendTypingSignal: Function, sendBroadcastMessage: Function, sendBroadcastDelete: Function, sendBroadcastIdUpdate: Function, unsubscribe: Function }}
  */
-export function setupRealtimeChat({ currentUserId, onMessage, onDelete, onTyping, onStatusChange }) {
+export function setupRealtimeChat({ currentUserId, onMessage, onDelete, onIdUpdate, onTyping, onStatusChange }) {
 	if (!currentUserId || !supabase) {
 		return {
 			channel: null,
 			sendTypingSignal: () => {},
 			sendBroadcastMessage: () => {},
 			sendBroadcastDelete: () => {},
+			sendBroadcastIdUpdate: () => {},
 			unsubscribe: () => {}
 		};
 	}
@@ -110,12 +112,19 @@ export function setupRealtimeChat({ currentUserId, onMessage, onDelete, onTyping
 
 	// 4. Listen for Broadcast Message Deletion
 	channel.on('broadcast', { event: 'delete_message' }, ({ payload }) => {
-		if (payload && payload.messageId && onDelete) {
-			onDelete(payload.messageId);
+		if (payload && onDelete) {
+			onDelete(payload.messageId ? payload : payload.messageId);
 		}
 	});
 
-	// 5. Listen for Typing Indicators
+	// 5. Listen for Message ID Update (from tempId to persistent DB uuid)
+	channel.on('broadcast', { event: 'id_update' }, ({ payload }) => {
+		if (payload && onIdUpdate) {
+			onIdUpdate(payload);
+		}
+	});
+
+	// 6. Listen for Typing Indicators
 	channel.on('broadcast', { event: 'typing' }, ({ payload }) => {
 		if (payload && onTyping && payload.userId !== currentUserId) {
 			onTyping(payload);
@@ -156,15 +165,30 @@ export function setupRealtimeChat({ currentUserId, onMessage, onDelete, onTyping
 		}
 	};
 
-	const sendBroadcastDelete = (messageId) => {
+	const sendBroadcastDelete = (deletePayload) => {
 		try {
+			const payload = typeof deletePayload === 'object' && deletePayload !== null
+				? deletePayload
+				: { messageId: deletePayload };
 			channel.send({
 				type: 'broadcast',
 				event: 'delete_message',
-				payload: { messageId }
+				payload
 			});
 		} catch (err) {
 			console.warn('Failed to broadcast message delete:', err);
+		}
+	};
+
+	const sendBroadcastIdUpdate = (updatePayload) => {
+		try {
+			channel.send({
+				type: 'broadcast',
+				event: 'id_update',
+				payload: updatePayload
+			});
+		} catch (err) {
+			console.warn('Failed to broadcast id update:', err);
 		}
 	};
 
@@ -181,6 +205,7 @@ export function setupRealtimeChat({ currentUserId, onMessage, onDelete, onTyping
 		sendTypingSignal,
 		sendBroadcastMessage,
 		sendBroadcastDelete,
+		sendBroadcastIdUpdate,
 		unsubscribe
 	};
 }
