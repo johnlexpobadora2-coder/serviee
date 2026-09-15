@@ -1132,6 +1132,7 @@
 		{hasActiveFilters} 
 		currentUserId={data.user?.id} 
 		onloadmore={() => fetchFeedJobs(feedJobs.length, true)}
+		onrefresh={() => fetchFeedJobs(0, false)}
 		onopenviewprofile={openViewProfile} 
 		onopendeletejob={openDeleteJobModal} 
 	/>

@@ -45,6 +45,7 @@
 		hasActiveFilters = false, 
 		currentUserId = null, 
 		onloadmore,
+		onrefresh,
 		onopenviewprofile, 
 		onopendeletejob 
 	} = $props();
@@ -499,7 +500,7 @@
 	</section>
 
 	<!-- Feed Refresh Speed Dial (Floating Action Button) -->
-	<FeedRefreshSpeedDial />
+	<FeedRefreshSpeedDial {onrefresh} {loading} />
 
 	<!-- Share Job Modal -->
 	<ShareJobModal 

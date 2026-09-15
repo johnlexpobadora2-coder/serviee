@@ -55,13 +55,22 @@
 		sortBy !== 'newest'
 	);
 
+	let feedAbortController = null;
+
 	async function fetchFeedJobs(offset = 0, append = false) {
 		if (append) {
 			if (feedLoadingMore || !feedHasMore) return;
 			feedLoadingMore = true;
 		} else {
+			// Abort any existing in-flight search/filter request
+			if (feedAbortController) {
+				feedAbortController.abort();
+			}
+			feedAbortController = new AbortController();
 			feedLoading = true;
 		}
+
+		const currentController = feedAbortController;
 
 		try {
 			const params = new URLSearchParams({
@@ -79,7 +88,9 @@
 				params.append('maxBudget', String(maxBudget));
 			}
 
-			const res = await fetch(`/api/jobs/feed?${params.toString()}`);
+			const res = await fetch(`/api/jobs/feed?${params.toString()}`, {
+				signal: append ? undefined : currentController?.signal
+			});
 			if (res.ok) {
 				const result = await res.json();
 				if (result.jobs) {
@@ -104,10 +115,18 @@
 				}
 			}
 		} catch (err) {
+			if (err.name === 'AbortError') {
+				// Silently ignore aborted requests from fast filter switching
+				return;
+			}
 			console.error('Failed to fetch feed jobs:', err);
 		} finally {
-			feedLoading = false;
-			feedLoadingMore = false;
+			if (!append && currentController === feedAbortController) {
+				feedLoading = false;
+			}
+			if (append) {
+				feedLoadingMore = false;
+			}
 		}
 	}
 
@@ -550,6 +569,11 @@
 	function openChat(jobId, customerId, extraData = {}) {
 		const convKey = `${jobId}_${customerId}`;
 		let matchedConv = conversations.find(c => c.id === convKey);
+
+		// Optimistically mark applied in feedJobs so returning to feed shows 'Open Chat'
+		if (jobId && feedJobs && feedJobs.length > 0) {
+			feedJobs = feedJobs.map(j => j.id === jobId ? { ...j, hasApplied: true } : j);
+		}
 
 		const targetJob = feedJobs.find(j => j.id === jobId) || activeJobs.find(j => j.id === jobId);
 		const jobTitle = extraData.jobTitle || targetJob?.title || 'Sideline Job Inquiry';
@@ -1056,6 +1080,7 @@
 		{hasActiveFilters} 
 		bind:applyingJobId 
 		onloadmore={() => fetchFeedJobs(feedJobs.length, true)}
+		onrefresh={() => fetchFeedJobs(0, false)}
 		onopenviewprofile={openViewProfile} 
 		onopenchat={openChat} 
 	/>

@@ -2,8 +2,22 @@
 	import { RotateCw } from 'lucide-svelte';
 	import { onMount, onDestroy } from 'svelte';
 
-	let isReloading = $state(false);
+	/**
+	 * @typedef {Object} Props
+	 * @property {() => void | Promise<void>} [onrefresh]
+	 * @property {boolean} [loading=false]
+	 */
+
+	/** @type {Props} */
+	let {
+		onrefresh,
+		loading = false
+	} = $props();
+
+	let isRefreshing = $state(false);
 	let isVisible = $state(false);
+
+	let isSpinning = $derived(isRefreshing || loading);
 
 	function handleScroll() {
 		if (typeof window !== 'undefined') {
@@ -14,14 +28,6 @@
 
 	onMount(() => {
 		if (typeof window !== 'undefined') {
-			// Check if we just reloaded via our refresh button
-			try {
-				if (sessionStorage.getItem('serviee_reload_scroll_top') === 'true') {
-					sessionStorage.removeItem('serviee_reload_scroll_top');
-					window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-				}
-			} catch (e) {}
-
 			window.addEventListener('scroll', handleScroll, { passive: true });
 			handleScroll();
 		}
@@ -33,21 +39,27 @@
 		}
 	});
 
-	function handleReload() {
-		if (isReloading) return;
-		isReloading = true;
+	async function handleRefresh() {
+		if (isSpinning) return;
+
+		// Smoothly scroll back to top of the feed
 		if (typeof window !== 'undefined') {
+			window.scrollTo({ top: 0, behavior: 'smooth' });
+		}
+
+		if (onrefresh) {
+			isRefreshing = true;
 			try {
-				// Mark session so when the page finishes loading, it starts at the top
-				sessionStorage.setItem('serviee_reload_scroll_top', 'true');
-			} catch (e) {}
-
-			// Set scroll restoration to manual so browser doesn't scroll back down on load
-			if ('scrollRestoration' in history) {
-				history.scrollRestoration = 'manual';
+				await Promise.resolve(onrefresh());
+			} catch (err) {
+				console.error('Error refreshing feed:', err);
+			} finally {
+				setTimeout(() => {
+					isRefreshing = false;
+				}, 400);
 			}
-
-			// Direct reload without moving the screen beforehand
+		} else if (typeof window !== 'undefined') {
+			// Fallback reload if no custom onrefresh callback was provided
 			window.location.reload();
 		}
 	}
@@ -57,11 +69,11 @@
 <div class="feed-refresh-fab-wrap {isVisible ? 'visible' : ''}">
 	<button 
 		type="button" 
-		class="feed-refresh-fab {isReloading ? 'spin-anim' : ''}" 
-		onclick={handleReload}
-		title="Reload Feed"
-		aria-label="Reload Feed"
-		disabled={isReloading}
+		class="feed-refresh-fab {isSpinning ? 'spin-anim' : ''}" 
+		onclick={handleRefresh}
+		title="Refresh Feed"
+		aria-label="Refresh Feed"
+		disabled={isSpinning}
 	>
 		<span class="refresh-icon">
 			<RotateCw size={22} />

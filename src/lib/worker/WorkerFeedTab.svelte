@@ -46,6 +46,7 @@
 		hasActiveFilters = false, 
 		applyingJobId = $bindable(null), 
 		onloadmore,
+		onrefresh,
 		onopenviewprofile, 
 		onopenchat
 	} = $props();
@@ -53,6 +54,7 @@
 	let viewMode = $state('list'); // 'list' | 'map'
 	let shareModalOpen = $state(false);
 	let shareTargetJob = $state(null);
+	let sentinelEl = $state(null);
 
 	function handleOpenShare(job) {
 		shareTargetJob = job;
@@ -86,24 +88,27 @@
 		}
 	}
 
-	function handleWindowScroll() {
-		if (typeof window === 'undefined' || loading || loadingMore || !hasMore || viewMode === 'map') return;
-		const scrollPosition = window.innerHeight + window.scrollY;
-		const threshold = document.documentElement.scrollHeight - 300;
-		if (scrollPosition >= threshold) {
-			if (onloadmore) {
-				onloadmore();
-			}
-		}
-	}
-
+	// High-performance infinite scroll using IntersectionObserver
 	$effect(() => {
-		if (typeof window !== 'undefined') {
-			window.addEventListener('scroll', handleWindowScroll, { passive: true });
-			return () => {
-				window.removeEventListener('scroll', handleWindowScroll);
-			};
-		}
+		if (!sentinelEl || typeof IntersectionObserver === 'undefined') return;
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				const first = entries[0];
+				if (first && first.isIntersecting && !loading && !loadingMore && hasMore && viewMode === 'list') {
+					if (onloadmore) {
+						onloadmore();
+					}
+				}
+			},
+			{ rootMargin: '300px 0px' }
+		);
+
+		observer.observe(sentinelEl);
+
+		return () => {
+			observer.disconnect();
+		};
 	});
 </script>
 
@@ -340,15 +345,39 @@
 		{:else}
 			{#if loading && jobs.length > 0}
 				<div class="card" style="display: flex; align-items: center; justify-content: center; gap: 0.6rem; padding: 0.65rem 1rem; border-color: var(--accent); background: rgba(59, 130, 246, 0.05); font-size: 0.88rem; color: var(--accent); font-weight: 500;">
-					<Settings size={16} class="animate-spin" />
-					<span>Updating filter results...</span>
+					<Loader2 size={16} class="animate-spin" />
+					<span>Filtering available jobs...</span>
 				</div>
 			{/if}
 
 			{#if loading && jobs.length === 0}
-				<div class="card" style="text-align: center; padding: 4rem 2rem;">
-					<Settings size={36} class="animate-spin" style="margin: 0 auto 1rem auto; color: var(--accent);" />
-					<p style="color: var(--text-secondary); font-size: 0.95rem;">Fetching & filtering available jobs...</p>
+				<!-- Skeleton Shimmer Cards -->
+				<div style="display: flex; flex-direction: column; gap: 1rem;">
+					{#each [1, 2, 3] as _}
+						<div class="feed-skeleton-card">
+							<div class="feed-skeleton-header">
+								<div class="skeleton-box" style="width: 130px; height: 22px; border-radius: var(--radius-full);"></div>
+								<div class="skeleton-box" style="width: 65px; height: 26px; border-radius: var(--radius-md);"></div>
+							</div>
+							<div class="skeleton-box" style="width: 70%; height: 24px; border-radius: var(--radius-sm); margin-top: 0.2rem;"></div>
+							<div class="feed-skeleton-row">
+								<div class="skeleton-box" style="width: 100px; height: 16px;"></div>
+								<div class="skeleton-box" style="width: 80px; height: 16px;"></div>
+							</div>
+							<div class="skeleton-box" style="width: 100%; height: 48px; border-radius: var(--radius-sm);"></div>
+							<div class="feed-skeleton-row">
+								<div class="skeleton-box" style="width: 140px; height: 16px;"></div>
+								<div class="skeleton-box" style="width: 160px; height: 16px;"></div>
+							</div>
+							<div class="feed-skeleton-footer">
+								<div style="display: flex; flex-direction: column; gap: 0.25rem;">
+									<div class="skeleton-box" style="width: 45px; height: 12px;"></div>
+									<div class="skeleton-box" style="width: 85px; height: 20px;"></div>
+								</div>
+								<div class="skeleton-box" style="width: 140px; height: 36px; border-radius: var(--radius-md);"></div>
+							</div>
+						</div>
+					{/each}
 				</div>
 			{:else if jobs.length === 0}
 				<div
@@ -491,6 +520,8 @@
 										action="?/inquireJob"
 										use:enhance={() => {
 											applyingJobId = job.id;
+											// Optimistic local update
+											job.hasApplied = true;
 											const initMsg = `Hello! Inquiring po ako sa sideline job na ito: ${job.title}.`;
 											return async ({ update, result }) => {
 												applyingJobId = null;
@@ -531,6 +562,9 @@
 					</div>
 				{/each}
 
+				<!-- Sentinel Element for Infinite Scroll -->
+				<div bind:this={sentinelEl} style="height: 1px; width: 100%; pointer-events: none;"></div>
+
 				{#if loadingMore}
 					<div style="display: flex; justify-content: center; align-items: center; padding: 1.5rem; gap: 0.5rem; color: var(--text-secondary);">
 						<Loader2 size={20} class="animate-spin" style="color: var(--accent);" />
@@ -546,7 +580,7 @@
 	</section>
 
 	<!-- Feed Refresh Speed Dial (Floating Action Button) -->
-	<FeedRefreshSpeedDial />
+	<FeedRefreshSpeedDial {onrefresh} {loading} />
 
 	<!-- Share Job Modal -->
 	<ShareJobModal 
