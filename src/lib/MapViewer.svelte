@@ -1,7 +1,12 @@
 <script>
 	import { onDestroy, onMount } from 'svelte';
 	import { browser } from '$app/environment';
-	import { getGoogleMapsUrl } from '$lib/gpsUtils.js';
+	import { 
+		getGoogleMapsUrl, 
+		getGoogleMapsDirectionsUrl, 
+		getCurrentCoordinates, 
+		calculateDistance 
+	} from '$lib/gpsUtils.js';
 	import { 
 		MapPin, 
 		ExternalLink, 
@@ -12,7 +17,9 @@
 		Layers, 
 		ZoomIn, 
 		ZoomOut, 
-		Share2 
+		Share2,
+		Maximize,
+		Loader2
 	} from 'lucide-svelte';
 
 	/**
@@ -39,6 +46,8 @@
 	let mapContainer = $state(null);
 	let mapInstance = null;
 	let markerInstance = null;
+	let userMarkerInstance = null;
+	let userAccuracyCircle = null;
 	let leafletLib = null;
 	let currentLayer = $state('streets'); // 'streets' | 'satellite'
 	let tileLayerInstance = null;
@@ -46,11 +55,27 @@
 	let copied = $state(false);
 	let copyTimer = null;
 
+	let userCoords = $state(null);
+	let isLocating = $state(false);
+	let locationError = $state(null);
+
 	const numLat = $derived(typeof latitude === 'number' ? latitude : parseFloat(latitude) || 14.599512);
 	const numLng = $derived(typeof longitude === 'number' ? longitude : parseFloat(longitude) || 120.984222);
+	
 	const googleMapsUrl = $derived(getGoogleMapsUrl(numLat, numLng, title || 'Job Location'));
+	const directionsUrl = $derived(
+		userCoords 
+			? getGoogleMapsDirectionsUrl(userCoords.latitude, userCoords.longitude, numLat, numLng) 
+			: googleMapsUrl
+	);
 
-	function createCustomPin(L) {
+	const distanceInfo = $derived(
+		userCoords 
+			? calculateDistance(userCoords.latitude, userCoords.longitude, numLat, numLng) 
+			: null
+	);
+
+	function createCustomJobPin(L) {
 		return L.divIcon({
 			className: 'serviee-map-viewer-pin',
 			html: `
@@ -65,7 +90,7 @@
 						display: flex;
 						align-items: center;
 						justify-content: center;
-						box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+						box-shadow: 0 4px 10px rgba(0,0,0,0.35);
 						z-index: 2;
 					">
 						<svg style="transform: rotate(45deg); width: 20px; height: 20px;" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -91,6 +116,35 @@
 		});
 	}
 
+	function createUserLocationPin(L) {
+		return L.divIcon({
+			className: 'serviee-user-gps-pin',
+			html: `
+				<div style="position: relative; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%);">
+					<div style="
+						position: absolute;
+						inset: -6px;
+						border-radius: 50%;
+						background: rgba(59, 130, 246, 0.35);
+						animation: pulseUserMarker 2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+					"></div>
+					<div style="
+						width: 20px;
+						height: 20px;
+						border-radius: 50%;
+						background: #2563eb;
+						border: 3.5px solid #ffffff;
+						box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+						z-index: 2;
+					"></div>
+				</div>
+			`,
+			iconSize: [0, 0],
+			iconAnchor: [0, 0],
+			popupAnchor: [0, -18]
+		});
+	}
+
 	let resizeObserver = null;
 
 	async function initMap() {
@@ -113,31 +167,13 @@
 
 				setMapLayer('streets');
 
-				const customPin = createCustomPin(L);
+				const customPin = createCustomJobPin(L);
 				markerInstance = L.marker([numLat, numLng], {
 					icon: customPin,
 					draggable: false
 				}).addTo(mapInstance);
 
-				const popupContent = `
-					<div style="font-family: inherit; font-size: 0.85rem; color: #1e293b; padding: 4px; min-width: 180px;">
-						<div style="font-weight: 700; color: #0f172a; margin-bottom: 2px;">${title || 'Pinned Location'}</div>
-						${address ? `<div style="font-size: 0.75rem; color: #64748b; margin-bottom: 6px;">${address}</div>` : ''}
-						<div style="font-size: 0.72rem; color: #10b981; font-weight: 600; margin-bottom: 8px;">
-							${numLat.toFixed(6)}, ${numLng.toFixed(6)}
-						</div>
-						<a 
-							href="${googleMapsUrl}" 
-							target="_blank" 
-							rel="noopener noreferrer"
-							style="display: inline-flex; align-items: center; justify-content: center; gap: 4px; width: 100%; background: #10b981; color: #ffffff; text-decoration: none; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;"
-						>
-							Open Google Maps ↗
-						</a>
-					</div>
-				`;
-
-				markerInstance.bindPopup(popupContent).openPopup();
+				updateJobPopup();
 
 				// Invalidate size once rendered
 				setTimeout(() => {
@@ -149,15 +185,142 @@
 				setTimeout(() => {
 					if (mapInstance) mapInstance.invalidateSize();
 				}, 600);
+
+				// Auto-fetch user GPS location in background
+				locateUser(false);
 			} else {
 				mapInstance.setView([numLat, numLng], 16);
 				if (markerInstance) {
 					markerInstance.setLatLng([numLat, numLng]);
+					updateJobPopup();
 				}
 				mapInstance.invalidateSize();
 			}
 		} catch (err) {
 			console.error('Failed to initialize MapViewer Leaflet:', err);
+		}
+	}
+
+	function updateJobPopup() {
+		if (!markerInstance) return;
+		const distText = distanceInfo ? ` • ${distanceInfo.text} away` : '';
+		const popupContent = `
+			<div style="font-family: inherit; font-size: 0.85rem; color: #1e293b; padding: 4px; min-width: 190px;">
+				<div style="font-weight: 700; color: #0f172a; margin-bottom: 2px;">${title || 'Pinned Location'}</div>
+				${address ? `<div style="font-size: 0.75rem; color: #64748b; margin-bottom: 6px;">${address}</div>` : ''}
+				<div style="font-size: 0.72rem; color: #10b981; font-weight: 600; margin-bottom: 8px;">
+					${numLat.toFixed(6)}, ${numLng.toFixed(6)}${distText}
+				</div>
+				<a 
+					href="${directionsUrl}" 
+					target="_blank" 
+					rel="noopener noreferrer"
+					style="display: inline-flex; align-items: center; justify-content: center; gap: 4px; width: 100%; background: #10b981; color: #ffffff; text-decoration: none; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;"
+				>
+					${userCoords ? 'Directions in Google Maps ↗' : 'Open Google Maps ↗'}
+				</a>
+			</div>
+		`;
+		markerInstance.bindPopup(popupContent);
+	}
+
+	async function locateUser(pan = false) {
+		if (!browser) return;
+		isLocating = true;
+		locationError = null;
+
+		try {
+			const coords = await getCurrentCoordinates();
+			if (coords && coords.latitude && coords.longitude) {
+				userCoords = coords;
+
+				if (mapInstance && leafletLib) {
+					const L = leafletLib;
+
+					// Remove existing user marker & circle if any
+					if (userMarkerInstance) {
+						mapInstance.removeLayer(userMarkerInstance);
+					}
+					if (userAccuracyCircle) {
+						mapInstance.removeLayer(userAccuracyCircle);
+					}
+
+					// Accuracy circle
+					if (coords.accuracy && coords.accuracy < 2000) {
+						userAccuracyCircle = L.circle([coords.latitude, coords.longitude], {
+							radius: coords.accuracy,
+							color: '#3b82f6',
+							weight: 1,
+							fillColor: '#3b82f6',
+							fillOpacity: 0.12
+						}).addTo(mapInstance);
+					}
+
+					// Blue User GPS Pin
+					const userPin = createUserLocationPin(L);
+					userMarkerInstance = L.marker([coords.latitude, coords.longitude], {
+						icon: userPin,
+						zIndexOffset: 1000
+					}).addTo(mapInstance);
+
+					const userPopupContent = `
+						<div style="font-family: inherit; font-size: 0.85rem; color: #1e293b; padding: 4px; min-width: 170px;">
+							<div style="display: flex; align-items: center; gap: 4px; font-weight: 700; color: #2563eb; margin-bottom: 2px;">
+								<span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#2563eb;"></span>
+								Your GPS Location
+							</div>
+							<div style="font-size: 0.72rem; color: #64748b; margin-bottom: 6px;">
+								${coords.latitude.toFixed(6)}, ${coords.longitude.toFixed(6)}
+							</div>
+							${distanceInfo ? `<div style="font-size: 0.75rem; font-weight: 600; color: #0f172a; margin-bottom: 6px;">📍 ${distanceInfo.text} to job</div>` : ''}
+						</div>
+					`;
+					userMarkerInstance.bindPopup(userPopupContent);
+
+					// Update job popup with distance
+					updateJobPopup();
+
+					if (pan) {
+						mapInstance.flyTo([coords.latitude, coords.longitude], 16, { duration: 0.8 });
+						userMarkerInstance.openPopup();
+					}
+				}
+			}
+		} catch (err) {
+			console.warn('MapViewer locateUser error:', err);
+			locationError = err.message || 'Unable to retrieve your GPS location.';
+		} finally {
+			isLocating = false;
+		}
+	}
+
+	function fitBothInView() {
+		if (!mapInstance || !leafletLib) return;
+		if (!userCoords) {
+			locateUser(true);
+			return;
+		}
+		const L = leafletLib;
+		const bounds = L.latLngBounds([
+			[numLat, numLng],
+			[userCoords.latitude, userCoords.longitude]
+		]);
+		mapInstance.fitBounds(bounds, { padding: [80, 80], maxZoom: 16, animate: true });
+	}
+
+	function recenterJob() {
+		if (mapInstance) {
+			mapInstance.flyTo([numLat, numLng], 16, { duration: 0.8 });
+			if (markerInstance) markerInstance.openPopup();
+		}
+	}
+
+	function recenterUser() {
+		if (userCoords && mapInstance) {
+			mapInstance.flyTo([userCoords.latitude, userCoords.longitude], 16, { duration: 0.8 });
+			if (userMarkerInstance) userMarkerInstance.openPopup();
+		} else {
+			locateUser(true);
 		}
 	}
 
@@ -185,13 +348,6 @@
 
 	function toggleLayer() {
 		setMapLayer(currentLayer === 'streets' ? 'satellite' : 'streets');
-	}
-
-	function recenterMap() {
-		if (mapInstance) {
-			mapInstance.flyTo([numLat, numLng], 16, { duration: 0.8 });
-			if (markerInstance) markerInstance.openPopup();
-		}
 	}
 
 	function zoomIn() {
@@ -238,7 +394,7 @@
 			try {
 				await navigator.share({
 					title: title || 'Location on Serviee',
-					text: `Location: ${title || 'Job Location'} (${numLat}, ${numLng})`,
+					text: `Location: ${title || 'Job Location'} (${numLat}, ${numLng})${distanceInfo ? ` - ${distanceInfo.text} away` : ''}`,
 					url: window.location.href
 				});
 			} catch (e) {
@@ -271,6 +427,8 @@
 			mapInstance.remove();
 			mapInstance = null;
 			markerInstance = null;
+			userMarkerInstance = null;
+			userAccuracyCircle = null;
 		}
 	});
 </script>
@@ -297,7 +455,12 @@
 				<MapPin size={15} class="text-emerald-500 shrink-0" />
 				<h1 class="text-[0.95rem] max-sm:text-[0.85rem] font-bold text-white m-0 truncate">{title || 'Pinned Location'}</h1>
 			</div>
-			{#if address}
+			{#if distanceInfo}
+				<p class="text-[0.72rem] text-emerald-400 font-semibold mt-0.5 truncate flex items-center justify-center gap-1">
+					<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+					{distanceInfo.text} from your GPS location
+				</p>
+			{:else if address}
 				<p class="text-[0.72rem] text-white/70 mt-0.5 truncate">{address}</p>
 			{/if}
 		</div>
@@ -327,16 +490,50 @@
 
 	<!-- Right Floating Map Controls -->
 	<div class="absolute right-4 top-[5.5rem] max-sm:right-3 max-sm:top-[4.8rem] z-[1000] flex flex-col gap-2.5">
+		<!-- Fit Both Button (Only visible if user GPS is loaded) -->
+		{#if userCoords}
+			<button 
+				type="button" 
+				class="w-10 h-10 flex items-center justify-center bg-slate-900/90 backdrop-blur-md border border-white/15 text-emerald-400 rounded-xl cursor-pointer transition-all duration-200 hover:bg-white/20 hover:border-emerald-400/50 shadow-lg" 
+				onclick={fitBothInView} 
+				title="Fit Both (Job + My GPS) in view"
+				aria-label="Fit both locations in view"
+			>
+				<Maximize size={17} />
+			</button>
+		{/if}
+
+		<!-- Recenter Job Pin Button -->
 		<button 
 			type="button" 
-			class="w-10 h-10 flex items-center justify-center bg-slate-900/90 backdrop-blur-md border border-white/15 text-white rounded-xl cursor-pointer transition-all duration-200 hover:bg-white/20 hover:border-white/30" 
-			onclick={recenterMap} 
-			title="Recenter location"
-			aria-label="Recenter map"
+			class="w-10 h-10 flex items-center justify-center bg-slate-900/90 backdrop-blur-md border border-white/15 text-emerald-500 rounded-xl cursor-pointer transition-all duration-200 hover:bg-white/20 hover:border-white/30 shadow-lg" 
+			onclick={recenterJob} 
+			title="Focus Job Pin"
+			aria-label="Focus Job Pin"
 		>
-			<Navigation size={18} />
+			<MapPin size={18} />
 		</button>
-		<div class="flex flex-col bg-slate-900/90 backdrop-blur-md border border-white/15 rounded-xl overflow-hidden">
+
+		<!-- My GPS Location Button -->
+		<button 
+			type="button" 
+			class="w-10 h-10 flex items-center justify-center bg-slate-900/90 backdrop-blur-md border border-white/15 {userCoords ? 'text-blue-400' : 'text-white/80'} rounded-xl cursor-pointer transition-all duration-200 hover:bg-white/20 hover:border-blue-400/50 shadow-lg relative" 
+			onclick={recenterUser} 
+			title={userCoords ? 'Focus My GPS Location' : 'Locate My GPS'}
+			aria-label="Locate My GPS"
+		>
+			{#if isLocating}
+				<Loader2 size={18} class="animate-spin text-blue-400" />
+			{:else}
+				<Navigation size={18} />
+			{/if}
+			{#if userCoords}
+				<span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-blue-500 ring-2 ring-slate-900"></span>
+			{/if}
+		</button>
+
+		<!-- Zoom In / Zoom Out Controls -->
+		<div class="flex flex-col bg-slate-900/90 backdrop-blur-md border border-white/15 rounded-xl overflow-hidden shadow-lg">
 			<button 
 				type="button" 
 				class="w-10 h-10 flex items-center justify-center bg-transparent border-none border-b border-white/10 text-white cursor-pointer transition-all duration-200 hover:bg-white/20" 
@@ -358,10 +555,10 @@
 		</div>
 	</div>
 
-	<!-- Bottom Info & Google Maps Launch Card -->
+	<!-- Bottom Info & Navigation Launch Card -->
 	<div class="absolute bottom-5 left-4 right-4 max-sm:bottom-4 max-sm:left-3 max-sm:right-3 z-[1000] max-w-[600px] mx-auto">
 		<div class="flex flex-col gap-3 bg-slate-900/90 backdrop-blur-md border border-white/15 rounded-2xl p-4 max-sm:p-3.5 shadow-2xl">
-			<div>
+			<div class="flex flex-wrap items-center justify-between gap-2">
 				<div class="inline-flex items-center gap-2 bg-white/5 border border-white/10 py-1 px-2.5 rounded-full text-[0.75rem] text-white/90">
 					<span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
 					<span class="font-mono text-[0.75rem] text-white">{numLat.toFixed(6)}, {numLng.toFixed(6)}</span>
@@ -380,22 +577,52 @@
 						{/if}
 					</button>
 				</div>
-				{#if address}
-					<div class="text-[0.8rem] text-white/90 mt-1.5 leading-relaxed">{address}</div>
+
+				{#if distanceInfo}
+					<div class="inline-flex items-center gap-1.5 bg-blue-500/15 border border-blue-500/30 text-blue-300 py-1 px-2.5 rounded-full text-[0.75rem] font-semibold">
+						<Navigation size={12} class="text-blue-400 shrink-0" />
+						<span>{distanceInfo.text} away from you</span>
+					</div>
+				{:else if isLocating}
+					<div class="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 text-white/60 py-1 px-2.5 rounded-full text-[0.72rem]">
+						<Loader2 size={12} class="animate-spin text-blue-400" />
+						<span>Acquiring your GPS...</span>
+					</div>
 				{/if}
 			</div>
 
+			{#if address}
+				<div class="text-[0.8rem] text-white/90 leading-relaxed">{address}</div>
+			{/if}
+
 			<div class="flex gap-2">
+				{#if userCoords}
+					<button
+						type="button"
+						onclick={fitBothInView}
+						class="inline-flex items-center justify-center gap-1.5 bg-white/10 hover:bg-white/20 active:bg-white/10 border border-white/15 text-white py-3 px-4 max-sm:py-2.5 max-sm:px-3 rounded-xl text-[0.85rem] font-medium cursor-pointer transition-all duration-150"
+						title="Show Both on Map"
+					>
+						<Maximize size={16} />
+						<span class="max-sm:hidden">Fit Both</span>
+					</button>
+				{/if}
+
 				<a 
-					href={googleMapsUrl} 
+					href={directionsUrl} 
 					target="_blank" 
 					rel="noopener noreferrer" 
-					class="flex-1 inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white py-3 px-5 max-sm:py-2.5 max-sm:px-4 max-sm:text-[0.85rem] rounded-xl text-[0.9rem] font-semibold transition-colors duration-150 no-underline"
+					class="flex-1 inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white py-3 px-5 max-sm:py-2.5 max-sm:px-4 max-sm:text-[0.85rem] rounded-xl text-[0.9rem] font-semibold transition-colors duration-150 no-underline shadow-lg"
 				>
-					<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-						<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-					</svg>
-					<span>Open in Google Maps</span>
+					{#if userCoords}
+						<Navigation size={17} />
+						<span>Directions in Google Maps</span>
+					{:else}
+						<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+							<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+						</svg>
+						<span>Open in Google Maps</span>
+					{/if}
 					<ExternalLink size={15} />
 				</a>
 			</div>
@@ -414,5 +641,20 @@
 		width: 100%;
 		height: 100%;
 		min-height: 100dvh;
+	}
+
+	@keyframes pulseUserMarker {
+		0% {
+			transform: scale(0.6);
+			opacity: 0.8;
+		}
+		50% {
+			transform: scale(1.4);
+			opacity: 0.2;
+		}
+		100% {
+			transform: scale(1.8);
+			opacity: 0;
+		}
 	}
 </style>

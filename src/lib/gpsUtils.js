@@ -141,6 +141,56 @@ export function getGoogleMapsUrl(lat, lng, label = '') {
 }
 
 /**
+ * Build Google Maps turn-by-turn Directions link
+ * @param {number|string} originLat
+ * @param {number|string} originLng
+ * @param {number|string} destLat
+ * @param {number|string} destLng
+ * @returns {string}
+ */
+export function getGoogleMapsDirectionsUrl(originLat, originLng, destLat, destLng) {
+	return `https://www.google.com/maps/dir/?api=1&origin=${originLat},${originLng}&destination=${destLat},${destLng}&travelmode=driving`;
+}
+
+/**
+ * Calculate distance between two coordinates using the Haversine formula
+ * @param {number} lat1
+ * @param {number} lon1
+ * @param {number} lat2
+ * @param {number} lon2
+ * @returns {{ distanceKm: number, distanceMeters: number, text: string }}
+ */
+export function calculateDistance(lat1, lon1, lat2, lon2) {
+	const R = 6371; // Radius of the Earth in km
+	const dLat = (lat2 - lat1) * (Math.PI / 180);
+	const dLon = (lon2 - lon1) * (Math.PI / 180);
+	const a =
+		Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+		Math.cos(lat1 * (Math.PI / 180)) *
+			Math.cos(lat2 * (Math.PI / 180)) *
+			Math.sin(dLon / 2) *
+			Math.sin(dLon / 2);
+	const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+	const distanceKm = R * c;
+	const distanceMeters = Math.round(distanceKm * 1000);
+
+	let text = '';
+	if (distanceKm < 1) {
+		text = `${distanceMeters} m`;
+	} else if (distanceKm < 10) {
+		text = `${distanceKm.toFixed(1)} km`;
+	} else {
+		text = `${Math.round(distanceKm)} km`;
+	}
+
+	return {
+		distanceKm,
+		distanceMeters,
+		text
+	};
+}
+
+/**
  * Build Serviee In-App Fullscreen Map View URL
  * @param {number|string} lat
  * @param {number|string} lng
