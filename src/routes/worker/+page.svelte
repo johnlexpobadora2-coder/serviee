@@ -302,8 +302,8 @@
 					}
 				}
 			} else if (tab === 'profile') {
+				const cached = getSmartCache(`${data.user?.id}_worker_profile`, 5000);
 				if (!profileLoaded && !profileLoading) {
-					const cached = getSmartCache(`${data.user?.id}_worker_profile`);
 					if (cached.exists && cached.data) {
 						profileStats = cached.data.stats || null;
 						profileCompletedJobs = cached.data.completedJobs || [];
@@ -312,6 +312,8 @@
 					} else {
 						fetchProfileData(false);
 					}
+				} else if (cached.isStale && !profileLoading) {
+					fetchProfileData(true);
 				}
 			}
 		});
