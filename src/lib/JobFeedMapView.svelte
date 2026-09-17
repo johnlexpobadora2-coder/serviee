@@ -360,19 +360,19 @@
 	});
 </script>
 
-<div class="relative w-full h-[620px] max-sm:h-[calc(100vh-210px)] max-sm:min-h-[480px] rounded-2xl max-sm:rounded-xl overflow-hidden border border-[var(--border-color)] shadow-[var(--shadow-md)] bg-[var(--bg-card)]">
+<div class="relative w-full h-155 max-sm:h-[calc(100vh-210px)] max-sm:min-h-120 rounded-2xl max-sm:rounded-xl overflow-hidden border border-(--border-color) shadow-(--shadow-md) bg-(--bg-card)">
 	<!-- Leaflet Map Container -->
-	<div bind:this={mapContainer} class="w-full h-full z-[1]"></div>
+	<div bind:this={mapContainer} class="w-full h-full z-1"></div>
 
 	<!-- Top Info / Banner Status -->
-	<div class="absolute top-3.5 left-3.5 z-[990] flex items-center gap-2 flex-wrap pointer-events-none">
-		<span class="pointer-events-auto bg-[var(--bg-card)] border border-[var(--border-color)] rounded-[var(--radius-sm)] py-1.5 px-2.5 text-[0.76rem] text-[var(--text-primary)] inline-flex items-center gap-1.5 shadow-[var(--shadow-sm)] font-medium normal-case tracking-normal">
-			<MapPin size={12} class="text-[var(--success)]" />
+	<div class="absolute top-3.5 left-3.5 z-990 flex items-center gap-2 flex-wrap pointer-events-none">
+		<span class="pointer-events-auto bg-(--bg-card) border border-(--border-color) rounded-sm py-1.5 px-2.5 text-[0.76rem] text-(--text-primary) inline-flex items-center gap-1.5 shadow-(--shadow-sm) font-medium normal-case tracking-normal">
+			<MapPin size={12} class="text-(--success)" />
 			<span><strong>{mappedJobs.length}</strong> Pinned Jobs</span>
 		</span>
 
 		{#if unmappedCount > 0}
-			<span class="pointer-events-auto bg-[var(--warning-light)] border border-amber-500/40 rounded-[var(--radius-sm)] py-1.5 px-2.5 text-[0.76rem] text-[var(--warning)] inline-flex items-center gap-1.5 shadow-[var(--shadow-sm)] font-medium normal-case tracking-normal" title="{unmappedCount} jobs without GPS coordinates">
+			<span class="pointer-events-auto bg-(--warning-light) border border-amber-500/40 rounded-sm py-1.5 px-2.5 text-[0.76rem] text-(--warning) inline-flex items-center gap-1.5 shadow-(--shadow-sm) font-medium normal-case tracking-normal" title="{unmappedCount} jobs without GPS coordinates">
 				<AlertCircle size={12} />
 				<span>{unmappedCount} Unpinned</span>
 			</span>
@@ -380,10 +380,10 @@
 	</div>
 
 	<!-- Floating Controls (Right) -->
-	<div class="absolute top-3.5 right-3.5 z-[990] flex flex-col gap-1.5 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-[var(--radius-md)] p-1.5 shadow-[var(--shadow-md)]">
+	<div class="absolute top-3.5 right-3.5 z-990 flex flex-col gap-1.5 bg-(--bg-card) border border-(--border-color) rounded-md p-1.5 shadow-(--shadow-md)">
 		<button 
 			type="button" 
-			class="w-8 h-8 rounded-[var(--radius-sm)] flex items-center justify-center cursor-pointer transition-all duration-150 {locatingUser ? 'bg-[var(--accent)] text-white' : 'bg-transparent text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--accent-light)]'}" 
+			class="w-8 h-8 rounded-sm flex items-center justify-center cursor-pointer transition-all duration-150 {locatingUser ? 'bg-(--accent) text-white' : 'bg-transparent text-(--text-secondary) hover:text-(--accent) hover:bg-(--accent-light)'}" 
 			onclick={() => locateUser(true)}
 			title="Locate My Position"
 		>
@@ -392,7 +392,7 @@
 
 		<button 
 			type="button" 
-			class="w-8 h-8 rounded-[var(--radius-sm)] bg-transparent text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--accent-light)] flex items-center justify-center cursor-pointer transition-all duration-150" 
+			class="w-8 h-8 rounded-sm bg-transparent text-(--text-secondary) hover:text-(--accent) hover:bg-(--accent-light) flex items-center justify-center cursor-pointer transition-all duration-150" 
 			onclick={fitAllJobs}
 			title="Fit All Jobs in View"
 		>
@@ -401,18 +401,18 @@
 
 		<button 
 			type="button" 
-			class="w-8 h-8 rounded-[var(--radius-sm)] flex items-center justify-center cursor-pointer transition-all duration-150 {currentLayer === 'satellite' ? 'bg-[var(--accent)] text-white' : 'bg-transparent text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--accent-light)]'}" 
+			class="w-8 h-8 rounded-sm flex items-center justify-center cursor-pointer transition-all duration-150 {currentLayer === 'satellite' ? 'bg-(--accent) text-white' : 'bg-transparent text-(--text-secondary) hover:text-(--accent) hover:bg-(--accent-light)'}" 
 			onclick={toggleMapLayer}
 			title="Toggle Satellite / Streets"
 		>
 			<Layers size={17} />
 		</button>
 
-		<div class="h-px bg-[var(--border-color)] my-0.5 mx-1"></div>
+		<div class="h-px bg-(--border-color) my-0.5 mx-1"></div>
 
 		<button 
 			type="button" 
-			class="w-8 h-8 rounded-[var(--radius-sm)] bg-transparent text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--accent-light)] flex items-center justify-center cursor-pointer transition-all duration-150" 
+			class="w-8 h-8 rounded-sm bg-transparent text-(--text-secondary) hover:text-(--accent) hover:bg-(--accent-light) flex items-center justify-center cursor-pointer transition-all duration-150" 
 			onclick={zoomIn}
 			title="Zoom In"
 		>
@@ -421,7 +421,7 @@
 
 		<button 
 			type="button" 
-			class="w-8 h-8 rounded-[var(--radius-sm)] bg-transparent text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--accent-light)] flex items-center justify-center cursor-pointer transition-all duration-150" 
+			class="w-8 h-8 rounded-sm bg-transparent text-(--text-secondary) hover:text-(--accent) hover:bg-(--accent-light) flex items-center justify-center cursor-pointer transition-all duration-150" 
 			onclick={zoomOut}
 			title="Zoom Out"
 		>
@@ -431,10 +431,10 @@
 
 	<!-- Bottom Selected Job Card Popup -->
 	{#if selectedJob}
-		<div class="absolute bottom-4 left-4 right-4 max-w-[440px] z-[995] bg-[var(--bg-card)] border border-[var(--border-color)] rounded-[var(--radius-md)] p-[1.15rem] shadow-[var(--shadow-lg)] flex flex-col gap-2 animate-[slideUp_0.25s_cubic-bezier(0.16,1,0.3,1)]">
+		<div class="absolute bottom-4 left-4 right-4 max-w-110 z-995 bg-(--bg-card) border border-(--border-color) rounded-md p-[1.15rem] shadow-(--shadow-lg) flex flex-col gap-2 animate-[slideUp_0.25s_cubic-bezier(0.16,1,0.3,1)]">
 			<button 
 				type="button" 
-				class="absolute top-2.5 right-2.5 bg-transparent border-none text-[var(--text-muted)] cursor-pointer p-1.5 rounded-md flex items-center justify-center transition-all duration-150 hover:text-[var(--text-primary)] hover:bg-[var(--bg-input)]"
+				class="absolute top-2.5 right-2.5 bg-transparent border-none text-(--text-muted) cursor-pointer p-1.5 rounded-md flex items-center justify-center transition-all duration-150 hover:text-(--text-primary) hover:bg-(--bg-input)"
 				onclick={() => { selectedJob = null; updateMarkers(); }}
 				aria-label="Close card"
 			>
@@ -443,15 +443,15 @@
 
 			<div class="flex items-center gap-2 pr-6">
 				<span class="badge {getCategoryBadge(selectedJob.category)}">{selectedJob.category}</span>
-				<div class="text-[1.1rem] font-bold text-[var(--text-primary)] ml-auto">
+				<div class="text-[1.1rem] font-bold text-(--text-primary) ml-auto">
 					₱{Number(selectedJob.budget || 0).toLocaleString()}
 				</div>
 			</div>
 
-			<h4 class="text-[0.98rem] font-semibold m-0 text-[var(--text-primary)] leading-[1.35]">{selectedJob.title}</h4>
-			<p class="text-[0.8rem] text-[var(--text-secondary)] m-0 line-clamp-2 leading-[1.4]">{selectedJob.description}</p>
+			<h4 class="text-[0.98rem] font-semibold m-0 text-(--text-primary) leading-[1.35]">{selectedJob.title}</h4>
+			<p class="text-[0.8rem] text-(--text-secondary) m-0 line-clamp-2 leading-[1.4]">{selectedJob.description}</p>
 
-			<div class="flex flex-wrap gap-3 text-[0.76rem] text-[var(--text-secondary)]">
+			<div class="flex flex-wrap gap-3 text-[0.76rem] text-(--text-secondary)">
 				<div class="inline-flex items-center gap-1.5">
 					<MapPin size={13} class="text-sky-400" />
 					<span>{selectedJob.location}</span>
@@ -467,10 +467,10 @@
 				</div>
 			</div>
 
-			<div class="flex items-center gap-2 mt-1.5 pt-2.5 border-t border-[var(--border-color)]">
+			<div class="flex items-center gap-2 mt-1.5 pt-2.5 border-t border-(--border-color)">
 				<button 
 					type="button" 
-					class="w-[34px] h-[34px] rounded-lg flex items-center justify-center cursor-pointer transition-all duration-150 border {savedJobs.isSaved(selectedJob.id) ? 'bg-[var(--warning-light)] border-[var(--warning)] text-[var(--warning)] hover:bg-amber-500/25' : 'bg-[var(--bg-input)] border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--accent)] hover:border-[var(--accent)] hover:bg-[var(--accent-light)]'}"
+					class="w-8.5 h-8.5 rounded-lg flex items-center justify-center cursor-pointer transition-all duration-150 border {savedJobs.isSaved(selectedJob.id) ? 'bg-(--warning-light) border-(--warning) text-(--warning) hover:bg-amber-500/25' : 'bg-(--bg-input) border-(--border-color) text-(--text-secondary) hover:text-(--accent) hover:border-(--accent) hover:bg-(--accent-light)'}"
 					onclick={() => savedJobs.toggle(selectedJob)}
 					title={savedJobs.isSaved(selectedJob.id) ? 'Saved' : 'Save Job'}
 				>
@@ -479,7 +479,7 @@
 
 				<button 
 					type="button" 
-					class="w-[34px] h-[34px] rounded-lg flex items-center justify-center cursor-pointer transition-all duration-150 border bg-[var(--bg-input)] border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--accent)] hover:border-[var(--accent)] hover:bg-[var(--accent-light)]"
+					class="w-8.5 h-8.5 rounded-lg flex items-center justify-center cursor-pointer transition-all duration-150 border bg-(--bg-input) border-(--border-color) text-(--text-secondary) hover:text-(--accent) hover:border-(--accent) hover:bg-(--accent-light)"
 					onclick={() => onopenshare(selectedJob)}
 					title="Share Job"
 				>
@@ -490,7 +490,7 @@
 					{#if (jobs.find(j => j.id === selectedJob.id)?.hasApplied || selectedJob.hasApplied)}
 						<button
 							type="button"
-							class="btn btn-outline flex-1 py-2 px-3.5 text-[0.82rem] border-[var(--accent)] text-[var(--accent-hover)] inline-flex items-center justify-center gap-1.5"
+							class="btn btn-outline flex-1 py-2 px-3.5 text-[0.82rem] border-(--accent) text-(--accent-hover) inline-flex items-center justify-center gap-1.5"
 							onclick={() => onopenchat(selectedJob.id, selectedJob.customer_id)}
 						>
 							<MessageSquare size={14} />

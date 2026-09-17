@@ -200,13 +200,13 @@
 	<title>Account Settings | Serviee</title>
 </svelte:head>
 
-<div class="max-w-[800px] mx-auto my-4 sm:my-8 px-2.5 min-[380px]:px-3.5 sm:px-4">
+<div class="max-w-200 mx-auto my-4 sm:my-8 px-2.5 min-[380px]:px-3.5 sm:px-4">
 	<div class="flex flex-col gap-5 sm:gap-6">
 		<!-- Navigation Breadcrumb / Back Link -->
 		<div class="flex items-center">
 			<a 
 				href={data.user.role === 'customer' ? '/customer' : '/worker'} 
-				class="inline-flex items-center gap-2 text-[var(--text-secondary)] text-[0.9rem] font-medium transition-colors hover:text-[var(--accent)]"
+				class="inline-flex items-center gap-2 text-(--text-secondary) text-[0.9rem] font-medium transition-colors hover:text-(--accent)"
 			>
 				<ArrowLeft size={18} />
 				Back to Dashboard
@@ -214,18 +214,18 @@
 		</div>
 
 		<!-- User Hero Header Banner -->
-		<div class="flex flex-col sm:flex-row items-center text-center sm:text-left gap-3.5 sm:gap-5 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-[var(--radius-lg)] p-3.5 min-[380px]:p-4.5 sm:p-6 shadow-[var(--shadow-md)]">
-			<div class="w-16 h-16 rounded-full bg-linear-to-br from-[var(--accent)] to-[hsl(280,80%,60%)] text-white text-[1.8rem] font-bold flex items-center justify-center shrink-0">
+		<div class="flex flex-col sm:flex-row items-center text-center sm:text-left gap-3.5 sm:gap-5 bg-(--bg-card) border border-(--border-color) rounded-lg p-3.5 min-[380px]:p-4.5 sm:p-6 shadow-(--shadow-md)">
+			<div class="w-16 h-16 rounded-full bg-linear-to-br from-(--accent) to-[hsl(280,80%,60%)] text-white text-[1.8rem] font-bold flex items-center justify-center shrink-0">
 				{data.user.name ? data.user.name.charAt(0).toUpperCase() : 'U'}
 			</div>
 			<div class="flex flex-col gap-1">
 				<div class="flex items-center justify-center sm:justify-start gap-3 flex-wrap">
-					<h2 class="m-0 text-[1.4rem] font-semibold text-[var(--text-primary)]">{data.user.name}</h2>
+					<h2 class="m-0 text-[1.4rem] font-semibold text-(--text-primary)">{data.user.name}</h2>
 					<span class="px-3.5 py-1 rounded-full text-[0.8rem] font-medium capitalize leading-tight border-0 {data.user.role === 'customer' ? 'bg-[hsla(330,85%,65%,0.2)] text-[#f472b6] [html.light_&]:bg-[#fce7f3] [html.light_&]:text-[#be185d]' : 'bg-[hsla(142,70%,50%,0.2)] text-[#4ade80] [html.light_&]:bg-[#bbf7d0] [html.light_&]:text-[#15803d]'}">
 						{data.user.role === 'customer' ? 'Client' : 'Worker'}
 					</span>
 				</div>
-				<p class="flex items-center justify-center sm:justify-start gap-1.5 text-[var(--text-muted)] text-[0.85rem] m-0"><Mail size={14} /> {data.user.email}</p>
+				<p class="flex items-center justify-center sm:justify-start gap-1.5 text-(--text-muted) text-[0.85rem] m-0"><Mail size={14} /> {data.user.email}</p>
 			</div>
 		</div>
 
@@ -233,7 +233,7 @@
 		<div class="grid grid-cols-3 gap-1.5 sm:gap-2 mb-0 w-full" role="tablist">
 			<button
 				type="button"
-				class="tab-btn !inline-flex !items-center !justify-center gap-1 min-[380px]:gap-1.5 sm:gap-2 w-full px-1 min-[380px]:px-1.5 sm:px-3 py-2.5 sm:py-3 text-center shrink text-[0.76rem] min-[380px]:text-[0.82rem] sm:text-[0.9rem]"
+				class="tab-btn inline-flex! items-center! justify-center! gap-1 min-[380px]:gap-1.5 sm:gap-2 w-full px-1 min-[380px]:px-1.5 sm:px-3 py-2.5 sm:py-3 text-center shrink text-[0.76rem] min-[380px]:text-[0.82rem] sm:text-[0.9rem]"
 				class:active={activeTab === 'profile'}
 				onclick={() => (activeTab = 'profile')}
 				role="tab"
@@ -244,7 +244,7 @@
 			</button>
 			<button
 				type="button"
-				class="tab-btn !inline-flex !items-center !justify-center gap-1 min-[380px]:gap-1.5 sm:gap-2 w-full px-1 min-[380px]:px-1.5 sm:px-3 py-2.5 sm:py-3 text-center shrink text-[0.76rem] min-[380px]:text-[0.82rem] sm:text-[0.9rem]"
+				class="tab-btn inline-flex! items-center! justify-center! gap-1 min-[380px]:gap-1.5 sm:gap-2 w-full px-1 min-[380px]:px-1.5 sm:px-3 py-2.5 sm:py-3 text-center shrink text-[0.76rem] min-[380px]:text-[0.82rem] sm:text-[0.9rem]"
 				class:active={activeTab === 'security'}
 				onclick={() => (activeTab = 'security')}
 				role="tab"
@@ -255,7 +255,7 @@
 			</button>
 			<button
 				type="button"
-				class="tab-btn !inline-flex !items-center !justify-center gap-1 min-[380px]:gap-1.5 sm:gap-2 w-full px-1 min-[380px]:px-1.5 sm:px-3 py-2.5 sm:py-3 text-center shrink text-[0.76rem] min-[380px]:text-[0.82rem] sm:text-[0.9rem]"
+				class="tab-btn inline-flex! items-center! justify-center! gap-1 min-[380px]:gap-1.5 sm:gap-2 w-full px-1 min-[380px]:px-1.5 sm:px-3 py-2.5 sm:py-3 text-center shrink text-[0.76rem] min-[380px]:text-[0.82rem] sm:text-[0.9rem]"
 				class:active={activeTab === 'roles'}
 				onclick={() => (activeTab = 'roles')}
 				role="tab"
@@ -268,10 +268,10 @@
 
 		<!-- Tab Content 1: Profile Customization -->
 		{#if activeTab === 'profile'}
-			<div class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-[var(--radius-lg)] p-3.5 min-[380px]:p-5 sm:p-7 shadow-[var(--shadow-md)] flex flex-col gap-5 sm:gap-6">
+			<div class="bg-(--bg-card) border border-(--border-color) rounded-lg p-3.5 min-[380px]:p-5 sm:p-7 shadow-(--shadow-md) flex flex-col gap-5 sm:gap-6">
 				<div>
-					<h3 class="text-[1.2rem] font-semibold text-[var(--text-primary)] mb-1">Profile Customization</h3>
-					<p class="text-[var(--text-muted)] text-[0.85rem] m-0">Update your public profile details and contact information.</p>
+					<h3 class="text-[1.2rem] font-semibold text-(--text-primary) mb-1">Profile Customization</h3>
+					<p class="text-(--text-muted) text-[0.85rem] m-0">Update your public profile details and contact information.</p>
 				</div>
 
 				<form
@@ -303,9 +303,9 @@
 					}}
 				>
 					<div class="flex flex-col gap-1.5">
-						<label for="name" class="font-medium text-[0.88rem] text-[var(--text-secondary)]">Full Name</label>
+						<label for="name" class="font-medium text-[0.88rem] text-(--text-secondary)">Full Name</label>
 						<div class="relative flex items-center">
-							<User size={18} class="absolute left-3.5 text-[var(--text-muted)] pointer-events-none" />
+							<User size={18} class="absolute left-3.5 text-(--text-muted) pointer-events-none" />
 							<input
 								type="text"
 								id="name"
@@ -313,48 +313,48 @@
 								bind:value={name}
 								placeholder="Enter your full name"
 								required
-								class="w-full py-2.5 pr-3.5 pl-10.5 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] text-[var(--text-primary)] text-[0.9rem] font-sans transition-colors focus:outline-none focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--accent-light)]"
+								class="w-full py-2.5 pr-3.5 pl-10.5 bg-(--bg-input) border border-(--border-color) rounded-md text-(--text-primary) text-[0.9rem] font-sans transition-colors focus:outline-none focus:border-(--border-focus) focus:ring-2 focus:ring-(--accent-light)"
 							/>
 						</div>
 					</div>
 
 					<div class="flex flex-col gap-1.5">
-						<label for="email" class="font-medium text-[0.88rem] text-[var(--text-secondary)]">Email Address</label>
+						<label for="email" class="font-medium text-[0.88rem] text-(--text-secondary)">Email Address</label>
 						<div class="relative flex items-center">
-							<Mail size={18} class="absolute left-3.5 text-[var(--text-muted)] pointer-events-none" />
+							<Mail size={18} class="absolute left-3.5 text-(--text-muted) pointer-events-none" />
 							<input
 								type="email"
 								id="email"
 								value={data.user.email}
 								disabled
-								class="w-full py-2.5 pr-3.5 pl-10.5 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] text-[var(--text-primary)] text-[0.9rem] font-sans opacity-60 cursor-not-allowed"
+								class="w-full py-2.5 pr-3.5 pl-10.5 bg-(--bg-input) border border-(--border-color) rounded-md text-(--text-primary) text-[0.9rem] font-sans opacity-60 cursor-not-allowed"
 							/>
 						</div>
-						<small class="text-[0.78rem] text-[var(--text-muted)]">Email address is tied to your account identity.</small>
+						<small class="text-[0.78rem] text-(--text-muted)">Email address is tied to your account identity.</small>
 					</div>
 
 					<div class="flex flex-col gap-1.5">
-						<label for="phone" class="font-medium text-[0.88rem] text-[var(--text-secondary)]">Phone Number</label>
+						<label for="phone" class="font-medium text-[0.88rem] text-(--text-secondary)">Phone Number</label>
 						<div class="relative flex items-center">
-							<Phone size={18} class="absolute left-3.5 text-[var(--text-muted)] pointer-events-none" />
+							<Phone size={18} class="absolute left-3.5 text-(--text-muted) pointer-events-none" />
 							<input
 								type="tel"
 								id="phone"
 								name="phone"
 								bind:value={phone}
 								placeholder="e.g. 09171234567"
-								class="w-full py-2.5 pr-3.5 pl-10.5 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] text-[var(--text-primary)] text-[0.9rem] font-sans transition-colors focus:outline-none focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--accent-light)]"
+								class="w-full py-2.5 pr-3.5 pl-10.5 bg-(--bg-input) border border-(--border-color) rounded-md text-(--text-primary) text-[0.9rem] font-sans transition-colors focus:outline-none focus:border-(--border-focus) focus:ring-2 focus:ring-(--accent-light)"
 							/>
 						</div>
 					</div>
 
 					<div class="flex flex-col gap-1.5 mb-5">
 						<div class="flex justify-between items-center mb-1.5 flex-wrap gap-2">
-							<label for="address" class="font-medium text-[0.88rem] text-[var(--text-secondary)] mb-0">City/Municipality</label>
+							<label for="address" class="font-medium text-[0.88rem] text-(--text-secondary) mb-0">City/Municipality</label>
 							<div class="flex gap-1.5 items-center">
 								<button 
 									type="button" 
-									class="btn btn-outline py-1 px-2.5 text-xs inline-flex items-center gap-1 border-[var(--accent)] text-[var(--accent-hover)] hover:opacity-90 rounded"
+									class="btn btn-outline py-1 px-2.5 text-xs inline-flex items-center gap-1 border-(--accent) text-(--accent-hover) hover:opacity-90 rounded"
 									onclick={() => showPickerModal = true}
 									id="settings-btn-custom-gps"
 									title="Pin custom location on map"
@@ -392,7 +392,7 @@
 						/>
 
 						{#if gpsStatus}
-							<div class="mt-1.5 text-xs flex items-center gap-1.5 {gpsStatus.type === 'success' ? 'text-[var(--success)]' : 'text-[var(--error)]'}">
+							<div class="mt-1.5 text-xs flex items-center gap-1.5 {gpsStatus.type === 'success' ? 'text-(--success)' : 'text-(--error)'}">
 								{#if gpsStatus.type === 'success'}
 									<Check size={14} class="shrink-0" />
 								{:else}
@@ -406,11 +406,11 @@
 					<!-- Bio / About Me -->
 					<div class="flex flex-col gap-1.5">
 						<div class="flex justify-between items-center flex-wrap gap-1.5 mb-1">
-							<label for="bio" class="inline-flex items-center flex-wrap gap-1.5 mb-0 font-semibold text-[0.88rem] text-[var(--text-primary)] cursor-pointer">
-								<FileText size={16} class="text-[var(--accent)] shrink-0" />
+							<label for="bio" class="inline-flex items-center flex-wrap gap-1.5 mb-0 font-semibold text-[0.88rem] text-(--text-primary) cursor-pointer">
+								<FileText size={16} class="text-(--accent) shrink-0" />
 								<span>Bio / About Me</span>
 							</label>
-							<span class="text-xs text-[var(--text-muted)] font-medium shrink-0">
+							<span class="text-xs text-(--text-muted) font-medium shrink-0">
 								{bio.length}/500
 							</span>
 						</div>
@@ -424,10 +424,10 @@
 								placeholder={data.user.role === 'worker' 
 									? "e.g. 5+ years experience in plumbing and electrical works. Reliable, equipped with complete tools and quality service."
 									: "e.g. Homeowner in Davao City looking for reliable plumbers and electricians for regular home maintenance."}
-								class="w-full p-3 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] text-[var(--text-primary)] text-[0.9rem] leading-relaxed resize-y min-h-[80px] font-sans transition-colors focus:outline-none focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--accent-light)]"
+								class="w-full p-3 bg-(--bg-input) border border-(--border-color) rounded-md text-(--text-primary) text-[0.9rem] leading-relaxed resize-y min-h-20 font-sans transition-colors focus:outline-none focus:border-(--border-focus) focus:ring-2 focus:ring-(--accent-light)"
 							></textarea>
 						</div>
-						<small class="text-[0.78rem] text-[var(--text-muted)]">
+						<small class="text-[0.78rem] text-(--text-muted)">
 							{data.user.role === 'worker' 
 								? 'Brief description visible to clients on your profile.' 
 								: 'Brief introduction visible to workers on your profile.'}
@@ -436,24 +436,24 @@
 
 					{#if data.user.role === 'worker'}
 						<!-- Availability Status Toggle (For Workers) -->
-						<div class="p-3.5 sm:p-4 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] flex flex-col gap-1.5">
-							<label class="flex items-center gap-1.5 mb-1 text-[0.88rem] font-medium text-[var(--text-secondary)]">
+						<div class="p-3.5 sm:p-4 bg-(--bg-input) border border-(--border-color) rounded-md flex flex-col gap-1.5">
+							<label class="flex items-center gap-1.5 mb-1 text-[0.88rem] font-medium text-(--text-secondary)">
 								<Activity size={16} style="color: {availability_status === 'available' ? 'var(--success)' : '#f59e0b'};" />
 								Availability Status
 							</label>
 							<div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 mt-1">
 								<button
 									type="button"
-									class="flex items-center gap-2.5 p-3.5 rounded-[var(--radius-md)] border-[1.5px] cursor-pointer text-left transition-all hover:border-[var(--text-muted)] hover:-translate-y-0.5 {availability_status === 'available' ? 'border-[var(--success)] bg-[var(--success-light)] ring-1 ring-[var(--success)]' : 'border-[var(--border-color)] bg-[var(--bg-card)]'}"
+									class="flex items-center gap-2.5 p-3.5 rounded-md border-[1.5px] cursor-pointer text-left transition-all hover:border-(--text-muted) hover:-translate-y-0.5 {availability_status === 'available' ? 'border-(--success) bg-(--success-light) ring-1 ring-(--success)' : 'border-(--border-color) bg-(--bg-card)'}"
 									onclick={() => (availability_status = 'available')}
 								>
-									<div class="w-3 h-3 rounded-full shrink-0 bg-[var(--success)] shadow-[0_0_0_3px_rgba(16,185,129,0.25)]"></div>
+									<div class="w-3 h-3 rounded-full shrink-0 bg-(--success) shadow-[0_0_0_3px_rgba(16,185,129,0.25)]"></div>
 									<div class="flex-1 min-w-0">
-										<strong class="text-[0.88rem] block mb-0.5 text-[var(--text-primary)]">Available for Jobs</strong>
-										<span class="text-[0.74rem] text-[var(--text-muted)] block leading-tight">Accepting job requests • Visible for hire</span>
+										<strong class="text-[0.88rem] block mb-0.5 text-(--text-primary)">Available for Jobs</strong>
+										<span class="text-[0.74rem] text-(--text-muted) block leading-tight">Accepting job requests • Visible for hire</span>
 									</div>
 									{#if availability_status === 'available'}
-										<div class="w-5.5 h-5.5 rounded-full flex items-center justify-center shrink-0 bg-[var(--success)] text-white">
+										<div class="w-5.5 h-5.5 rounded-full flex items-center justify-center shrink-0 bg-(--success) text-white">
 											<Check size={14} />
 										</div>
 									{/if}
@@ -461,13 +461,13 @@
 
 								<button
 									type="button"
-									class="flex items-center gap-2.5 p-3.5 rounded-[var(--radius-md)] border-[1.5px] cursor-pointer text-left transition-all hover:border-[var(--text-muted)] hover:-translate-y-0.5 {availability_status === 'busy' ? 'border-[#f59e0b] bg-[rgba(245,158,11,0.12)] ring-1 ring-[#f59e0b]' : 'border-[var(--border-color)] bg-[var(--bg-card)]'}"
+									class="flex items-center gap-2.5 p-3.5 rounded-md border-[1.5px] cursor-pointer text-left transition-all hover:border-(--text-muted) hover:-translate-y-0.5 {availability_status === 'busy' ? 'border-[#f59e0b] bg-[rgba(245,158,11,0.12)] ring-1 ring-[#f59e0b]' : 'border-(--border-color) bg-(--bg-card)'}"
 									onclick={() => (availability_status = 'busy')}
 								>
 									<div class="w-3 h-3 rounded-full shrink-0 bg-[#f59e0b] shadow-[0_0_0_3px_rgba(245,158,11,0.25)]"></div>
 									<div class="flex-1 min-w-0">
-										<strong class="text-[0.88rem] block mb-0.5 text-[var(--text-primary)]">Busy / On Leave</strong>
-										<span class="text-[0.74rem] text-[var(--text-muted)] block leading-tight">Temporarily not accepting new jobs</span>
+										<strong class="text-[0.88rem] block mb-0.5 text-(--text-primary)">Busy / On Leave</strong>
+										<span class="text-[0.74rem] text-(--text-muted) block leading-tight">Temporarily not accepting new jobs</span>
 									</div>
 									{#if availability_status === 'busy'}
 										<div class="w-5.5 h-5.5 rounded-full flex items-center justify-center shrink-0 bg-[#f59e0b] text-white">
@@ -480,17 +480,17 @@
 						</div>
 
 						<!-- Skills / Services Offered (For Workers) -->
-						<div class="p-3.5 sm:p-4 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] flex flex-col gap-1.5">
+						<div class="p-3.5 sm:p-4 bg-(--bg-input) border border-(--border-color) rounded-md flex flex-col gap-1.5">
 							<div class="flex justify-between items-center flex-wrap gap-2 mb-1">
-								<label class="flex items-center gap-1.5 mb-0 text-[0.88rem] font-medium text-[var(--text-secondary)]">
-									<Wrench size={16} class="text-[var(--accent)]" />
+								<label class="flex items-center gap-1.5 mb-0 text-[0.88rem] font-medium text-(--text-secondary)">
+									<Wrench size={16} class="text-(--accent)" />
 									Skills & Services Offered
 								</label>
-								<span class="text-xs font-semibold py-0.5 px-2 bg-[var(--accent-light)] text-[var(--accent-hover)] rounded-full">
+								<span class="text-xs font-semibold py-0.5 px-2 bg-(--accent-light) text-(--accent-hover) rounded-full">
 									{skills.length} {skills.length === 1 ? 'skill' : 'skills'} selected
 								</span>
 							</div>
-							<small class="text-[0.78rem] text-[var(--text-muted)] mb-2 block">
+							<small class="text-[0.78rem] text-(--text-muted) mb-2 block">
 								Click tags or type custom skills to help clients find your services easily.
 							</small>
 
@@ -500,7 +500,7 @@
 									{@const isSelected = skills.includes(presetSkill)}
 									<button
 										type="button"
-										class="inline-flex items-center gap-1.5 py-1.5 px-3 text-xs sm:text-[0.8rem] rounded-full border transition-all cursor-pointer select-none {isSelected ? 'bg-[var(--accent)] text-white border-[var(--accent)] font-medium shadow-xs' : 'border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-secondary)] hover:border-[var(--accent)] hover:text-[var(--accent-hover)]'}"
+										class="inline-flex items-center gap-1.5 py-1.5 px-3 text-xs sm:text-[0.8rem] rounded-full border transition-all cursor-pointer select-none {isSelected ? 'bg-(--accent) text-white border-(--accent) font-medium shadow-xs' : 'border-(--border-color) bg-(--bg-card) text-(--text-secondary) hover:border-(--accent) hover:text-(--accent-hover)'}"
 										onclick={() => toggleSkill(presetSkill)}
 									>
 										{#if isSelected}
@@ -519,7 +519,7 @@
 									type="text"
 									placeholder="Add a custom skill (e.g. CCTV Setup, Tile Work)..."
 									bind:value={newSkillInput}
-									class="flex-1 py-2 px-3 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-[var(--radius-md)] text-[var(--text-primary)] text-[0.85rem] font-sans focus:outline-none focus:border-[var(--border-focus)]"
+									class="flex-1 py-2 px-3 bg-(--bg-card) border border-(--border-color) rounded-md text-(--text-primary) text-[0.85rem] font-sans focus:outline-none focus:border-(--border-focus)"
 									onkeydown={(e) => {
 										if (e.key === 'Enter') {
 											e.preventDefault();
@@ -539,15 +539,15 @@
 
 							<!-- Active Selected Skills Box -->
 							{#if skills.length > 0}
-								<div class="mt-2 p-3 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-[var(--radius-md)]">
-									<span class="text-[0.72rem] font-semibold text-[var(--text-muted)] uppercase tracking-wider block mb-1.5">Your Active Skills on Profile:</span>
+								<div class="mt-2 p-3 bg-(--bg-card) border border-(--border-color) rounded-md">
+									<span class="text-[0.72rem] font-semibold text-(--text-muted) uppercase tracking-wider block mb-1.5">Your Active Skills on Profile:</span>
 									<div class="flex flex-wrap gap-1.5">
 										{#each skills as skill}
-											<span class="inline-flex items-center gap-1.5 py-1 px-2.5 text-[0.8rem] bg-[var(--accent-light)] text-[var(--accent-hover)] rounded-full font-medium border border-black/5">
+											<span class="inline-flex items-center gap-1.5 py-1 px-2.5 text-[0.8rem] bg-(--accent-light) text-(--accent-hover) rounded-full font-medium border border-black/5">
 												<span>{skill}</span>
 												<button
 													type="button"
-													class="bg-transparent border-0 text-[var(--accent-hover)] cursor-pointer inline-flex items-center justify-center p-0.5 rounded-full opacity-75 transition-opacity hover:opacity-100 hover:bg-black/10"
+													class="bg-transparent border-0 text-(--accent-hover) cursor-pointer inline-flex items-center justify-center p-0.5 rounded-full opacity-75 transition-opacity hover:opacity-100 hover:bg-black/10"
 													onclick={() => removeSkill(skill)}
 													aria-label={`Remove ${skill}`}
 													title="Remove skill"
@@ -582,10 +582,10 @@
 		{#if activeTab === 'security'}
 			<div class="flex flex-col gap-6">
 				<!-- Change Password Card -->
-				<div class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-[var(--radius-lg)] p-3.5 min-[380px]:p-5 sm:p-7 shadow-[var(--shadow-md)] flex flex-col gap-5 sm:gap-6">
+				<div class="bg-(--bg-card) border border-(--border-color) rounded-lg p-3.5 min-[380px]:p-5 sm:p-7 shadow-(--shadow-md) flex flex-col gap-5 sm:gap-6">
 					<div>
-						<h3 class="text-[1.2rem] font-semibold text-[var(--text-primary)] mb-1">Change Password</h3>
-						<p class="text-[var(--text-muted)] text-[0.85rem] m-0">Ensure your account remains safe with a strong, unique password.</p>
+						<h3 class="text-[1.2rem] font-semibold text-(--text-primary) mb-1">Change Password</h3>
+						<p class="text-(--text-muted) text-[0.85rem] m-0">Ensure your account remains safe with a strong, unique password.</p>
 					</div>
 
 					<form
@@ -617,9 +617,9 @@
 						}}
 					>
 						<div class="flex flex-col gap-1.5">
-							<label for="currentPassword" class="font-medium text-[0.88rem] text-[var(--text-secondary)]">Current Password</label>
+							<label for="currentPassword" class="font-medium text-[0.88rem] text-(--text-secondary)">Current Password</label>
 							<div class="relative flex items-center">
-								<KeyRound size={18} class="absolute left-3.5 text-[var(--text-muted)] pointer-events-none" />
+								<KeyRound size={18} class="absolute left-3.5 text-(--text-muted) pointer-events-none" />
 								<input
 									type="password"
 									id="currentPassword"
@@ -627,15 +627,15 @@
 									bind:value={currentPassword}
 									placeholder="Enter current password"
 									required
-									class="w-full py-2.5 pr-3.5 pl-10.5 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] text-[var(--text-primary)] text-[0.9rem] font-sans transition-colors focus:outline-none focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--accent-light)]"
+									class="w-full py-2.5 pr-3.5 pl-10.5 bg-(--bg-input) border border-(--border-color) rounded-md text-(--text-primary) text-[0.9rem] font-sans transition-colors focus:outline-none focus:border-(--border-focus) focus:ring-2 focus:ring-(--accent-light)"
 								/>
 							</div>
 						</div>
 
 						<div class="flex flex-col gap-1.5">
-							<label for="newPassword" class="font-medium text-[0.88rem] text-[var(--text-secondary)]">New Password</label>
+							<label for="newPassword" class="font-medium text-[0.88rem] text-(--text-secondary)">New Password</label>
 							<div class="relative flex items-center">
-								<Lock size={18} class="absolute left-3.5 text-[var(--text-muted)] pointer-events-none" />
+								<Lock size={18} class="absolute left-3.5 text-(--text-muted) pointer-events-none" />
 								<input
 									type="password"
 									id="newPassword"
@@ -643,16 +643,16 @@
 									bind:value={newPassword}
 									placeholder="e.g. Pass@123"
 									required
-									class="w-full py-2.5 pr-3.5 pl-10.5 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] text-[var(--text-primary)] text-[0.9rem] font-sans transition-colors focus:outline-none focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--accent-light)]"
+									class="w-full py-2.5 pr-3.5 pl-10.5 bg-(--bg-input) border border-(--border-color) rounded-md text-(--text-primary) text-[0.9rem] font-sans transition-colors focus:outline-none focus:border-(--border-focus) focus:ring-2 focus:ring-(--accent-light)"
 								/>
 							</div>
 							<PasswordStrengthMeter password={newPassword} />
 						</div>
 
 						<div class="flex flex-col gap-1.5">
-							<label for="confirmPassword" class="font-medium text-[0.88rem] text-[var(--text-secondary)]">Confirm New Password</label>
+							<label for="confirmPassword" class="font-medium text-[0.88rem] text-(--text-secondary)">Confirm New Password</label>
 							<div class="relative flex items-center">
-								<Lock size={18} class="absolute left-3.5 text-[var(--text-muted)] pointer-events-none" />
+								<Lock size={18} class="absolute left-3.5 text-(--text-muted) pointer-events-none" />
 								<input
 									type="password"
 									id="confirmPassword"
@@ -660,15 +660,15 @@
 									bind:value={confirmPassword}
 									placeholder="e.g. Pass@123"
 									required
-									class="w-full py-2.5 pr-3.5 pl-10.5 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] text-[var(--text-primary)] text-[0.9rem] font-sans transition-colors focus:outline-none focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--accent-light)]"
+									class="w-full py-2.5 pr-3.5 pl-10.5 bg-(--bg-input) border border-(--border-color) rounded-md text-(--text-primary) text-[0.9rem] font-sans transition-colors focus:outline-none focus:border-(--border-focus) focus:ring-2 focus:ring-(--accent-light)"
 								/>
 							</div>
 							{#if confirmPassword && newPassword !== confirmPassword}
-								<small class="text-[var(--error)] text-xs mt-1.5 flex items-center gap-1">
+								<small class="text-(--error) text-xs mt-1.5 flex items-center gap-1">
 									<AlertCircle size={13} /> Passwords do not match
 								</small>
 							{:else if confirmPassword && newPassword === confirmPassword}
-								<small class="text-[var(--success)] text-xs mt-1.5 flex items-center gap-1">
+								<small class="text-(--success) text-xs mt-1.5 flex items-center gap-1">
 									<Check size={13} /> Passwords match
 								</small>
 							{/if}
@@ -688,19 +688,19 @@
 				</div>
 
 				<!-- Danger Zone Card -->
-				<div class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-[var(--radius-lg)] p-3.5 min-[380px]:p-5 sm:p-7 shadow-[var(--shadow-md)] flex flex-col gap-5 sm:gap-6">
+				<div class="bg-(--bg-card) border border-(--border-color) rounded-lg p-3.5 min-[380px]:p-5 sm:p-7 shadow-(--shadow-md) flex flex-col gap-5 sm:gap-6">
 					<div>
 						<div class="flex items-center gap-2">
 							<ShieldAlert size={20} class="text-red-500" />
 							<h3 class="m-0 text-red-500 text-[1.2rem] font-semibold">Danger Zone</h3>
 						</div>
-						<p class="text-[var(--text-muted)] text-[0.85rem] mt-1 mb-0">Permanently delete your account and all associated data from the Serviee platform.</p>
+						<p class="text-(--text-muted) text-[0.85rem] mt-1 mb-0">Permanently delete your account and all associated data from the Serviee platform.</p>
 					</div>
 
 					<div class="flex justify-between items-center gap-4 flex-wrap">
 						<div>
-							<div class="font-semibold text-sm text-[var(--text-primary)]">Delete Account</div>
-							<div class="text-xs text-[var(--text-secondary)]">Once deleted, your profile, active job posts, and reviews cannot be recovered.</div>
+							<div class="font-semibold text-sm text-(--text-primary)">Delete Account</div>
+							<div class="text-xs text-(--text-secondary)">Once deleted, your profile, active job posts, and reviews cannot be recovered.</div>
 						</div>
 
 						<button 
@@ -718,15 +718,15 @@
 
 		<!-- Tab Content 3: Switch Role (Client ↔ Worker) -->
 		{#if activeTab === 'roles'}
-			<div class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-[var(--radius-lg)] p-3.5 min-[380px]:p-5 sm:p-7 shadow-[var(--shadow-md)] flex flex-col gap-5 sm:gap-6">
+			<div class="bg-(--bg-card) border border-(--border-color) rounded-lg p-3.5 min-[380px]:p-5 sm:p-7 shadow-(--shadow-md) flex flex-col gap-5 sm:gap-6">
 				{#if data.hasComplementaryAccount}
 					<!-- Case A: Complementary Account already exists -->
 					<div>
 						<div class="flex items-center gap-2">
-							<Repeat size={20} class="text-[var(--accent)]" />
-							<h3 class="m-0 text-[1.2rem] font-semibold text-[var(--text-primary)]">Switch to {data.complementaryRole === 'customer' ? 'Client' : 'Worker'} Profile</h3>
+							<Repeat size={20} class="text-(--accent)" />
+							<h3 class="m-0 text-[1.2rem] font-semibold text-(--text-primary)">Switch to {data.complementaryRole === 'customer' ? 'Client' : 'Worker'} Profile</h3>
 						</div>
-						<p class="text-[var(--text-muted)] text-[0.85rem] mt-1 mb-0">
+						<p class="text-(--text-muted) text-[0.85rem] mt-1 mb-0">
 							You already have a registered <strong>{data.complementaryRole === 'customer' ? 'Client' : 'Worker'}</strong> account ({data.complementaryAccountName || data.user.name}) under <code>{data.user.email}</code>.
 						</p>
 					</div>
@@ -746,9 +746,9 @@
 						<input type="hidden" name="targetRole" value={data.complementaryRole} />
 
 						<div class="flex flex-col gap-1.5">
-							<label for="switch-password" class="font-medium text-[0.88rem] text-[var(--text-secondary)]">Password for your {data.complementaryRole === 'customer' ? 'Client' : 'Worker'} Account</label>
+							<label for="switch-password" class="font-medium text-[0.88rem] text-(--text-secondary)">Password for your {data.complementaryRole === 'customer' ? 'Client' : 'Worker'} Account</label>
 							<div class="relative flex items-center">
-								<KeyRound size={18} class="absolute left-3.5 text-[var(--text-muted)] pointer-events-none" />
+								<KeyRound size={18} class="absolute left-3.5 text-(--text-muted) pointer-events-none" />
 								<input 
 									type="password" 
 									id="switch-password" 
@@ -756,10 +756,10 @@
 									bind:value={switchPassword}
 									placeholder="Enter {data.complementaryRole === 'customer' ? 'Client' : 'Worker'} password" 
 									required
-									class="w-full py-2.5 pr-3.5 pl-10.5 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] text-[var(--text-primary)] text-[0.9rem] font-sans transition-colors focus:outline-none focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--accent-light)]"
+									class="w-full py-2.5 pr-3.5 pl-10.5 bg-(--bg-input) border border-(--border-color) rounded-md text-(--text-primary) text-[0.9rem] font-sans transition-colors focus:outline-none focus:border-(--border-focus) focus:ring-2 focus:ring-(--accent-light)"
 								/>
 							</div>
-							<small class="text-[0.78rem] text-[var(--text-muted)]">Enter the password for your other role to authenticate and switch dashboards.</small>
+							<small class="text-[0.78rem] text-(--text-muted)">Enter the password for your other role to authenticate and switch dashboards.</small>
 						</div>
 
 						<div class="mt-2 flex justify-stretch sm:justify-end [&>button]:w-full sm:[&>button]:w-auto">
@@ -782,10 +782,10 @@
 					<!-- Case B: Complementary Account does not exist yet -->
 					<div>
 						<div class="flex items-center gap-2">
-							<UserPlus size={20} class="text-[var(--accent)]" />
-							<h3 class="m-0 text-[1.2rem] font-semibold text-[var(--text-primary)]">Create a {data.complementaryRole === 'customer' ? 'Client' : 'Worker'} Profile</h3>
+							<UserPlus size={20} class="text-(--accent)" />
+							<h3 class="m-0 text-[1.2rem] font-semibold text-(--text-primary)">Create a {data.complementaryRole === 'customer' ? 'Client' : 'Worker'} Profile</h3>
 						</div>
-						<p class="text-[var(--text-muted)] text-[0.85rem] mt-1 mb-0">
+						<p class="text-(--text-muted) text-[0.85rem] mt-1 mb-0">
 							Want to both {data.user.role === 'customer' ? 'hire and offer services as a Worker' : 'find sideline jobs and post jobs as a Client'}? Set up your {data.complementaryRole === 'customer' ? 'Client' : 'Worker'} profile below using your same email.
 						</p>
 					</div>
@@ -814,17 +814,17 @@
 						<input type="hidden" name="address" value={newRoleAddress} />
 
 						<div class="flex flex-col gap-1.5">
-							<label for="new-role-email" class="font-medium text-[0.88rem] text-[var(--text-secondary)]">Registered Email</label>
+							<label for="new-role-email" class="font-medium text-[0.88rem] text-(--text-secondary)">Registered Email</label>
 							<div class="relative flex items-center">
-								<Mail size={18} class="absolute left-3.5 text-[var(--text-muted)] pointer-events-none" />
-								<input type="email" id="new-role-email" value={data.user.email} disabled class="w-full py-2.5 pr-3.5 pl-10.5 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] text-[var(--text-primary)] text-[0.9rem] font-sans opacity-60 cursor-not-allowed" />
+								<Mail size={18} class="absolute left-3.5 text-(--text-muted) pointer-events-none" />
+								<input type="email" id="new-role-email" value={data.user.email} disabled class="w-full py-2.5 pr-3.5 pl-10.5 bg-(--bg-input) border border-(--border-color) rounded-md text-(--text-primary) text-[0.9rem] font-sans opacity-60 cursor-not-allowed" />
 							</div>
 						</div>
 
 						<div class="flex flex-col gap-1.5">
-							<label for="new-role-pass" class="font-medium text-[0.88rem] text-[var(--text-secondary)]">Create Password for {data.complementaryRole === 'customer' ? 'Client' : 'Worker'} Profile</label>
+							<label for="new-role-pass" class="font-medium text-[0.88rem] text-(--text-secondary)">Create Password for {data.complementaryRole === 'customer' ? 'Client' : 'Worker'} Profile</label>
 							<div class="relative flex items-center">
-								<Lock size={18} class="absolute left-3.5 text-[var(--text-muted)] pointer-events-none" />
+								<Lock size={18} class="absolute left-3.5 text-(--text-muted) pointer-events-none" />
 								<input 
 									type="password" 
 									id="new-role-pass" 
@@ -832,11 +832,11 @@
 									bind:value={newRolePassword}
 									placeholder="e.g. Pass@123" 
 									required
-									class="w-full py-2.5 pr-3.5 pl-10.5 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] text-[var(--text-primary)] text-[0.9rem] font-sans transition-colors focus:outline-none focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--accent-light)]"
+									class="w-full py-2.5 pr-3.5 pl-10.5 bg-(--bg-input) border border-(--border-color) rounded-md text-(--text-primary) text-[0.9rem] font-sans transition-colors focus:outline-none focus:border-(--border-focus) focus:ring-2 focus:ring-(--accent-light)"
 								/>
 							</div>
 							<PasswordStrengthMeter password={newRolePassword} />
-							<small class="text-[0.78rem] text-[var(--text-muted)]">For security, your Client and Worker accounts under the same email must have different passwords.</small>
+							<small class="text-[0.78rem] text-(--text-muted)">For security, your Client and Worker accounts under the same email must have different passwords.</small>
 						</div>
 
 						<div class="mt-2 flex justify-stretch sm:justify-end [&>button]:w-full sm:[&>button]:w-auto">

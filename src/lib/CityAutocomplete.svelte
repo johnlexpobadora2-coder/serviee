@@ -166,13 +166,13 @@
 	<input type="hidden" {name} {value} {required} />
 
 	<div
-		class="relative flex items-center w-full rounded-md border-[1.5px] bg-[var(--bg-input,#1e293b)] transition-all duration-200 focus-within:border-[var(--accent,#6366f1)] focus-within:ring-3 focus-within:ring-indigo-500/20 {isValid
+		class="relative flex items-center w-full rounded-md border-[1.5px] bg-(--bg-input,#1e293b) transition-all duration-200 focus-within:border-(--accent,#6366f1) focus-within:ring-3 focus-within:ring-indigo-500/20 {isValid
 			? 'border-emerald-500 bg-emerald-500/5'
 			: hasInteracted && query && !isValid
 				? 'border-amber-500 bg-amber-500/5'
-				: 'border-[var(--border-color,#334155)]'}"
+				: 'border-(--border-color,#334155)'}"
 	>
-		<div class="flex items-center justify-center pl-3.5 text-[var(--text-muted,#94a3b8)]">
+		<div class="flex items-center justify-center pl-3.5 text-(--text-muted,#94a3b8)">
 			<MapPin size={18} class={isValid ? "text-emerald-500" : "text-slate-400"} />
 		</div>
 
@@ -181,7 +181,7 @@
 			type="text"
 			role="combobox"
 			{id}
-			class="w-full flex-1 border-none bg-transparent py-3 px-2.5 text-[0.98rem] text-[var(--text-primary,#f8fafc)] outline-none shadow-none focus:outline-none focus:ring-0 placeholder:text-[var(--text-muted,#94a3b8)]"
+			class="w-full flex-1 border-none bg-transparent py-3 px-2.5 text-[0.98rem] text-(--text-primary,#f8fafc) outline-none shadow-none focus:outline-none focus:ring-0 placeholder:text-(--text-muted,#94a3b8)"
 			{placeholder}
 			value={query}
 			oninput={handleInput}
@@ -197,7 +197,7 @@
 
 		<div class="flex items-center gap-1.5 pr-3">
 			{#if isSearching}
-				<span class="flex items-center text-[var(--accent,#6366f1)]">
+				<span class="flex items-center text-(--accent,#6366f1)">
 					<Loader2 size={16} class="animate-spin" />
 				</span>
 			{:else if isValid}
@@ -209,7 +209,7 @@
 			{#if query}
 				<button
 					type="button"
-					class="flex items-center justify-center rounded-full p-1 text-[var(--text-muted,#94a3b8)] transition-colors duration-150 hover:bg-white/10 hover:text-[var(--text-primary,#f8fafc)] cursor-pointer"
+					class="flex items-center justify-center rounded-full p-1 text-(--text-muted,#94a3b8) transition-colors duration-150 hover:bg-white/10 hover:text-(--text-primary,#f8fafc) cursor-pointer"
 					onclick={handleClear}
 					title="Clear location"
 					aria-label="Clear location input"
@@ -223,11 +223,11 @@
 	<!-- Suggestions Dropdown Menu -->
 	{#if isOpen && suggestions.length > 0}
 		<div
-			class="absolute top-[calc(100%+6px)] left-0 right-0 z-50 max-h-[260px] overflow-y-auto rounded-md border border-[var(--border-color,#334155)] bg-[var(--bg-card,#0f172a)] shadow-2xl"
+			class="absolute top-[calc(100%+6px)] left-0 right-0 z-50 max-h-65 overflow-y-auto rounded-md border border-(--border-color,#334155) bg-(--bg-card,#0f172a) shadow-2xl"
 			id="{id}-listbox"
 			role="listbox"
 		>
-			<div class="border-b border-[var(--border-color,#334155)] bg-black/15 px-3.5 py-2 text-[0.72rem] font-semibold uppercase tracking-wider text-[var(--text-muted,#94a3b8)]">
+			<div class="border-b border-(--border-color,#334155) bg-black/15 px-3.5 py-2 text-[0.72rem] font-semibold uppercase tracking-wider text-(--text-muted,#94a3b8)">
 				<span>Tap to select official Municipality / City:</span>
 			</div>
 			<ul class="m-0 list-none py-1.5">
@@ -236,7 +236,7 @@
 						role="option"
 						tabindex="0"
 						aria-selected={selectedIndex === idx}
-						class="flex items-center gap-3 px-3.5 py-2.5 cursor-pointer transition-colors duration-150 border-b border-white/[0.04] last:border-b-0 hover:bg-indigo-500/15 focus:bg-indigo-500/15 focus:outline-none {selectedIndex === idx
+						class="flex items-center gap-3 px-3.5 py-2.5 cursor-pointer transition-colors duration-150 border-b border-white/4 last:border-b-0 hover:bg-indigo-500/15 focus:bg-indigo-500/15 focus:outline-none {selectedIndex === idx
 							? 'bg-indigo-500/15'
 							: ''}"
 						onclick={() => selectSuggestion(item)}
@@ -247,13 +247,13 @@
 							}
 						}}
 					>
-						<div class="flex shrink-0 items-center text-[var(--accent,#6366f1)]">
+						<div class="flex shrink-0 items-center text-(--accent,#6366f1)">
 							<MapPin size={16} />
 						</div>
 						<div class="min-w-0 flex-1">
-							<div class="truncate text-[0.92rem] font-semibold text-[var(--text-primary,#f8fafc)]">{item.city}</div>
+							<div class="truncate text-[0.92rem] font-semibold text-(--text-primary,#f8fafc)">{item.city}</div>
 							{#if item.province}
-								<div class="truncate text-[0.78rem] text-[var(--text-muted,#94a3b8)]">
+								<div class="truncate text-[0.78rem] text-(--text-muted,#94a3b8)">
 									{item.province}
 									{item.region ? `• ${item.region}` : ""}
 								</div>

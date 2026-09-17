@@ -45,7 +45,7 @@
 		</div>
 		<div class="chat-thread-list">
 			{#if !conversations || conversations.length === 0}
-				<div style="padding: 2rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+				<div style="padding: 2rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.92rem;">
 					{#if userRole === 'worker'}
 						No active chats yet.<br />Click "Chat / Inquire" on any job post to contact clients.
 					{:else}
@@ -73,14 +73,14 @@
 									<span class="chat-role-badge">{conv.other_user_role || (userRole === 'worker' ? 'Client' : 'Worker')}</span>
 								</div>
 								<div class="chat-thread-title">
-									<Pin size={11} style="flex-shrink: 0;" /> <span class="chat-thread-title-text">{conv.job_title}</span>
+									<Pin size={12} style="flex-shrink: 0;" /> <span class="chat-thread-title-text">{conv.job_title}</span>
 								</div>
 								<div class="chat-thread-preview" style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
 									<span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
 										{conv.last_message || 'No messages yet.'}
 									</span>
 									{#if unreadConvIds.has(conv.id)}
-										<span class="badge-unread-counter" style="font-size: 0.65rem; height: 14px; min-width: 14px; padding: 0 3px;">•</span>
+										<span class="badge-unread-counter" style="font-size: 0.7rem; height: 16px; min-width: 16px; padding: 0 4px;">•</span>
 									{/if}
 								</div>
 							</div>
@@ -108,14 +108,14 @@
 					</button>
 					<div style="min-width: 0;">
 						<div style="display: flex; align-items: center; gap: 0.4rem; min-width: 0;">
-							<h4 style="margin: 0; font-size: 1.05rem; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+							<h4 style="margin: 0; font-size: 1.12rem; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
 								{activeConversation.other_user_name}
 							</h4>
 							<span style="display: inline-flex; align-items: center; color: var(--text-muted); opacity: 0.7; flex-shrink: 0;" title="Encrypted & Private Chat">
-								<Lock size={12} style="color: var(--accent);" />
+								<Lock size={13} style="color: var(--accent);" />
 							</span>
 						</div>
-						<span style="font-size: 0.78rem; color: var(--accent-hover); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+						<span style="font-size: 0.85rem; color: var(--accent-hover); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
 							Job: {activeConversation.job_title}
 						</span>
 					</div>
@@ -153,7 +153,7 @@
 						<div class="spinner spinner-accent"></div>
 					</div>
 				{:else if !activeConversation.messages || activeConversation.messages.length === 0}
-					<div style="text-align: center; color: var(--text-muted); margin: auto; font-size: 0.9rem;">
+					<div style="text-align: center; color: var(--text-muted); margin: auto; font-size: 0.96rem;">
 						Start conversation with {activeConversation.other_user_name}...
 					</div>
 				{:else}
@@ -166,7 +166,7 @@
 							<button 
 								type="button" 
 								class="btn btn-outline" 
-								style="font-size: 0.72rem; padding: 0.15rem 0.6rem; opacity: 0.8; border-color: var(--border-color); color: var(--text-muted);"
+								style="font-size: 0.78rem; padding: 0.25rem 0.75rem; opacity: 0.8; border-color: var(--border-color); color: var(--text-muted);"
 								onclick={onloadmoremessages}
 							>
 								Load older messages
@@ -367,7 +367,7 @@
 						{:else}
 							<Navigation size={14} />
 						{/if}
-						<span style="font-size: 0.8rem;">Auto GPS</span>
+						<span style="font-size: 0.85rem;">Auto GPS</span>
 					</button>
 
 					<button 
@@ -379,7 +379,7 @@
 						style="border-color: var(--accent); color: var(--accent-hover);"
 					>
 						<Compass size={14} />
-						<span style="font-size: 0.8rem;">Pin Map</span>
+						<span style="font-size: 0.85rem;">Pin Map</span>
 					</button>
 
 					<button 
@@ -395,7 +395,7 @@
 						{:else}
 							<ImageIcon size={14} />
 						{/if}
-						<span style="font-size: 0.8rem;">Send Pic</span>
+						<span style="font-size: 0.85rem;">Send Pic</span>
 					</button>
 
 					<input 
@@ -419,7 +419,7 @@
 		{:else}
 			<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); flex-direction: column; gap: 0.75rem; padding: 2rem;">
 				<MessageSquare size={48} style="opacity: 0.6;" />
-				<p style="font-size: 0.95rem;">Select an inquiry on the left to start messaging.</p>
+				<p style="font-size: 0.98rem;">Select an inquiry on the left to start messaging.</p>
 			</div>
 		{/if}
 	</div>

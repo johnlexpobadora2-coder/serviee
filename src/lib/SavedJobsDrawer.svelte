@@ -86,13 +86,13 @@
 {#if savedJobs.isDrawerOpen}
 	<!-- Backdrop -->
 	<div 
-		class="fixed inset-0 bg-black/65 backdrop-blur-[4px] z-[9998] flex justify-end max-sm:items-end" 
+		class="fixed inset-0 bg-black/65 backdrop-blur-xs z-9998 flex justify-end max-sm:items-end" 
 		onclick={() => savedJobs.closeDrawer()}
 		role="presentation"
 	>
 		<!-- Slide-in Drawer Container -->
 		<div 
-			class="bg-[var(--bg-card)] border-l max-sm:border-l-0 max-sm:border-t border-[var(--border-color)] w-full max-w-[440px] h-full max-sm:h-[88vh] max-sm:rounded-t-lg flex flex-col shadow-2xl outline-none" 
+			class="bg-(--bg-card) border-l max-sm:border-l-0 max-sm:border-t border-(--border-color) w-full max-w-110 h-full max-sm:h-[88vh] max-sm:rounded-t-lg flex flex-col shadow-2xl outline-none" 
 			onclick={(e) => e.stopPropagation()}
 			onkeydown={(e) => e.stopPropagation()}
 			role="dialog"
@@ -101,19 +101,19 @@
 			aria-modal="true"
 		>
 			<!-- Header without icon box -->
-			<div class="p-5 border-b border-[var(--border-color)] flex items-center justify-between bg-[var(--bg-card)]">
+			<div class="p-5 border-b border-(--border-color) flex items-center justify-between bg-(--bg-card)">
 				<div class="flex flex-col gap-0.5">
-					<h3 id="saved-drawer-title" class="text-[1.15rem] font-bold m-0 text-[var(--text-primary)] flex items-center gap-2">
+					<h3 id="saved-drawer-title" class="text-[1.15rem] font-bold m-0 text-(--text-primary) flex items-center gap-2">
 						Saved Jobs
-						<span class="text-[0.72rem] bg-[var(--accent)] text-white py-0.5 px-2 rounded-[var(--radius-sm)] font-bold">{savedJobs.count}</span>
+						<span class="text-[0.72rem] bg-(--accent) text-white py-0.5 px-2 rounded-sm font-bold">{savedJobs.count}</span>
 					</h3>
-					<p class="text-[0.78rem] m-0 text-[var(--text-muted)]">Your bookmarked sideline jobs</p>
+					<p class="text-[0.78rem] m-0 text-(--text-muted)">Your bookmarked sideline jobs</p>
 				</div>
 				<div class="flex items-center gap-2">
 					{#if savedJobs.count > 0}
 						<button 
 							type="button" 
-							class="btn btn-outline py-1.5 px-2.5 text-[0.75rem] border-red-500/40 text-[var(--error)] flex items-center gap-1.5"
+							class="btn btn-outline py-1.5 px-2.5 text-[0.75rem] border-red-500/40 text-(--error) flex items-center gap-1.5"
 							onclick={() => {
 								if (confirm('Are you sure you want to remove all saved jobs?')) {
 									savedJobs.clear();
@@ -127,7 +127,7 @@
 					{/if}
 					<button 
 						type="button" 
-						class="bg-transparent border-none text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/10 cursor-pointer p-1.5 rounded-[var(--radius-sm)] flex items-center justify-center transition-all duration-150"
+						class="bg-transparent border-none text-(--text-muted) hover:text-(--text-primary) hover:bg-white/10 cursor-pointer p-1.5 rounded-sm flex items-center justify-center transition-all duration-150"
 						onclick={() => savedJobs.closeDrawer()}
 						aria-label="Close saved jobs drawer"
 					>
@@ -139,12 +139,12 @@
 			<!-- Drawer Body -->
 			<div class="flex-1 overflow-y-auto p-5 flex flex-col">
 				{#if savedJobs.count === 0}
-					<div class="flex-1 flex flex-col items-center justify-center text-center py-10 px-4 text-[var(--text-muted)]">
-						<div class="w-16 h-16 rounded-[var(--radius-md)] bg-[var(--bg-input)] border border-dashed border-[var(--border-color)] flex items-center justify-center mb-4 text-[var(--text-muted)]">
+					<div class="flex-1 flex flex-col items-center justify-center text-center py-10 px-4 text-(--text-muted)">
+						<div class="w-16 h-16 rounded-md bg-(--bg-input) border border-dashed border-(--border-color) flex items-center justify-center mb-4 text-(--text-muted)">
 							<Bookmark size={32} />
 						</div>
-						<h4 class="text-[1.1rem] text-[var(--text-primary)] mb-1.5 font-semibold">No Saved Jobs</h4>
-						<p class="text-[0.85rem] leading-normal m-0 max-w-[290px]">
+						<h4 class="text-[1.1rem] text-(--text-primary) mb-1.5 font-semibold">No Saved Jobs</h4>
+						<p class="text-[0.85rem] leading-normal m-0 max-w-72.5">
 							Click the <strong>Bookmark icon</strong> on any job card in the feed to save and view it here later.
 						</p>
 						<button 
@@ -159,13 +159,13 @@
 					<div class="flex flex-col gap-3.5">
 						{#each savedJobs.list as job (job.id)}
 							{@const coords = getJobCoordinates(job)}
-							<div class="card p-4 flex flex-col gap-2 transition-colors duration-150 hover:border-[var(--accent)]">
+							<div class="card p-4 flex flex-col gap-2 transition-colors duration-150 hover:border-(--accent)">
 								<div class="flex items-center justify-between">
 									<span class="badge {getCategoryBadge(job.category)}">{job.category}</span>
 									<div class="flex items-center gap-1">
 										<button 
 											type="button" 
-											class="bg-transparent border border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/10 cursor-pointer p-1.5 rounded-[var(--radius-sm)] flex items-center justify-center transition-all duration-150"
+											class="bg-transparent border border-transparent text-(--text-muted) hover:text-(--text-primary) hover:bg-white/10 cursor-pointer p-1.5 rounded-sm flex items-center justify-center transition-all duration-150"
 											onclick={() => onopenshare(job)}
 											title="Share Job"
 											aria-label="Share Job"
@@ -174,7 +174,7 @@
 										</button>
 										<button 
 											type="button" 
-											class="bg-transparent border border-transparent text-[var(--text-muted)] hover:text-red-500 hover:bg-red-500/10 cursor-pointer p-1.5 rounded-[var(--radius-sm)] flex items-center justify-center transition-all duration-150"
+											class="bg-transparent border border-transparent text-(--text-muted) hover:text-red-500 hover:bg-red-500/10 cursor-pointer p-1.5 rounded-sm flex items-center justify-center transition-all duration-150"
 											onclick={() => savedJobs.remove(job.id)}
 											title="Remove from saved"
 											aria-label="Remove from saved"
@@ -184,11 +184,11 @@
 									</div>
 								</div>
 
-								<h4 class="text-[0.98rem] font-semibold m-0 text-[var(--text-primary)] leading-[1.35]">{job.title}</h4>
+								<h4 class="text-[0.98rem] font-semibold m-0 text-(--text-primary) leading-[1.35]">{job.title}</h4>
 
 								<JobDescription text={job.description} maxLines={2} thresholdLength={90} />
 
-								<div class="flex flex-wrap items-center gap-3 text-[0.76rem] text-[var(--text-secondary)]">
+								<div class="flex flex-wrap items-center gap-3 text-[0.76rem] text-(--text-secondary)">
 									<div class="inline-flex items-center gap-1.5">
 										<MapPin size={13} class="text-sky-400" />
 										<span>{job.location}</span>
@@ -219,10 +219,10 @@
 									/>
 								{/if}
 
-								<div class="flex items-center justify-between mt-1 pt-2.5 border-t border-[var(--border-color)]">
+								<div class="flex items-center justify-between mt-1 pt-2.5 border-t border-(--border-color)">
 									<div class="flex flex-col">
-										<span class="text-[0.68rem] text-[var(--text-muted)] uppercase font-semibold">Budget</span>
-										<strong class="text-[1.05rem] font-bold text-[var(--text-primary)]">₱{Number(job.budget || 0).toLocaleString()}</strong>
+										<span class="text-[0.68rem] text-(--text-muted) uppercase font-semibold">Budget</span>
+										<strong class="text-[1.05rem] font-bold text-(--text-primary)">₱{Number(job.budget || 0).toLocaleString()}</strong>
 									</div>
 
 									<div class="flex items-center gap-1.5">
@@ -242,7 +242,7 @@
 											{#if (jobs.find(j => j.id === job.id)?.hasApplied || job.hasApplied)}
 												<button
 													type="button"
-													class="btn btn-outline py-1.5 px-3 text-[0.78rem] border-[var(--accent)] text-[var(--accent-hover)] inline-flex items-center gap-1.5"
+													class="btn btn-outline py-1.5 px-3 text-[0.78rem] border-(--accent) text-(--accent-hover) inline-flex items-center gap-1.5"
 													onclick={() => {
 														savedJobs.closeDrawer();
 														onopenchat(job.id, job.customer_id);

@@ -433,12 +433,12 @@
 	});
 </script>
 
-<div class="serviee-map-viewer-wrapper relative w-full h-full min-h-[100dvh] bg-slate-900 overflow-hidden select-none {fullscreen ? 'fixed inset-0 w-full h-[100dvh] z-[999]' : ''}">
+<div class="serviee-map-viewer-wrapper relative w-full h-full min-h-dvh bg-slate-900 overflow-hidden select-none {fullscreen ? 'fixed inset-0 w-full h-dvh z-999' : ''}">
 	<!-- Map Target Container -->
-	<div bind:this={mapContainer} class="w-full h-full min-h-[100dvh] z-[1]"></div>
+	<div bind:this={mapContainer} class="w-full h-full min-h-dvh z-1"></div>
 
 	<!-- Top Floating Header Bar (avoiding <header> HTML tag collision with global layout css) -->
-	<div role="banner" class="map-viewer-floating-header absolute top-4 left-4 right-4 max-sm:top-3 max-sm:left-3 max-sm:right-3 z-[1000] flex items-center justify-between gap-3 p-2.5 max-sm:p-2 bg-slate-900/90 backdrop-blur-md border border-white/15 rounded-2xl shadow-2xl text-white">
+	<div role="banner" class="map-viewer-floating-header absolute top-4 left-4 right-4 max-sm:top-3 max-sm:left-3 max-sm:right-3 z-1000 flex items-center justify-between gap-3 p-2.5 max-sm:p-2 bg-slate-900/90 backdrop-blur-md border border-white/15 rounded-2xl shadow-2xl text-white">
 		<button 
 			type="button" 
 			class="inline-flex items-center justify-center gap-1.5 bg-white/10 hover:bg-white/20 active:bg-white/10 border border-white/15 text-white py-2 px-3.5 max-sm:p-2 rounded-xl text-[0.85rem] font-medium cursor-pointer transition-all duration-200" 
@@ -489,7 +489,7 @@
 	</div>
 
 	<!-- Right Floating Map Controls -->
-	<div class="absolute right-4 top-[5.5rem] max-sm:right-3 max-sm:top-[4.8rem] z-[1000] flex flex-col gap-2.5">
+	<div class="absolute right-4 top-22 max-sm:right-3 max-sm:top-[4.8rem] z-1000 flex flex-col gap-2.5">
 		<!-- Fit Both Button (Only visible if user GPS is loaded) -->
 		{#if userCoords}
 			<button 
@@ -556,7 +556,7 @@
 	</div>
 
 	<!-- Bottom Info & Navigation Launch Card -->
-	<div class="absolute bottom-5 left-4 right-4 max-sm:bottom-4 max-sm:left-3 max-sm:right-3 z-[1000] max-w-[600px] mx-auto">
+	<div class="absolute bottom-5 left-4 right-4 max-sm:bottom-4 max-sm:left-3 max-sm:right-3 z-1000 max-w-150 mx-auto">
 		<div class="flex flex-col gap-3 bg-slate-900/90 backdrop-blur-md border border-white/15 rounded-2xl p-4 max-sm:p-3.5 shadow-2xl">
 			<div class="flex flex-wrap items-center justify-between gap-2">
 				<div class="inline-flex items-center gap-2 bg-white/5 border border-white/10 py-1 px-2.5 rounded-full text-[0.75rem] text-white/90">

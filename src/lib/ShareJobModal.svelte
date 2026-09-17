@@ -124,12 +124,12 @@
 
 {#if isOpen && job}
 	<div 
-		class="fixed inset-0 bg-black/65 backdrop-blur-[6px] z-[9999] flex items-center justify-center p-4 max-sm:items-end max-sm:p-0" 
+		class="fixed inset-0 bg-black/65 backdrop-blur-[6px] z-9999 flex items-center justify-center p-4 max-sm:items-end max-sm:p-0" 
 		onclick={() => onClose()}
 		role="presentation"
 	>
 		<div 
-			class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl max-sm:rounded-b-none max-sm:rounded-t-2xl w-full max-w-[480px] p-6 max-sm:p-5 max-sm:pb-8 shadow-2xl flex flex-col gap-5 outline-none" 
+			class="bg-(--bg-card) border border-(--border-color) rounded-2xl max-sm:rounded-b-none max-sm:rounded-t-2xl w-full max-w-120 p-6 max-sm:p-5 max-sm:pb-8 shadow-2xl flex flex-col gap-5 outline-none" 
 			onclick={(e) => e.stopPropagation()}
 			onkeydown={(e) => e.stopPropagation()}
 			role="dialog"
@@ -139,17 +139,17 @@
 		>
 			<div class="flex items-center justify-between">
 				<div class="flex items-center gap-3">
-					<div class="w-9 h-9 rounded-xl bg-[var(--accent-light)] text-[var(--accent)] flex items-center justify-center">
+					<div class="w-9 h-9 rounded-xl bg-(--accent-light) text-(--accent) flex items-center justify-center">
 						<Share2 size={18} />
 					</div>
 					<div>
-						<h3 id="share-modal-title" class="text-[1.15rem] font-bold m-0 text-[var(--text-primary)]">Share Sideline Job</h3>
-						<p class="text-[0.8rem] m-0 text-[var(--text-muted)]">Ipasa sa kapwa worker o kaibigan</p>
+						<h3 id="share-modal-title" class="text-[1.15rem] font-bold m-0 text-(--text-primary)">Share Sideline Job</h3>
+						<p class="text-[0.8rem] m-0 text-(--text-muted)">Ipasa sa kapwa worker o kaibigan</p>
 					</div>
 				</div>
 				<button 
 					type="button" 
-					class="bg-transparent border-none text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/10 cursor-pointer p-1.5 rounded-lg flex items-center justify-center transition-all duration-150" 
+					class="bg-transparent border-none text-(--text-muted) hover:text-(--text-primary) hover:bg-white/10 cursor-pointer p-1.5 rounded-lg flex items-center justify-center transition-all duration-150" 
 					onclick={() => onClose()}
 					aria-label="Close share dialog"
 				>
@@ -158,15 +158,15 @@
 			</div>
 
 			<!-- Job Summary Snippet -->
-			<div class="bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-3.5 flex flex-col gap-1.5">
-				<div class="inline-flex items-center gap-1.5 text-[0.72rem] text-[var(--accent)] font-semibold uppercase tracking-wider">
+			<div class="bg-(--bg-input) border border-(--border-color) rounded-xl p-3.5 flex flex-col gap-1.5">
+				<div class="inline-flex items-center gap-1.5 text-[0.72rem] text-(--accent) font-semibold uppercase tracking-wider">
 					<Tag size={12} />
 					<span>{job.category || 'General'}</span>
 				</div>
-				<h4 class="text-[0.95rem] font-semibold m-0 text-[var(--text-primary)] leading-[1.35]">{job.title}</h4>
-				<div class="flex flex-wrap items-center gap-3.5 mt-1 text-[0.82rem] text-[var(--text-secondary)]">
+				<h4 class="text-[0.95rem] font-semibold m-0 text-(--text-primary) leading-[1.35]">{job.title}</h4>
+				<div class="flex flex-wrap items-center gap-3.5 mt-1 text-[0.82rem] text-(--text-secondary)">
 					<span class="inline-flex items-center gap-1.5">
-						<Banknote size={13} class="text-[var(--accent)]" />
+						<Banknote size={13} class="text-(--accent)" />
 						<strong>₱{Number(job.budget || 0).toLocaleString()}</strong>
 					</span>
 					<span class="inline-flex items-center gap-1.5">
@@ -177,16 +177,16 @@
 			</div>
 
 			<!-- Copy link bar -->
-			<div class="flex items-center gap-2 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-1.5">
+			<div class="flex items-center gap-2 bg-(--bg-input) border border-(--border-color) rounded-xl p-1.5">
 				<input 
 					type="text" 
 					readonly 
 					value={getJobUrl()} 
-					class="flex-1 bg-transparent border-none outline-none text-[0.82rem] text-[var(--text-secondary)] px-2 whitespace-nowrap overflow-hidden text-ellipsis"
+					class="flex-1 bg-transparent border-none outline-none text-[0.82rem] text-(--text-secondary) px-2 whitespace-nowrap overflow-hidden text-ellipsis"
 				/>
 				<button 
 					type="button" 
-					class="inline-flex items-center gap-1.5 py-2 px-3.5 rounded-lg text-white text-[0.8rem] font-semibold cursor-pointer whitespace-nowrap transition-all duration-200 {copied ? 'bg-emerald-500' : 'bg-[var(--accent)] hover:bg-[var(--accent-hover)]'}"
+					class="inline-flex items-center gap-1.5 py-2 px-3.5 rounded-lg text-white text-[0.8rem] font-semibold cursor-pointer whitespace-nowrap transition-all duration-200 {copied ? 'bg-emerald-500' : 'bg-(--accent) hover:bg-(--accent-hover)'}"
 					onclick={handleCopyLink}
 				>
 					{#if copied}
@@ -204,58 +204,58 @@
 				{#if canNativeShare}
 					<button 
 						type="button" 
-						class="flex flex-col items-center justify-center gap-2 p-3 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--accent)] hover:bg-white/10 text-[var(--text-primary)] group" 
+						class="flex flex-col items-center justify-center gap-2 p-3 bg-(--bg-input) border border-(--border-color) rounded-xl cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-(--accent) hover:bg-white/10 text-(--text-primary) group" 
 						onclick={handleNativeShare}
 					>
-						<div class="w-[42px] h-[42px] rounded-full flex items-center justify-center text-white transition-transform duration-200 group-hover:scale-105 bg-gradient-to-br from-indigo-500 to-purple-600">
+						<div class="w-10.5 h-10.5 rounded-full flex items-center justify-center text-white transition-transform duration-200 group-hover:scale-105 bg-linear-to-br from-indigo-500 to-purple-600">
 							<Smartphone size={20} />
 						</div>
-						<span class="text-[0.75rem] font-medium text-[var(--text-secondary)]">More Options</span>
+						<span class="text-[0.75rem] font-medium text-(--text-secondary)">More Options</span>
 					</button>
 				{/if}
 
 				<button 
 					type="button" 
-					class="flex flex-col items-center justify-center gap-2 p-3 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--accent)] hover:bg-white/10 text-[var(--text-primary)] group" 
+					class="flex flex-col items-center justify-center gap-2 p-3 bg-(--bg-input) border border-(--border-color) rounded-xl cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-(--accent) hover:bg-white/10 text-(--text-primary) group" 
 					onclick={shareViaSMS}
 				>
-					<div class="w-[42px] h-[42px] rounded-full flex items-center justify-center text-white transition-transform duration-200 group-hover:scale-105 bg-gradient-to-br from-sky-500 to-sky-700">
+					<div class="w-10.5 h-10.5 rounded-full flex items-center justify-center text-white transition-transform duration-200 group-hover:scale-105 bg-linear-to-br from-sky-500 to-sky-700">
 						<MessageSquare size={20} />
 					</div>
-					<span class="text-[0.75rem] font-medium text-[var(--text-secondary)]">SMS / Text</span>
+					<span class="text-[0.75rem] font-medium text-(--text-secondary)">SMS / Text</span>
 				</button>
 
 				<button 
 					type="button" 
-					class="flex flex-col items-center justify-center gap-2 p-3 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--accent)] hover:bg-white/10 text-[var(--text-primary)] group" 
+					class="flex flex-col items-center justify-center gap-2 p-3 bg-(--bg-input) border border-(--border-color) rounded-xl cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-(--accent) hover:bg-white/10 text-(--text-primary) group" 
 					onclick={shareViaWhatsApp}
 				>
-					<div class="w-[42px] h-[42px] rounded-full flex items-center justify-center text-white transition-transform duration-200 group-hover:scale-105 bg-gradient-to-br from-green-500 to-green-700">
+					<div class="w-10.5 h-10.5 rounded-full flex items-center justify-center text-white transition-transform duration-200 group-hover:scale-105 bg-linear-to-br from-green-500 to-green-700">
 						<Send size={20} />
 					</div>
-					<span class="text-[0.75rem] font-medium text-[var(--text-secondary)]">WhatsApp</span>
+					<span class="text-[0.75rem] font-medium text-(--text-secondary)">WhatsApp</span>
 				</button>
 
 				<button 
 					type="button" 
-					class="flex flex-col items-center justify-center gap-2 p-3 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--accent)] hover:bg-white/10 text-[var(--text-primary)] group" 
+					class="flex flex-col items-center justify-center gap-2 p-3 bg-(--bg-input) border border-(--border-color) rounded-xl cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-(--accent) hover:bg-white/10 text-(--text-primary) group" 
 					onclick={shareViaTelegram}
 				>
-					<div class="w-[42px] h-[42px] rounded-full flex items-center justify-center text-white transition-transform duration-200 group-hover:scale-105 bg-gradient-to-br from-[#0088cc] to-[#229ED9]">
+					<div class="w-10.5 h-10.5 rounded-full flex items-center justify-center text-white transition-transform duration-200 group-hover:scale-105 bg-linear-to-br from-[#0088cc] to-[#229ED9]">
 						<Send size={20} />
 					</div>
-					<span class="text-[0.75rem] font-medium text-[var(--text-secondary)]">Telegram</span>
+					<span class="text-[0.75rem] font-medium text-(--text-secondary)">Telegram</span>
 				</button>
 
 				<button 
 					type="button" 
-					class="flex flex-col items-center justify-center gap-2 p-3 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--accent)] hover:bg-white/10 text-[var(--text-primary)] group" 
+					class="flex flex-col items-center justify-center gap-2 p-3 bg-(--bg-input) border border-(--border-color) rounded-xl cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-(--accent) hover:bg-white/10 text-(--text-primary) group" 
 					onclick={shareViaMessenger}
 				>
-					<div class="w-[42px] h-[42px] rounded-full flex items-center justify-center text-white transition-transform duration-200 group-hover:scale-105 bg-gradient-to-br from-[#0099ff] to-[#a033ff]">
+					<div class="w-10.5 h-10.5 rounded-full flex items-center justify-center text-white transition-transform duration-200 group-hover:scale-105 bg-linear-to-br from-[#0099ff] to-[#a033ff]">
 						<MessageSquare size={20} />
 					</div>
-					<span class="text-[0.75rem] font-medium text-[var(--text-secondary)]">Messenger</span>
+					<span class="text-[0.75rem] font-medium text-(--text-secondary)">Messenger</span>
 				</button>
 			</div>
 		</div>

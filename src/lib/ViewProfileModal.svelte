@@ -117,14 +117,14 @@
 {#if show}
 	<!-- Modal Backdrop -->
 	<div
-		class="fixed inset-0 w-screen h-screen bg-black/75 backdrop-blur-[8px] flex items-center justify-center max-sm:items-end z-[99999] p-4 max-sm:p-0 box-border"
+		class="fixed inset-0 w-screen h-screen bg-black/75 backdrop-blur-sm flex items-center justify-center max-sm:items-end z-99999 p-4 max-sm:p-0 box-border"
 		onclick={handleBackdropClick}
 		role="button"
 		tabindex="0"
 		onkeydown={(e) => e.key === "Escape" && closeModal()}
 	>
 		<div 
-			class="max-w-[720px] w-full max-h-[90vh] max-sm:max-h-[92dvh] max-sm:h-[92dvh] overflow-hidden rounded-[var(--radius-lg)] max-sm:rounded-t-2xl max-sm:rounded-b-none bg-[var(--bg-card)] border border-[var(--border-color)] max-sm:border-b-0 shadow-[0_20px_45px_rgba(0,0,0,0.5)] relative box-border flex flex-col"
+			class="max-w-180 w-full max-h-[90vh] max-sm:max-h-[92dvh] max-sm:h-[92dvh] overflow-hidden rounded-lg max-sm:rounded-t-2xl max-sm:rounded-b-none bg-(--bg-card) border border-(--border-color) max-sm:border-b-0 shadow-[0_20px_45px_rgba(0,0,0,0.5)] relative box-border flex flex-col"
 			onclick={(e) => e.stopPropagation()}
 			onkeydown={(e) => e.stopPropagation()}
 			role="dialog"
@@ -134,7 +134,7 @@
 			<!-- Close Button Floating Header -->
 			<button
 				type="button"
-				class="absolute top-3 right-3 bg-slate-900/70 backdrop-blur-md border border-white/20 text-white w-[32px] h-[32px] rounded-full flex items-center justify-center cursor-pointer z-30 transition-all duration-200 hover:bg-slate-900/90 hover:scale-105 active:scale-95 shadow-md"
+				class="absolute top-3 right-3 bg-slate-900/70 backdrop-blur-md border border-white/20 text-white w-8 h-8 rounded-full flex items-center justify-center cursor-pointer z-30 transition-all duration-200 hover:bg-slate-900/90 hover:scale-105 active:scale-95 shadow-md"
 				onclick={closeModal}
 				aria-label="Close modal"
 			>
@@ -142,14 +142,14 @@
 			</button>
 
 			{#if loading}
-				<div class="py-20 px-8 text-center text-[var(--text-secondary)] flex-1 flex flex-col items-center justify-center">
+				<div class="py-20 px-8 text-center text-(--text-secondary) flex-1 flex flex-col items-center justify-center">
 					<div class="spinner spinner-accent spinner-lg mb-4"></div>
 					<p class="text-[0.95rem] m-0">Loading user profile details...</p>
 				</div>
 			{:else if error}
-				<div class="py-16 px-8 text-center text-[var(--error)] flex-1 flex flex-col items-center justify-center">
+				<div class="py-16 px-8 text-center text-(--error) flex-1 flex flex-col items-center justify-center">
 					<h4 class="text-[1.2rem] mb-2 font-bold">Unable to load profile</h4>
-					<p class="text-[0.9rem] mb-6 text-[var(--text-secondary)] max-w-[360px]">{error}</p>
+					<p class="text-[0.9rem] mb-6 text-(--text-secondary) max-w-90">{error}</p>
 					<button
 						type="button"
 						class="btn btn-secondary"
@@ -179,9 +179,9 @@
 				<!-- Scrollable Content Area -->
 				<div class="flex-1 overflow-y-auto overflow-x-hidden">
 					<!-- Header Cover & Avatar Section -->
-					<div class="relative bg-[var(--bg-card)]">
+					<div class="relative bg-(--bg-card)">
 						<!-- Cover Banner -->
-						<div class="h-28 sm:h-32 bg-gradient-to-r from-slate-900 via-indigo-950 to-purple-950 relative overflow-hidden">
+						<div class="h-28 sm:h-32 bg-linear-to-r from-slate-900 via-indigo-950 to-purple-950 relative overflow-hidden">
 							<div class="absolute -right-10 -bottom-10 w-36 h-36 bg-purple-500/15 rounded-full blur-2xl pointer-events-none"></div>
 							<div class="absolute -left-10 -top-10 w-36 h-36 bg-indigo-500/15 rounded-full blur-2xl pointer-events-none"></div>
 						</div>
@@ -193,7 +193,7 @@
 								<!-- Left: Avatar + Identity Info -->
 								<div class="flex flex-col sm:flex-row items-center sm:items-end gap-3 sm:gap-4 min-w-0 w-full sm:w-auto text-center sm:text-left">
 									<!-- Avatar with negative margin so ONLY the avatar overlaps the cover -->
-									<div class="-mt-10 sm:-mt-12 w-[80px] h-[80px] sm:w-[88px] sm:h-[88px] rounded-full border-4 border-[var(--bg-card)] bg-gradient-to-br from-[var(--accent)] via-purple-600 to-indigo-700 flex items-center justify-center text-[1.85rem] sm:text-[2.2rem] font-extrabold text-white shadow-xl ring-1 ring-black/5 dark:ring-white/10 shrink-0 select-none z-[2]">
+									<div class="-mt-10 sm:-mt-12 w-20 h-20 sm:w-22 sm:h-22 rounded-full border-4 border-(--bg-card) bg-linear-to-br from-(--accent) via-purple-600 to-indigo-700 flex items-center justify-center text-[1.85rem] sm:text-[2.2rem] font-extrabold text-white shadow-xl ring-1 ring-black/5 dark:ring-white/10 shrink-0 select-none z-2">
 										{user.name
 											? user.name.charAt(0).toUpperCase()
 											: "U"}
@@ -202,11 +202,11 @@
 									<!-- User Name and meta badges (placed safely below banner in the card body) -->
 									<div class="pt-0.5 sm:pt-0 pb-1 flex flex-col items-center sm:items-start gap-1.5 min-w-0 flex-1 w-full">
 										<div class="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
-											<h2 class="text-[1.25rem] sm:text-[1.4rem] font-bold leading-tight m-0 text-[var(--text-primary)] break-words">
+											<h2 class="text-[1.25rem] sm:text-[1.4rem] font-bold leading-tight m-0 text-(--text-primary) wrap-break-word">
 												{user.name}
 											</h2>
 											{#if isSelf}
-												<span class="text-[0.68rem] font-semibold py-0.5 px-2 bg-[var(--accent-light)] text-[var(--accent-hover)] rounded-full">You</span>
+												<span class="text-[0.68rem] font-semibold py-0.5 px-2 bg-(--accent-light) text-(--accent-hover) rounded-full">You</span>
 											{/if}
 										</div>
 
@@ -234,9 +234,9 @@
 												{/if}
 											{/if}
 											{#if user.address}
-												<span class="text-[0.76rem] text-[var(--text-muted)] inline-flex items-center gap-1">
+												<span class="text-[0.76rem] text-(--text-muted) inline-flex items-center gap-1">
 													<MapPin size={12} class="shrink-0 text-sky-400" />
-													<span class="truncate max-w-[200px]">{user.address}</span>
+													<span class="truncate max-w-50">{user.address}</span>
 												</span>
 											{/if}
 										</div>
@@ -246,7 +246,7 @@
 								<!-- Right / Bottom: Quick Stat Cards -->
 								<div class="flex gap-2 items-center shrink-0 max-sm:w-full max-sm:grid max-sm:grid-cols-2 pt-1 sm:pt-0">
 									{#if user.role === "worker"}
-										<div class="flex flex-col items-center justify-center bg-[var(--bg-input)] border border-[var(--border-color)] py-2 px-3.5 rounded-[var(--radius-md)] min-w-[90px] max-sm:min-w-0 transition-colors">
+										<div class="flex flex-col items-center justify-center bg-(--bg-input) border border-(--border-color) py-2 px-3.5 rounded-md min-w-22.5 max-sm:min-w-0 transition-colors">
 											<span
 												class="rating-badge {stats.average_rating >
 												0
@@ -263,26 +263,26 @@
 													? `+${stats.average_rating}`
 													: stats.average_rating || 0}
 											</span>
-											<span class="text-[0.62rem] text-[var(--text-muted)] font-semibold uppercase tracking-wider mt-1">Rating</span>
+											<span class="text-[0.62rem] text-(--text-muted) font-semibold uppercase tracking-wider mt-1">Rating</span>
 										</div>
-										<div class="flex flex-col items-center justify-center bg-[var(--bg-input)] border border-[var(--border-color)] py-2 px-3.5 rounded-[var(--radius-md)] min-w-[90px] max-sm:min-w-0 transition-colors">
-											<span class="text-[1.15rem] max-sm:text-[1.05rem] font-extrabold text-[var(--success)] leading-none">
+										<div class="flex flex-col items-center justify-center bg-(--bg-input) border border-(--border-color) py-2 px-3.5 rounded-md min-w-22.5 max-sm:min-w-0 transition-colors">
+											<span class="text-[1.15rem] max-sm:text-[1.05rem] font-extrabold text-(--success) leading-none">
 												{stats.completed_jobs_count || 0}
 											</span>
-											<span class="text-[0.62rem] text-[var(--text-muted)] font-semibold uppercase tracking-wider mt-1">Completed</span>
+											<span class="text-[0.62rem] text-(--text-muted) font-semibold uppercase tracking-wider mt-1">Completed</span>
 										</div>
 									{:else}
-										<div class="flex flex-col items-center justify-center bg-[var(--bg-input)] border border-[var(--border-color)] py-2 px-3.5 rounded-[var(--radius-md)] min-w-[90px] max-sm:min-w-0 transition-colors">
-											<span class="text-[1.15rem] max-sm:text-[1.05rem] font-extrabold text-[var(--text-primary)] leading-none">
+										<div class="flex flex-col items-center justify-center bg-(--bg-input) border border-(--border-color) py-2 px-3.5 rounded-md min-w-22.5 max-sm:min-w-0 transition-colors">
+											<span class="text-[1.15rem] max-sm:text-[1.05rem] font-extrabold text-(--text-primary) leading-none">
 												{stats.total_posts_count || 0}
 											</span>
-											<span class="text-[0.62rem] text-[var(--text-muted)] font-semibold uppercase tracking-wider mt-1">Total Posts</span>
+											<span class="text-[0.62rem] text-(--text-muted) font-semibold uppercase tracking-wider mt-1">Total Posts</span>
 										</div>
-										<div class="flex flex-col items-center justify-center bg-[var(--bg-input)] border border-[var(--border-color)] py-2 px-3.5 rounded-[var(--radius-md)] min-w-[90px] max-sm:min-w-0 transition-colors">
-											<span class="text-[1.15rem] max-sm:text-[1.05rem] font-extrabold text-[var(--success)] leading-none">
+										<div class="flex flex-col items-center justify-center bg-(--bg-input) border border-(--border-color) py-2 px-3.5 rounded-md min-w-22.5 max-sm:min-w-0 transition-colors">
+											<span class="text-[1.15rem] max-sm:text-[1.05rem] font-extrabold text-(--success) leading-none">
 												{stats.completed_jobs_count || 0}
 											</span>
-											<span class="text-[0.62rem] text-[var(--text-muted)] font-semibold uppercase tracking-wider mt-1">Done Jobs</span>
+											<span class="text-[0.62rem] text-(--text-muted) font-semibold uppercase tracking-wider mt-1">Done Jobs</span>
 										</div>
 									{/if}
 								</div>
@@ -291,7 +291,7 @@
 					</div>
 
 					<!-- Sticky Navigation Tabs within Modal -->
-					<div class="sticky top-0 z-20 pt-2 px-5 max-sm:px-3 bg-[var(--bg-card)] border-y border-[var(--border-color)] flex gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-none tabs-header" style="margin-bottom: 0 !important;">
+					<div class="sticky top-0 z-20 pt-2 px-5 max-sm:px-3 bg-(--bg-card) border-y border-(--border-color) flex gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-none tabs-header" style="margin-bottom: 0 !important;">
 						<button
 							type="button"
 							class="tab-btn {activeTab === 'overview' ? 'active' : ''} text-[0.82rem] max-sm:text-[0.76rem] py-2 px-3 max-sm:py-1.5 max-sm:px-2.5 flex items-center gap-1.5"
@@ -324,17 +324,17 @@
 						{#if activeTab === "overview"}
 							<div class="grid grid-cols-2 max-sm:grid-cols-1 gap-3.5 max-sm:gap-3">
 								<!-- Bio / About Me Card -->
-								<div class="col-span-2 max-sm:col-span-1 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] p-4 max-sm:p-3">
-									<h4 class="text-[0.92rem] font-semibold mb-2 text-[var(--text-primary)] flex items-center gap-1.5">
-										<FileText size={15} class="text-[var(--accent)]" />
+								<div class="col-span-2 max-sm:col-span-1 bg-(--bg-input) border border-(--border-color) rounded-md p-4 max-sm:p-3">
+									<h4 class="text-[0.92rem] font-semibold mb-2 text-(--text-primary) flex items-center gap-1.5">
+										<FileText size={15} class="text-(--accent)" />
 										About
 									</h4>
 									{#if user.bio && user.bio.trim()}
-										<p class="text-[var(--text-primary)] text-[0.85rem] leading-relaxed whitespace-pre-line m-0 bg-[var(--bg-card)] p-3 rounded-[var(--radius-sm)] border border-[var(--border-color)] break-words">
+										<p class="text-(--text-primary) text-[0.85rem] leading-relaxed whitespace-pre-line m-0 bg-(--bg-card) p-3 rounded-sm border border-(--border-color) wrap-break-word">
 											{user.bio.trim()}
 										</p>
 									{:else}
-										<p class="text-[var(--text-muted)] text-[0.82rem] italic m-0">
+										<p class="text-(--text-muted) text-[0.82rem] italic m-0">
 											No bio provided yet.
 										</p>
 									{/if}
@@ -342,14 +342,14 @@
 
 								{#if user.role === "worker"}
 									<!-- Skills & Services Offered Card -->
-									<div class="col-span-2 max-sm:col-span-1 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] p-4 max-sm:p-3">
+									<div class="col-span-2 max-sm:col-span-1 bg-(--bg-input) border border-(--border-color) rounded-md p-4 max-sm:p-3">
 										<div class="flex items-center justify-between flex-wrap gap-1.5 mb-2">
-											<h4 class="text-[0.92rem] font-semibold text-[var(--text-primary)] flex items-center gap-1.5 m-0">
-												<Wrench size={15} class="text-[var(--accent)]" />
+											<h4 class="text-[0.92rem] font-semibold text-(--text-primary) flex items-center gap-1.5 m-0">
+												<Wrench size={15} class="text-(--accent)" />
 												Skills & Services Offered
 											</h4>
 											{#if user.skills && user.skills.length > 0}
-												<span class="text-[0.7rem] text-[var(--accent-hover)] font-semibold bg-[var(--accent-light)] py-0.5 px-2 rounded-full">
+												<span class="text-[0.7rem] text-(--accent-hover) font-semibold bg-(--accent-light) py-0.5 px-2 rounded-full">
 													{user.skills.length} {user.skills.length === 1 ? 'service' : 'services'}
 												</span>
 											{/if}
@@ -366,7 +366,7 @@
 												{/each}
 											</div>
 										{:else}
-											<p class="text-[var(--text-muted)] text-[0.82rem] italic m-0">
+											<p class="text-(--text-muted) text-[0.82rem] italic m-0">
 												No specific skills listed yet.
 											</p>
 										{/if}
@@ -374,9 +374,9 @@
 								{/if}
 
 								<!-- Contact & Info Box -->
-								<div class="col-span-1 max-sm:col-span-1 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] p-4 max-sm:p-3">
-									<h4 class="text-[0.92rem] font-semibold mb-2.5 text-[var(--text-primary)] flex items-center gap-1.5">
-										<UserCheck size={15} class="text-[var(--accent)]" />
+								<div class="col-span-1 max-sm:col-span-1 bg-(--bg-input) border border-(--border-color) rounded-md p-4 max-sm:p-3">
+									<h4 class="text-[0.92rem] font-semibold mb-2.5 text-(--text-primary) flex items-center gap-1.5">
+										<UserCheck size={15} class="text-(--accent)" />
 										User Details
 									</h4>
 									<div class="flex flex-col gap-2.5">
@@ -387,8 +387,8 @@
 													style="color: {user.availability_status === 'busy' ? '#f59e0b' : 'var(--success)'}; flex-shrink: 0;"
 													class="mt-0.5"
 												/>
-												<div class="min-w-0 break-words flex flex-col">
-													<span class="text-[0.68rem] text-[var(--text-muted)]">Availability Status</span>
+												<div class="min-w-0 wrap-break-word flex flex-col">
+													<span class="text-[0.68rem] text-(--text-muted)">Availability Status</span>
 													<strong
 														class="text-[0.82rem] font-semibold"
 														style="color: {user.availability_status === 'busy' ? '#f59e0b' : 'var(--success)'};"
@@ -400,35 +400,35 @@
 										{/if}
 
 										<div class="flex items-start gap-2">
-											<Mail size={14} class="text-[var(--text-muted)] shrink-0 mt-0.5" />
+											<Mail size={14} class="text-(--text-muted) shrink-0 mt-0.5" />
 											<div class="min-w-0 break-all flex flex-col">
-												<span class="text-[0.68rem] text-[var(--text-muted)]">Email</span>
-												<strong class="text-[0.82rem] text-[var(--text-primary)] font-semibold">{user.email || "Not provided"}</strong>
+												<span class="text-[0.68rem] text-(--text-muted)">Email</span>
+												<strong class="text-[0.82rem] text-(--text-primary) font-semibold">{user.email || "Not provided"}</strong>
 											</div>
 										</div>
 
 										<div class="flex items-start gap-2">
-											<Phone size={14} class="text-[var(--text-muted)] shrink-0 mt-0.5" />
-											<div class="min-w-0 break-words flex flex-col">
-												<span class="text-[0.68rem] text-[var(--text-muted)]">Phone Number</span>
-												<strong class="text-[0.82rem] text-[var(--accent-hover)] font-mono font-semibold">{user.phone || "Not provided"}</strong>
+											<Phone size={14} class="text-(--text-muted) shrink-0 mt-0.5" />
+											<div class="min-w-0 wrap-break-word flex flex-col">
+												<span class="text-[0.68rem] text-(--text-muted)">Phone Number</span>
+												<strong class="text-[0.82rem] text-(--accent-hover) font-mono font-semibold">{user.phone || "Not provided"}</strong>
 											</div>
 										</div>
 
 										<div class="flex items-start gap-2">
-											<MapPin size={14} class="text-[var(--text-muted)] shrink-0 mt-0.5" />
-											<div class="min-w-0 break-words flex flex-col">
-												<span class="text-[0.68rem] text-[var(--text-muted)]">City / Municipality</span>
-												<strong class="text-[0.82rem] text-[var(--text-primary)] font-semibold">{user.address || "Not specified"}</strong>
+											<MapPin size={14} class="text-(--text-muted) shrink-0 mt-0.5" />
+											<div class="min-w-0 wrap-break-word flex flex-col">
+												<span class="text-[0.68rem] text-(--text-muted)">City / Municipality</span>
+												<strong class="text-[0.82rem] text-(--text-primary) font-semibold">{user.address || "Not specified"}</strong>
 											</div>
 										</div>
 
 										{#if user.created_at}
 											<div class="flex items-start gap-2">
-												<Calendar size={14} class="text-[var(--text-muted)] shrink-0 mt-0.5" />
-												<div class="min-w-0 break-words flex flex-col">
-													<span class="text-[0.68rem] text-[var(--text-muted)]">Member Since</span>
-													<strong class="text-[0.82rem] text-[var(--text-secondary)] font-medium">
+												<Calendar size={14} class="text-(--text-muted) shrink-0 mt-0.5" />
+												<div class="min-w-0 wrap-break-word flex flex-col">
+													<span class="text-[0.68rem] text-(--text-muted)">Member Since</span>
+													<strong class="text-[0.82rem] text-(--text-secondary) font-medium">
 														{new Date(user.created_at).toLocaleDateString("en-PH", {
 															month: "long",
 															year: "numeric",
@@ -441,17 +441,17 @@
 								</div>
 
 								<!-- Account Performance Summary Box -->
-								<div class="col-span-1 max-sm:col-span-1 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] p-4 max-sm:p-3 flex flex-col justify-between">
+								<div class="col-span-1 max-sm:col-span-1 bg-(--bg-input) border border-(--border-color) rounded-md p-4 max-sm:p-3 flex flex-col justify-between">
 									<div>
-										<h4 class="text-[0.92rem] font-semibold mb-2.5 text-[var(--text-primary)] flex items-center gap-1.5">
-											<Award size={15} class="text-[var(--warning)]" />
+										<h4 class="text-[0.92rem] font-semibold mb-2.5 text-(--text-primary) flex items-center gap-1.5">
+											<Award size={15} class="text-(--warning)" />
 											Account Performance
 										</h4>
 
 										{#if user.role === "worker"}
 											<div class="flex flex-col gap-2">
-												<div class="flex justify-between items-center gap-2 border-b border-[var(--border-color)] pb-2">
-													<span class="text-[var(--text-secondary)] text-[0.78rem]">Rating Score:</span>
+												<div class="flex justify-between items-center gap-2 border-b border-(--border-color) pb-2">
+													<span class="text-(--text-secondary) text-[0.78rem]">Rating Score:</span>
 													<span
 														class="rating-badge {stats.average_rating > 0
 															? 'rating-badge-positive'
@@ -465,24 +465,24 @@
 															: stats.average_rating || 0}
 													</span>
 												</div>
-												<div class="flex justify-between items-center gap-2 border-b border-[var(--border-color)] pb-2">
-													<span class="text-[var(--text-secondary)] text-[0.78rem]">Total Reviews:</span>
-													<strong class="text-[var(--text-primary)] text-[0.82rem]">{stats.total_reviews || 0} reviews</strong>
+												<div class="flex justify-between items-center gap-2 border-b border-(--border-color) pb-2">
+													<span class="text-(--text-secondary) text-[0.78rem]">Total Reviews:</span>
+													<strong class="text-(--text-primary) text-[0.82rem]">{stats.total_reviews || 0} reviews</strong>
 												</div>
 												<div class="flex justify-between items-center gap-2">
-													<span class="text-[var(--text-secondary)] text-[0.78rem]">Completed Tasks:</span>
-													<strong class="text-[var(--success)] text-[0.82rem]">{stats.completed_jobs_count || 0} completed</strong>
+													<span class="text-(--text-secondary) text-[0.78rem]">Completed Tasks:</span>
+													<strong class="text-(--success) text-[0.82rem]">{stats.completed_jobs_count || 0} completed</strong>
 												</div>
 											</div>
 										{:else}
 											<div class="flex flex-col gap-2">
-												<div class="flex justify-between items-center gap-2 border-b border-[var(--border-color)] pb-2">
-													<span class="text-[var(--text-secondary)] text-[0.78rem]">Total Jobs Posted:</span>
-													<strong class="text-[var(--text-primary)] text-[0.82rem]">{stats.total_posts_count || 0} jobs</strong>
+												<div class="flex justify-between items-center gap-2 border-b border-(--border-color) pb-2">
+													<span class="text-(--text-secondary) text-[0.78rem]">Total Jobs Posted:</span>
+													<strong class="text-(--text-primary) text-[0.82rem]">{stats.total_posts_count || 0} jobs</strong>
 												</div>
 												<div class="flex justify-between items-center gap-2">
-													<span class="text-[var(--text-secondary)] text-[0.78rem]">Successfully Finished:</span>
-													<strong class="text-[var(--success)] text-[0.82rem]">{stats.completed_jobs_count || 0} finished</strong>
+													<span class="text-(--text-secondary) text-[0.78rem]">Successfully Finished:</span>
+													<strong class="text-(--success) text-[0.82rem]">{stats.completed_jobs_count || 0} finished</strong>
 												</div>
 											</div>
 										{/if}
@@ -495,9 +495,9 @@
 						{#if activeTab === "reviews" && user.role === "worker"}
 							<div class="flex flex-col gap-3">
 								{#if !stats.reviews || stats.reviews.length === 0}
-									<div class="bg-[var(--bg-input)] border border-dashed border-[var(--border-color)] rounded-[var(--radius-md)] text-center p-8">
-										<h4 class="text-[0.95rem] text-[var(--text-primary)] mb-1 font-semibold">No reviews yet</h4>
-										<p class="text-[var(--text-secondary)] text-[0.8rem] m-0">This worker has not received any feedback ratings yet.</p>
+									<div class="bg-(--bg-input) border border-dashed border-(--border-color) rounded-md text-center p-8">
+										<h4 class="text-[0.95rem] text-(--text-primary) mb-1 font-semibold">No reviews yet</h4>
+										<p class="text-(--text-secondary) text-[0.8rem] m-0">This worker has not received any feedback ratings yet.</p>
 									</div>
 								{:else}
 									{@const sortedReviews = [...stats.reviews].sort(
@@ -506,11 +506,11 @@
 											new Date(a.created_at).getTime(),
 									)}
 									{#each sortedReviews as rev (rev.id)}
-										<div class="bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] p-3.5 max-sm:p-3 flex flex-col gap-2">
+										<div class="bg-(--bg-input) border border-(--border-color) rounded-md p-3.5 max-sm:p-3 flex flex-col gap-2">
 											<div class="flex justify-between items-center gap-2 flex-wrap">
 												<div class="flex items-center gap-1.5 flex-wrap">
-													<strong class="text-[var(--text-primary)] text-[0.86rem]">{rev.customer_name}</strong>
-													<span class="text-[0.7rem] text-[var(--text-muted)]">
+													<strong class="text-(--text-primary) text-[0.86rem]">{rev.customer_name}</strong>
+													<span class="text-[0.7rem] text-(--text-muted)">
 														{new Date(rev.created_at).toLocaleDateString("en-PH", {
 															month: "short",
 															day: "numeric",
@@ -530,7 +530,7 @@
 												</span>
 											</div>
 											{#if rev.review_text}
-												<p class="text-[0.82rem] text-[var(--text-secondary)] leading-relaxed italic m-0">
+												<p class="text-[0.82rem] text-(--text-secondary) leading-relaxed italic m-0">
 													"{rev.review_text}"
 												</p>
 											{/if}
@@ -545,7 +545,7 @@
 							<div class="flex flex-col gap-3">
 								{#if user.role === "customer"}
 									<!-- Sub-tabs header for customer modal view -->
-									<div class="mb-2 flex gap-1.5 border-b border-[var(--border-color)] overflow-x-auto whitespace-nowrap scrollbar-none pt-1 tabs-header">
+									<div class="mb-2 flex gap-1.5 border-b border-(--border-color) overflow-x-auto whitespace-nowrap scrollbar-none pt-1 tabs-header">
 										<button
 											type="button"
 											class="tab-btn {customerSubTab === 'posted' ? 'active' : ''} text-[0.78rem] py-1.5 px-2.5"
@@ -564,16 +564,16 @@
 
 									{#if customerSubTab === "posted"}
 										{#if allPosts.length === 0}
-											<div class="bg-[var(--bg-input)] border border-dashed border-[var(--border-color)] rounded-[var(--radius-md)] text-center p-8">
-												<h4 class="text-[0.95rem] text-[var(--text-primary)] mb-1 font-semibold">No jobs posted yet</h4>
-												<p class="text-[var(--text-secondary)] text-[0.8rem] m-0">This customer has not posted any jobs yet.</p>
+											<div class="bg-(--bg-input) border border-dashed border-(--border-color) rounded-md text-center p-8">
+												<h4 class="text-[0.95rem] text-(--text-primary) mb-1 font-semibold">No jobs posted yet</h4>
+												<p class="text-(--text-secondary) text-[0.8rem] m-0">This customer has not posted any jobs yet.</p>
 											</div>
 										{:else}
 											{#each allPosts as job (job.id)}
-												<div class="bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] p-3.5 max-sm:p-3 flex flex-col gap-2">
+												<div class="bg-(--bg-input) border border-(--border-color) rounded-md p-3.5 max-sm:p-3 flex flex-col gap-2">
 													<div class="flex justify-between items-start gap-2">
 														<div class="min-w-0 flex-1">
-															<h4 class="text-[0.9rem] text-[var(--text-primary)] m-0 mb-1 font-semibold break-words leading-tight">{job.title}</h4>
+															<h4 class="text-[0.9rem] text-(--text-primary) m-0 mb-1 font-semibold wrap-break-word leading-tight">{job.title}</h4>
 															<div class="flex gap-1.5 items-center flex-wrap">
 																<span class="badge {getCategoryBadge(job.category)} text-[0.66rem] py-0.5 px-1.5">
 																	{job.category}
@@ -586,7 +586,7 @@
 																	<span class="status status-open text-[0.66rem] py-0.5 px-1.5">Open</span>
 																{/if}
 																{#if job.created_at}
-																	<span class="text-[0.66rem] text-[var(--text-muted)]">
+																	<span class="text-[0.66rem] text-(--text-muted)">
 																		{new Date(job.created_at).toLocaleDateString("en-PH", {
 																			month: "short",
 																			day: "numeric",
@@ -596,15 +596,15 @@
 																{/if}
 															</div>
 														</div>
-														<strong class="text-[var(--accent)] text-[0.95rem] whitespace-nowrap shrink-0">₱{Number(job.budget || 0).toLocaleString()}</strong>
+														<strong class="text-(--accent) text-[0.95rem] whitespace-nowrap shrink-0">₱{Number(job.budget || 0).toLocaleString()}</strong>
 													</div>
 													{#if job.description}
-														<p class="text-[0.8rem] text-[var(--text-secondary)] leading-relaxed m-0 line-clamp-3">{job.description}</p>
+														<p class="text-[0.8rem] text-(--text-secondary) leading-relaxed m-0 line-clamp-3">{job.description}</p>
 													{/if}
-													<div class="text-[0.72rem] text-[var(--text-muted)] flex items-center justify-between mt-1 border-t border-[var(--border-color)] pt-2 flex-wrap gap-1.5">
+													<div class="text-[0.72rem] text-(--text-muted) flex items-center justify-between mt-1 border-t border-(--border-color) pt-2 flex-wrap gap-1.5">
 														<span class="inline-flex items-center gap-1 truncate"><MapPin size={11} class="text-sky-400 shrink-0" /> {job.location}</span>
 														{#if job.assignedWorker}
-															<span>Worker: <strong class="text-[var(--text-primary)]">{job.assignedWorker.name}</strong></span>
+															<span>Worker: <strong class="text-(--text-primary)">{job.assignedWorker.name}</strong></span>
 														{/if}
 													</div>
 												</div>
@@ -612,29 +612,29 @@
 										{/if}
 									{:else if customerSubTab === "completed"}
 										{#if completedJobs.length === 0}
-											<div class="bg-[var(--bg-input)] border border-dashed border-[var(--border-color)] rounded-[var(--radius-md)] text-center p-8">
-												<h4 class="text-[0.95rem] text-[var(--text-primary)] mb-1 font-semibold">No completed jobs recorded</h4>
-												<p class="text-[var(--text-secondary)] text-[0.8rem] m-0">No completed job transactions recorded for this customer profile.</p>
+											<div class="bg-(--bg-input) border border-dashed border-(--border-color) rounded-md text-center p-8">
+												<h4 class="text-[0.95rem] text-(--text-primary) mb-1 font-semibold">No completed jobs recorded</h4>
+												<p class="text-(--text-secondary) text-[0.8rem] m-0">No completed job transactions recorded for this customer profile.</p>
 											</div>
 										{:else}
 											{#each completedJobs as job (job.id)}
-												<div class="bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] p-3.5 max-sm:p-3 flex flex-col gap-2">
+												<div class="bg-(--bg-input) border border-(--border-color) rounded-md p-3.5 max-sm:p-3 flex flex-col gap-2">
 													<div class="flex justify-between items-start gap-2">
 														<div class="min-w-0 flex-1">
-															<h4 class="text-[0.9rem] text-[var(--text-primary)] m-0 mb-1 font-semibold break-words leading-tight">{job.title}</h4>
+															<h4 class="text-[0.9rem] text-(--text-primary) m-0 mb-1 font-semibold wrap-break-word leading-tight">{job.title}</h4>
 															<span class="badge {getCategoryBadge(job.category)} text-[0.66rem] py-0.5 px-1.5">
 																{job.category}
 															</span>
 														</div>
-														<strong class="text-[var(--accent)] text-[0.95rem] whitespace-nowrap shrink-0">₱{Number(job.budget || 0).toLocaleString()}</strong>
+														<strong class="text-(--accent) text-[0.95rem] whitespace-nowrap shrink-0">₱{Number(job.budget || 0).toLocaleString()}</strong>
 													</div>
 													{#if job.description}
-														<p class="text-[0.8rem] text-[var(--text-secondary)] leading-relaxed m-0 line-clamp-3">{job.description}</p>
+														<p class="text-[0.8rem] text-(--text-secondary) leading-relaxed m-0 line-clamp-3">{job.description}</p>
 													{/if}
 
-													<div class="border-t border-[var(--border-color)] pt-2 mt-1 flex flex-col gap-1.5">
-														<div class="text-[0.72rem] text-[var(--text-muted)] flex items-center justify-between flex-wrap gap-1.5">
-															<span>Completed by: <strong class="text-[var(--text-primary)]">{job.assignedWorker?.name || "Worker"}</strong></span>
+													<div class="border-t border-(--border-color) pt-2 mt-1 flex flex-col gap-1.5">
+														<div class="text-[0.72rem] text-(--text-muted) flex items-center justify-between flex-wrap gap-1.5">
+															<span>Completed by: <strong class="text-(--text-primary)">{job.assignedWorker?.name || "Worker"}</strong></span>
 															{#if job.review}
 																<span
 																	class="rating-badge {job.review.rating > 0
@@ -650,7 +650,7 @@
 														</div>
 
 														{#if job.review && job.review.review_text}
-															<div class="bg-[var(--bg-card)] p-2 rounded-[var(--radius-sm)] text-[0.76rem] text-[var(--text-secondary)] italic border border-[var(--border-color)]">
+															<div class="bg-(--bg-card) p-2 rounded-sm text-[0.76rem] text-(--text-secondary) italic border border-(--border-color)">
 																"{job.review.review_text}"
 															</div>
 														{/if}
@@ -662,28 +662,28 @@
 								{:else}
 									<!-- Worker Service History -->
 									{#if completedJobs.length === 0}
-										<div class="bg-[var(--bg-input)] border border-dashed border-[var(--border-color)] rounded-[var(--radius-md)] text-center p-8">
-											<h4 class="text-[0.95rem] text-[var(--text-primary)] mb-1 font-semibold">No completed jobs recorded</h4>
-											<p class="text-[var(--text-secondary)] text-[0.8rem] m-0">No past completed job records found for this profile.</p>
+										<div class="bg-(--bg-input) border border-dashed border-(--border-color) rounded-md text-center p-8">
+											<h4 class="text-[0.95rem] text-(--text-primary) mb-1 font-semibold">No completed jobs recorded</h4>
+											<p class="text-(--text-secondary) text-[0.8rem] m-0">No past completed job records found for this profile.</p>
 										</div>
 									{:else}
 										{#each completedJobs as job (job.id)}
-											<div class="bg-[var(--bg-input)] border border-[var(--border-color)] rounded-[var(--radius-md)] p-3.5 max-sm:p-3 flex flex-col gap-2">
+											<div class="bg-(--bg-input) border border-(--border-color) rounded-md p-3.5 max-sm:p-3 flex flex-col gap-2">
 												<div class="flex justify-between items-start gap-2">
 													<div class="min-w-0 flex-1">
-														<h4 class="text-[0.9rem] text-[var(--text-primary)] m-0 mb-1 font-semibold break-words leading-tight">{job.title}</h4>
+														<h4 class="text-[0.9rem] text-(--text-primary) m-0 mb-1 font-semibold wrap-break-word leading-tight">{job.title}</h4>
 														<span class="badge {getCategoryBadge(job.category)} text-[0.66rem] py-0.5 px-1.5">
 															{job.category}
 														</span>
 													</div>
-													<strong class="text-[var(--accent)] text-[0.95rem] whitespace-nowrap shrink-0">₱{Number(job.budget || 0).toLocaleString()}</strong>
+													<strong class="text-(--accent) text-[0.95rem] whitespace-nowrap shrink-0">₱{Number(job.budget || 0).toLocaleString()}</strong>
 												</div>
 												{#if job.description}
-													<p class="text-[0.8rem] text-[var(--text-secondary)] leading-relaxed m-0 line-clamp-3">{job.description}</p>
+													<p class="text-[0.8rem] text-(--text-secondary) leading-relaxed m-0 line-clamp-3">{job.description}</p>
 												{/if}
-												<div class="text-[0.72rem] text-[var(--text-muted)] flex items-center justify-between mt-1 border-t border-[var(--border-color)] pt-2 flex-wrap gap-1.5">
+												<div class="text-[0.72rem] text-(--text-muted) flex items-center justify-between mt-1 border-t border-(--border-color) pt-2 flex-wrap gap-1.5">
 													<span class="inline-flex items-center gap-1 truncate"><MapPin size={11} class="text-sky-400 shrink-0" /> {job.location}</span>
-													<span class="text-[var(--success)] inline-flex items-center gap-1 font-medium">
+													<span class="text-(--success) inline-flex items-center gap-1 font-medium">
 														<CheckCircle2 size={12} /> Completed
 													</span>
 												</div>
@@ -697,7 +697,7 @@
 				</div>
 
 				<!-- Fixed Modal Footer Actions -->
-				<div class="p-3.5 max-sm:p-3 border-t border-[var(--border-color)] bg-[var(--bg-card)] flex justify-end max-sm:flex-col-reverse gap-2 shrink-0">
+				<div class="p-3.5 max-sm:p-3 border-t border-(--border-color) bg-(--bg-card) flex justify-end max-sm:flex-col-reverse gap-2 shrink-0">
 					<button
 						type="button"
 						class="btn btn-secondary text-[0.85rem] py-2.5 px-4 max-sm:w-full justify-center inline-flex items-center gap-1.5"
