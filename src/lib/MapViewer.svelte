@@ -92,7 +92,7 @@
 						display: flex;
 						align-items: center;
 						justify-content: center;
-						box-shadow: 0 4px 14px rgba(108, 71, 255, 0.45);
+						box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 						z-index: 2;
 					">
 						<svg style="transform: rotate(45deg); width: 20px; height: 20px;" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -107,7 +107,7 @@
 						transform: translateX(-50%);
 						width: 14px;
 						height: 5px;
-						background: rgba(0,0,0,0.35);
+						background: rgba(0,0,0,0.25);
 						border-radius: 50%;
 					"></div>
 				</div>
@@ -127,7 +127,7 @@
 						position: absolute;
 						inset: -6px;
 						border-radius: 50%;
-						background: rgba(99, 102, 241, 0.35);
+						background: rgba(99, 102, 241, 0.25);
 						animation: pulseUserMarker 2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
 					"></div>
 					<div style="
@@ -135,8 +135,8 @@
 						height: 20px;
 						border-radius: 50%;
 						background: #6366f1;
-						border: 3.5px solid #ffffff;
-						box-shadow: 0 3px 10px rgba(0,0,0,0.35);
+						border: 3px solid #ffffff;
+						box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 						z-index: 2;
 					"></div>
 				</div>
@@ -445,10 +445,10 @@
 	<div bind:this={mapContainer} class="w-full h-full min-h-dvh z-1"></div>
 
 	<!-- Top Floating Header Bar matching Serviee Navbar & Theme -->
-	<div role="banner" class="map-viewer-floating-header absolute top-3.5 left-3.5 right-3.5 max-sm:top-2.5 max-sm:left-2.5 max-sm:right-2.5 z-1000 flex items-center justify-between gap-2.5 p-2 max-sm:p-2 bg-(--bg-header) backdrop-blur-xl border border-(--border-color) rounded-2xl shadow-(--shadow-lg) text-(--text-primary) transition-colors duration-200">
+	<div role="banner" class="map-viewer-floating-header absolute top-3.5 left-3.5 right-3.5 max-sm:top-2.5 max-sm:left-2.5 max-sm:right-2.5 z-1000 flex items-center justify-between gap-2.5 p-2 max-sm:p-2 bg-(--bg-header) backdrop-blur-xl border border-(--border-color) rounded-2xl shadow-(--shadow-sm) text-(--text-primary) transition-colors duration-200">
 		<button 
 			type="button" 
-			class="inline-flex items-center justify-center gap-1.5 bg-(--bg-input) hover:bg-(--border-color) active:bg-(--bg-input) border border-(--border-color) text-(--text-primary) py-2 px-3.5 max-sm:p-2 rounded-xl text-[0.85rem] font-semibold cursor-pointer transition-all duration-150 shadow-(--shadow-sm)" 
+			class="inline-flex items-center justify-center gap-1.5 bg-(--bg-input) hover:bg-(--border-color) active:bg-(--bg-input) border border-(--border-color) text-(--text-primary) py-2 px-3.5 max-sm:p-2 rounded-xl text-[0.85rem] font-semibold cursor-pointer transition-all duration-150" 
 			onclick={handleBack} 
 			title="Go back"
 			aria-label="Go back"
@@ -475,7 +475,7 @@
 		<div class="flex items-center gap-1.5">
 			<button 
 				type="button" 
-				class="inline-flex items-center justify-center p-2 bg-(--bg-input) hover:bg-(--border-color) active:bg-(--bg-input) border border-(--border-color) text-(--text-primary) hover:text-(--accent) rounded-xl text-[0.85rem] font-medium cursor-pointer transition-all duration-150 shadow-(--shadow-sm) {currentLayer === 'satellite' ? 'border-(--accent) text-(--accent) bg-(--accent-light)' : ''}" 
+				class="inline-flex items-center justify-center p-2 bg-(--bg-input) hover:bg-(--border-color) active:bg-(--bg-input) border border-(--border-color) text-(--text-primary) hover:text-(--accent) rounded-xl text-[0.85rem] font-medium cursor-pointer transition-all duration-150 {currentLayer === 'satellite' ? 'border-(--accent) text-(--accent) bg-(--accent-light)' : ''}" 
 				onclick={toggleLayer} 
 				title="Switch between Street and Satellite view"
 				aria-label="Switch map layer"
@@ -485,7 +485,7 @@
 
 			<button 
 				type="button" 
-				class="inline-flex items-center justify-center p-2 bg-(--bg-input) hover:bg-(--border-color) active:bg-(--bg-input) border border-(--border-color) text-(--text-primary) hover:text-(--accent) rounded-xl text-[0.85rem] font-medium cursor-pointer transition-all duration-150 shadow-(--shadow-sm)" 
+				class="inline-flex items-center justify-center p-2 bg-(--bg-input) hover:bg-(--border-color) active:bg-(--bg-input) border border-(--border-color) text-(--text-primary) hover:text-(--accent) rounded-xl text-[0.85rem] font-medium cursor-pointer transition-all duration-150" 
 				onclick={shareLocation} 
 				title="Share location"
 				aria-label="Share location"
@@ -505,7 +505,7 @@
 		{#if userCoords}
 			<button 
 				type="button" 
-				class="w-10 h-10 flex items-center justify-center bg-(--bg-card)/90 backdrop-blur-xl border border-(--border-color) text-(--accent) rounded-xl cursor-pointer transition-all duration-150 hover:bg-(--bg-input) hover:border-(--accent) shadow-(--shadow-md)" 
+				class="w-10 h-10 flex items-center justify-center bg-(--bg-card)/90 backdrop-blur-xl border border-(--border-color) text-(--accent) rounded-xl cursor-pointer transition-all duration-150 hover:bg-(--bg-input) hover:border-(--accent) shadow-(--shadow-sm)" 
 				onclick={fitBothInView} 
 				title="Fit Both (Job + My GPS) in view"
 				aria-label="Fit both locations in view"
@@ -517,7 +517,7 @@
 		<!-- Recenter Job Pin Button -->
 		<button 
 			type="button" 
-			class="w-10 h-10 flex items-center justify-center bg-(--bg-card)/90 backdrop-blur-xl border border-(--border-color) text-(--accent) rounded-xl cursor-pointer transition-all duration-150 hover:bg-(--bg-input) hover:border-(--accent) shadow-(--shadow-md)" 
+			class="w-10 h-10 flex items-center justify-center bg-(--bg-card)/90 backdrop-blur-xl border border-(--border-color) text-(--accent) rounded-xl cursor-pointer transition-all duration-150 hover:bg-(--bg-input) hover:border-(--accent) shadow-(--shadow-sm)" 
 			onclick={recenterJob} 
 			title="Focus Job Pin"
 			aria-label="Focus Job Pin"
@@ -528,7 +528,7 @@
 		<!-- My GPS Location Button -->
 		<button 
 			type="button" 
-			class="w-10 h-10 flex items-center justify-center bg-(--bg-card)/90 backdrop-blur-xl border border-(--border-color) {userCoords ? 'text-indigo-400 border-indigo-500/40' : 'text-(--text-secondary)'} rounded-xl cursor-pointer transition-all duration-150 hover:bg-(--bg-input) hover:text-(--accent) hover:border-(--accent) shadow-(--shadow-md) relative" 
+			class="w-10 h-10 flex items-center justify-center bg-(--bg-card)/90 backdrop-blur-xl border border-(--border-color) {userCoords ? 'text-indigo-400 border-indigo-500/40' : 'text-(--text-secondary)'} rounded-xl cursor-pointer transition-all duration-150 hover:bg-(--bg-input) hover:text-(--accent) hover:border-(--accent) shadow-(--shadow-sm) relative" 
 			onclick={recenterUser} 
 			title={userCoords ? 'Focus My GPS Location' : 'Locate My GPS'}
 			aria-label="Locate My GPS"
@@ -544,7 +544,7 @@
 		</button>
 
 		<!-- Zoom In / Zoom Out Controls -->
-		<div class="flex flex-col bg-(--bg-card)/90 backdrop-blur-xl border border-(--border-color) rounded-xl overflow-hidden shadow-(--shadow-md)">
+		<div class="flex flex-col bg-(--bg-card)/90 backdrop-blur-xl border border-(--border-color) rounded-xl overflow-hidden shadow-(--shadow-sm)">
 			<button 
 				type="button" 
 				class="w-10 h-10 flex items-center justify-center bg-transparent border-none border-b border-(--border-color) text-(--text-primary) cursor-pointer transition-all duration-150 hover:bg-(--bg-input) hover:text-(--accent)" 
@@ -568,11 +568,11 @@
 
 	<!-- Bottom Info & Navigation Launch Card -->
 	<div class="absolute bottom-5 left-3.5 right-3.5 max-sm:bottom-3.5 max-sm:left-2.5 max-sm:right-2.5 z-1000 max-w-xl mx-auto">
-		<div class="flex flex-col gap-3.5 bg-(--bg-card)/95 backdrop-blur-xl border border-(--border-color) rounded-2xl p-4 sm:p-5 shadow-(--shadow-lg) transition-colors duration-200">
+		<div class="flex flex-col gap-3.5 bg-(--bg-card)/95 backdrop-blur-xl border border-(--border-color) rounded-2xl p-4 sm:p-5 shadow-(--shadow-sm) transition-colors duration-200">
 			<div class="flex flex-wrap items-center justify-between gap-2">
 				<!-- GPS Coordinates Pill -->
-				<div class="inline-flex items-center gap-2 bg-(--bg-input) border border-(--border-color) py-1.5 px-3 rounded-xl text-[0.78rem] text-(--text-primary) shadow-(--shadow-sm)">
-					<span class="w-2 h-2 bg-(--accent) rounded-full shadow-(--glow)"></span>
+				<div class="inline-flex items-center gap-2 bg-(--bg-input) border border-(--border-color) py-1.5 px-3 rounded-xl text-[0.78rem] text-(--text-primary)">
+					<span class="w-2 h-2 bg-(--accent) rounded-full"></span>
 					<span class="font-mono text-[0.78rem] font-semibold text-(--text-primary)">{numLat.toFixed(6)}, {numLng.toFixed(6)}</span>
 					<button 
 						type="button" 
@@ -592,7 +592,7 @@
 
 				<!-- Distance from User GPS Tag -->
 				{#if distanceInfo}
-					<div class="inline-flex items-center gap-1.5 bg-(--accent-light) border border-(--accent)/30 text-(--accent) py-1.5 px-3 rounded-xl text-[0.76rem] font-bold shadow-(--shadow-sm)">
+					<div class="inline-flex items-center gap-1.5 bg-(--accent-light) border border-(--accent)/30 text-(--accent) py-1.5 px-3 rounded-xl text-[0.76rem] font-bold">
 						<Navigation size={12} class="text-(--accent) shrink-0" />
 						<span>{distanceInfo.text} away from you</span>
 					</div>
@@ -616,7 +616,7 @@
 					href={directionsUrl} 
 					target="_blank" 
 					rel="noopener noreferrer" 
-					class="btn btn-primary w-full flex-1 py-3 px-5 max-sm:py-2.5 max-sm:px-4 text-[0.9rem] font-bold rounded-xl shadow-(--shadow-md) hover:shadow-(--shadow-lg) transition-all duration-150 no-underline inline-flex items-center justify-center gap-2"
+					class="btn btn-primary w-full flex-1 py-3 px-5 max-sm:py-2.5 max-sm:px-4 text-[0.9rem] font-bold rounded-xl shadow-(--shadow-sm) hover:shadow-(--shadow-md) transition-all duration-150 no-underline inline-flex items-center justify-center gap-2"
 				>
 					{#if userCoords}
 						<Navigation size={17} />
@@ -653,7 +653,7 @@
 		background: var(--bg-card) !important;
 		color: var(--text-primary) !important;
 		border: 1px solid var(--border-color) !important;
-		box-shadow: var(--shadow-lg) !important;
+		box-shadow: var(--shadow-sm) !important;
 		border-radius: var(--radius-lg, 12px) !important;
 		padding: 4px !important;
 	}
@@ -716,7 +716,6 @@
 		font-size: 0.78rem;
 		font-weight: 600;
 		transition: background-color var(--transition-fast, 0.15s ease);
-		box-shadow: var(--shadow-sm);
 	}
 
 	:global(.serviee-popup-cta-btn:hover) {
@@ -740,7 +739,6 @@
 		height: 8px;
 		border-radius: 50%;
 		background: #6366f1;
-		box-shadow: 0 0 8px rgba(99, 102, 241, 0.6);
 	}
 
 	:global(.serviee-popup-distance-tag) {
