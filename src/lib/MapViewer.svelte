@@ -18,9 +18,11 @@
 		ZoomIn, 
 		ZoomOut, 
 		Share2,
-		Maximize,
-		Loader2
+		Maximize2,
+		Loader2,
+		Crosshair
 	} from 'lucide-svelte';
+	import ThemeToggle from '$lib/ThemeToggle.svelte';
 
 	/**
 	 * @type {{
@@ -83,14 +85,14 @@
 					<div style="
 						width: 38px;
 						height: 38px;
-						background: #10b981;
+						background: linear-gradient(135deg, #8b5cf6 0%, #6c47ff 100%);
 						border: 3px solid #ffffff;
 						border-radius: 50% 50% 50% 0;
 						transform: rotate(-45deg);
 						display: flex;
 						align-items: center;
 						justify-content: center;
-						box-shadow: 0 4px 10px rgba(0,0,0,0.35);
+						box-shadow: 0 4px 14px rgba(108, 71, 255, 0.45);
 						z-index: 2;
 					">
 						<svg style="transform: rotate(45deg); width: 20px; height: 20px;" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -105,7 +107,7 @@
 						transform: translateX(-50%);
 						width: 14px;
 						height: 5px;
-						background: rgba(0,0,0,0.4);
+						background: rgba(0,0,0,0.35);
 						border-radius: 50%;
 					"></div>
 				</div>
@@ -125,16 +127,16 @@
 						position: absolute;
 						inset: -6px;
 						border-radius: 50%;
-						background: rgba(59, 130, 246, 0.35);
+						background: rgba(99, 102, 241, 0.35);
 						animation: pulseUserMarker 2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
 					"></div>
 					<div style="
 						width: 20px;
 						height: 20px;
 						border-radius: 50%;
-						background: #2563eb;
+						background: #6366f1;
 						border: 3.5px solid #ffffff;
-						box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+						box-shadow: 0 3px 10px rgba(0,0,0,0.35);
 						z-index: 2;
 					"></div>
 				</div>
@@ -205,19 +207,24 @@
 		if (!markerInstance) return;
 		const distText = distanceInfo ? ` • ${distanceInfo.text} away` : '';
 		const popupContent = `
-			<div style="font-family: inherit; font-size: 0.85rem; color: #1e293b; padding: 4px; min-width: 190px;">
-				<div style="font-weight: 700; color: #0f172a; margin-bottom: 2px;">${title || 'Pinned Location'}</div>
-				${address ? `<div style="font-size: 0.75rem; color: #64748b; margin-bottom: 6px;">${address}</div>` : ''}
-				<div style="font-size: 0.72rem; color: #10b981; font-weight: 600; margin-bottom: 8px;">
+			<div class="serviee-leaflet-custom-popup">
+				<div class="serviee-popup-title">${title || 'Pinned Location'}</div>
+				${address ? `<div class="serviee-popup-address">${address}</div>` : ''}
+				<div class="serviee-popup-coords">
 					${numLat.toFixed(6)}, ${numLng.toFixed(6)}${distText}
 				</div>
 				<a 
 					href="${directionsUrl}" 
 					target="_blank" 
-					rel="noopener noreferrer"
-					style="display: inline-flex; align-items: center; justify-content: center; gap: 4px; width: 100%; background: #10b981; color: #ffffff; text-decoration: none; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;"
+					rel="noopener noreferrer" 
+					class="serviee-popup-cta-btn"
 				>
-					${userCoords ? 'Directions in Google Maps ↗' : 'Open Google Maps ↗'}
+					<span>${userCoords ? 'Directions in Google Maps' : 'Open in Google Maps'}</span>
+					<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+						<polyline points="15 3 21 3 21 9"></polyline>
+						<line x1="10" y1="14" x2="21" y2="3"></line>
+					</svg>
 				</a>
 			</div>
 		`;
@@ -249,14 +256,14 @@
 					if (coords.accuracy && coords.accuracy < 2000) {
 						userAccuracyCircle = L.circle([coords.latitude, coords.longitude], {
 							radius: coords.accuracy,
-							color: '#3b82f6',
+							color: '#6366f1',
 							weight: 1,
-							fillColor: '#3b82f6',
+							fillColor: '#6366f1',
 							fillOpacity: 0.12
 						}).addTo(mapInstance);
 					}
 
-					// Blue User GPS Pin
+					// Violet / Blue User GPS Pin
 					const userPin = createUserLocationPin(L);
 					userMarkerInstance = L.marker([coords.latitude, coords.longitude], {
 						icon: userPin,
@@ -264,15 +271,15 @@
 					}).addTo(mapInstance);
 
 					const userPopupContent = `
-						<div style="font-family: inherit; font-size: 0.85rem; color: #1e293b; padding: 4px; min-width: 170px;">
-							<div style="display: flex; align-items: center; gap: 4px; font-weight: 700; color: #2563eb; margin-bottom: 2px;">
-								<span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#2563eb;"></span>
-								Your GPS Location
+						<div class="serviee-leaflet-custom-popup">
+							<div class="serviee-popup-user-header">
+								<span class="serviee-popup-user-dot"></span>
+								<span>Your GPS Location</span>
 							</div>
-							<div style="font-size: 0.72rem; color: #64748b; margin-bottom: 6px;">
+							<div class="serviee-popup-address">
 								${coords.latitude.toFixed(6)}, ${coords.longitude.toFixed(6)}
 							</div>
-							${distanceInfo ? `<div style="font-size: 0.75rem; font-weight: 600; color: #0f172a; margin-bottom: 6px;">📍 ${distanceInfo.text} to job</div>` : ''}
+							${distanceInfo ? `<div class="serviee-popup-distance-tag">📍 ${distanceInfo.text} to job</div>` : ''}
 						</div>
 					`;
 					userMarkerInstance.bindPopup(userPopupContent);
@@ -433,42 +440,42 @@
 	});
 </script>
 
-<div class="serviee-map-viewer-wrapper relative w-full h-full min-h-dvh bg-slate-900 overflow-hidden select-none {fullscreen ? 'fixed inset-0 w-full h-dvh z-999' : ''}">
+<div class="serviee-map-viewer-wrapper relative w-full h-full min-h-dvh bg-(--bg-base) text-(--text-primary) overflow-hidden select-none font-sans {fullscreen ? 'fixed inset-0 w-full h-dvh z-999' : ''}">
 	<!-- Map Target Container -->
 	<div bind:this={mapContainer} class="w-full h-full min-h-dvh z-1"></div>
 
-	<!-- Top Floating Header Bar (avoiding <header> HTML tag collision with global layout css) -->
-	<div role="banner" class="map-viewer-floating-header absolute top-4 left-4 right-4 max-sm:top-3 max-sm:left-3 max-sm:right-3 z-1000 flex items-center justify-between gap-3 p-2.5 max-sm:p-2 bg-slate-900/90 backdrop-blur-md border border-white/15 rounded-2xl shadow-2xl text-white">
+	<!-- Top Floating Header Bar matching Serviee Navbar & Theme -->
+	<div role="banner" class="map-viewer-floating-header absolute top-3.5 left-3.5 right-3.5 max-sm:top-2.5 max-sm:left-2.5 max-sm:right-2.5 z-1000 flex items-center justify-between gap-2.5 p-2 max-sm:p-2 bg-(--bg-header) backdrop-blur-xl border border-(--border-color) rounded-2xl shadow-(--shadow-lg) text-(--text-primary) transition-colors duration-200">
 		<button 
 			type="button" 
-			class="inline-flex items-center justify-center gap-1.5 bg-white/10 hover:bg-white/20 active:bg-white/10 border border-white/15 text-white py-2 px-3.5 max-sm:p-2 rounded-xl text-[0.85rem] font-medium cursor-pointer transition-all duration-200" 
+			class="inline-flex items-center justify-center gap-1.5 bg-(--bg-input) hover:bg-(--border-color) active:bg-(--bg-input) border border-(--border-color) text-(--text-primary) py-2 px-3.5 max-sm:p-2 rounded-xl text-[0.85rem] font-semibold cursor-pointer transition-all duration-150 shadow-(--shadow-sm)" 
 			onclick={handleBack} 
 			title="Go back"
 			aria-label="Go back"
 		>
-			<ArrowLeft size={18} />
+			<ArrowLeft size={18} class="text-(--accent)" />
 			<span class="max-sm:hidden">Back</span>
 		</button>
 
 		<div class="flex-1 min-w-0 text-center px-2">
 			<div class="flex items-center justify-center gap-1.5">
-				<MapPin size={15} class="text-emerald-500 shrink-0" />
-				<h1 class="text-[0.95rem] max-sm:text-[0.85rem] font-bold text-white m-0 truncate">{title || 'Pinned Location'}</h1>
+				<MapPin size={16} class="text-(--accent) shrink-0" />
+				<h1 class="text-[0.95rem] max-sm:text-[0.85rem] font-bold text-(--text-primary) m-0 truncate tracking-tight">{title || 'Pinned Location'}</h1>
 			</div>
 			{#if distanceInfo}
-				<p class="text-[0.72rem] text-emerald-400 font-semibold mt-0.5 truncate flex items-center justify-center gap-1">
-					<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+				<p class="text-[0.72rem] text-(--accent-hover) font-semibold mt-0.5 truncate flex items-center justify-center gap-1">
+					<span class="w-1.5 h-1.5 rounded-full bg-(--accent) animate-pulse"></span>
 					{distanceInfo.text} from your GPS location
 				</p>
 			{:else if address}
-				<p class="text-[0.72rem] text-white/70 mt-0.5 truncate">{address}</p>
+				<p class="text-[0.72rem] text-(--text-secondary) mt-0.5 truncate">{address}</p>
 			{/if}
 		</div>
 
 		<div class="flex items-center gap-1.5">
 			<button 
 				type="button" 
-				class="inline-flex items-center justify-center p-2 bg-white/10 hover:bg-white/20 active:bg-white/10 border border-white/15 text-white rounded-xl text-[0.85rem] font-medium cursor-pointer transition-all duration-200" 
+				class="inline-flex items-center justify-center p-2 bg-(--bg-input) hover:bg-(--border-color) active:bg-(--bg-input) border border-(--border-color) text-(--text-primary) hover:text-(--accent) rounded-xl text-[0.85rem] font-medium cursor-pointer transition-all duration-150 shadow-(--shadow-sm) {currentLayer === 'satellite' ? 'border-(--accent) text-(--accent) bg-(--accent-light)' : ''}" 
 				onclick={toggleLayer} 
 				title="Switch between Street and Satellite view"
 				aria-label="Switch map layer"
@@ -478,65 +485,69 @@
 
 			<button 
 				type="button" 
-				class="inline-flex items-center justify-center p-2 bg-white/10 hover:bg-white/20 active:bg-white/10 border border-white/15 text-white rounded-xl text-[0.85rem] font-medium cursor-pointer transition-all duration-200" 
+				class="inline-flex items-center justify-center p-2 bg-(--bg-input) hover:bg-(--border-color) active:bg-(--bg-input) border border-(--border-color) text-(--text-primary) hover:text-(--accent) rounded-xl text-[0.85rem] font-medium cursor-pointer transition-all duration-150 shadow-(--shadow-sm)" 
 				onclick={shareLocation} 
 				title="Share location"
 				aria-label="Share location"
 			>
 				<Share2 size={17} />
 			</button>
+
+			<div class="flex items-center">
+				<ThemeToggle />
+			</div>
 		</div>
 	</div>
 
 	<!-- Right Floating Map Controls -->
-	<div class="absolute right-4 top-22 max-sm:right-3 max-sm:top-[4.8rem] z-1000 flex flex-col gap-2.5">
+	<div class="absolute right-3.5 top-20 max-sm:right-2.5 max-sm:top-[4.5rem] z-1000 flex flex-col gap-2">
 		<!-- Fit Both Button (Only visible if user GPS is loaded) -->
 		{#if userCoords}
 			<button 
 				type="button" 
-				class="w-10 h-10 flex items-center justify-center bg-slate-900/90 backdrop-blur-md border border-white/15 text-emerald-400 rounded-xl cursor-pointer transition-all duration-200 hover:bg-white/20 hover:border-emerald-400/50 shadow-lg" 
+				class="w-10 h-10 flex items-center justify-center bg-(--bg-card)/90 backdrop-blur-xl border border-(--border-color) text-(--accent) rounded-xl cursor-pointer transition-all duration-150 hover:bg-(--bg-input) hover:border-(--accent) shadow-(--shadow-md)" 
 				onclick={fitBothInView} 
 				title="Fit Both (Job + My GPS) in view"
 				aria-label="Fit both locations in view"
 			>
-				<Maximize size={17} />
+				<Maximize2 size={17} />
 			</button>
 		{/if}
 
 		<!-- Recenter Job Pin Button -->
 		<button 
 			type="button" 
-			class="w-10 h-10 flex items-center justify-center bg-slate-900/90 backdrop-blur-md border border-white/15 text-emerald-500 rounded-xl cursor-pointer transition-all duration-200 hover:bg-white/20 hover:border-white/30 shadow-lg" 
+			class="w-10 h-10 flex items-center justify-center bg-(--bg-card)/90 backdrop-blur-xl border border-(--border-color) text-(--accent) rounded-xl cursor-pointer transition-all duration-150 hover:bg-(--bg-input) hover:border-(--accent) shadow-(--shadow-md)" 
 			onclick={recenterJob} 
 			title="Focus Job Pin"
 			aria-label="Focus Job Pin"
 		>
-			<MapPin size={18} />
+			<Crosshair size={18} />
 		</button>
 
 		<!-- My GPS Location Button -->
 		<button 
 			type="button" 
-			class="w-10 h-10 flex items-center justify-center bg-slate-900/90 backdrop-blur-md border border-white/15 {userCoords ? 'text-blue-400' : 'text-white/80'} rounded-xl cursor-pointer transition-all duration-200 hover:bg-white/20 hover:border-blue-400/50 shadow-lg relative" 
+			class="w-10 h-10 flex items-center justify-center bg-(--bg-card)/90 backdrop-blur-xl border border-(--border-color) {userCoords ? 'text-indigo-400 border-indigo-500/40' : 'text-(--text-secondary)'} rounded-xl cursor-pointer transition-all duration-150 hover:bg-(--bg-input) hover:text-(--accent) hover:border-(--accent) shadow-(--shadow-md) relative" 
 			onclick={recenterUser} 
 			title={userCoords ? 'Focus My GPS Location' : 'Locate My GPS'}
 			aria-label="Locate My GPS"
 		>
 			{#if isLocating}
-				<Loader2 size={18} class="animate-spin text-blue-400" />
+				<Loader2 size={18} class="animate-spin text-(--accent)" />
 			{:else}
 				<Navigation size={18} />
 			{/if}
 			{#if userCoords}
-				<span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-blue-500 ring-2 ring-slate-900"></span>
+				<span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-indigo-500 ring-2 ring-(--bg-card)"></span>
 			{/if}
 		</button>
 
 		<!-- Zoom In / Zoom Out Controls -->
-		<div class="flex flex-col bg-slate-900/90 backdrop-blur-md border border-white/15 rounded-xl overflow-hidden shadow-lg">
+		<div class="flex flex-col bg-(--bg-card)/90 backdrop-blur-xl border border-(--border-color) rounded-xl overflow-hidden shadow-(--shadow-md)">
 			<button 
 				type="button" 
-				class="w-10 h-10 flex items-center justify-center bg-transparent border-none border-b border-white/10 text-white cursor-pointer transition-all duration-200 hover:bg-white/20" 
+				class="w-10 h-10 flex items-center justify-center bg-transparent border-none border-b border-(--border-color) text-(--text-primary) cursor-pointer transition-all duration-150 hover:bg-(--bg-input) hover:text-(--accent)" 
 				onclick={zoomIn} 
 				title="Zoom in"
 				aria-label="Zoom in"
@@ -545,7 +556,7 @@
 			</button>
 			<button 
 				type="button" 
-				class="w-10 h-10 flex items-center justify-center bg-transparent border-none text-white cursor-pointer transition-all duration-200 hover:bg-white/20" 
+				class="w-10 h-10 flex items-center justify-center bg-transparent border-none text-(--text-primary) cursor-pointer transition-all duration-150 hover:bg-(--bg-input) hover:text-(--accent)" 
 				onclick={zoomOut} 
 				title="Zoom out"
 				aria-label="Zoom out"
@@ -556,21 +567,22 @@
 	</div>
 
 	<!-- Bottom Info & Navigation Launch Card -->
-	<div class="absolute bottom-5 left-4 right-4 max-sm:bottom-4 max-sm:left-3 max-sm:right-3 z-1000 max-w-150 mx-auto">
-		<div class="flex flex-col gap-3 bg-slate-900/90 backdrop-blur-md border border-white/15 rounded-2xl p-4 max-sm:p-3.5 shadow-2xl">
+	<div class="absolute bottom-5 left-3.5 right-3.5 max-sm:bottom-3.5 max-sm:left-2.5 max-sm:right-2.5 z-1000 max-w-xl mx-auto">
+		<div class="flex flex-col gap-3.5 bg-(--bg-card)/95 backdrop-blur-xl border border-(--border-color) rounded-2xl p-4 sm:p-5 shadow-(--shadow-lg) transition-colors duration-200">
 			<div class="flex flex-wrap items-center justify-between gap-2">
-				<div class="inline-flex items-center gap-2 bg-white/5 border border-white/10 py-1 px-2.5 rounded-full text-[0.75rem] text-white/90">
-					<span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-					<span class="font-mono text-[0.75rem] text-white">{numLat.toFixed(6)}, {numLng.toFixed(6)}</span>
+				<!-- GPS Coordinates Pill -->
+				<div class="inline-flex items-center gap-2 bg-(--bg-input) border border-(--border-color) py-1.5 px-3 rounded-xl text-[0.78rem] text-(--text-primary) shadow-(--shadow-sm)">
+					<span class="w-2 h-2 bg-(--accent) rounded-full shadow-(--glow)"></span>
+					<span class="font-mono text-[0.78rem] font-semibold text-(--text-primary)">{numLat.toFixed(6)}, {numLng.toFixed(6)}</span>
 					<button 
 						type="button" 
-						class="bg-transparent border-none inline-flex items-center gap-1 text-[0.7rem] text-white/70 hover:text-white hover:bg-white/10 cursor-pointer py-0.5 px-1.5 rounded transition-all duration-150" 
+						class="bg-transparent border-none inline-flex items-center gap-1 text-[0.72rem] text-(--text-secondary) hover:text-(--accent) cursor-pointer py-0.5 px-1.5 rounded transition-all duration-150" 
 						onclick={copyCoordinates} 
 						title="Copy coordinates"
 					>
 						{#if copied}
-							<Check size={13} class="text-emerald-400" />
-							<span class="text-emerald-400">Copied</span>
+							<Check size={13} class="text-(--success)" />
+							<span class="text-(--success) font-semibold">Copied</span>
 						{:else}
 							<Copy size={13} />
 							<span>Copy</span>
@@ -578,41 +590,33 @@
 					</button>
 				</div>
 
+				<!-- Distance from User GPS Tag -->
 				{#if distanceInfo}
-					<div class="inline-flex items-center gap-1.5 bg-blue-500/15 border border-blue-500/30 text-blue-300 py-1 px-2.5 rounded-full text-[0.75rem] font-semibold">
-						<Navigation size={12} class="text-blue-400 shrink-0" />
+					<div class="inline-flex items-center gap-1.5 bg-(--accent-light) border border-(--accent)/30 text-(--accent) py-1.5 px-3 rounded-xl text-[0.76rem] font-bold shadow-(--shadow-sm)">
+						<Navigation size={12} class="text-(--accent) shrink-0" />
 						<span>{distanceInfo.text} away from you</span>
 					</div>
 				{:else if isLocating}
-					<div class="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 text-white/60 py-1 px-2.5 rounded-full text-[0.72rem]">
-						<Loader2 size={12} class="animate-spin text-blue-400" />
+					<div class="inline-flex items-center gap-1.5 bg-(--bg-input) border border-(--border-color) text-(--text-secondary) py-1.5 px-3 rounded-xl text-[0.75rem]">
+						<Loader2 size={12} class="animate-spin text-(--accent)" />
 						<span>Acquiring your GPS...</span>
 					</div>
 				{/if}
 			</div>
 
 			{#if address}
-				<div class="text-[0.8rem] text-white/90 leading-relaxed">{address}</div>
+				<div class="text-[0.84rem] text-(--text-secondary) leading-relaxed font-medium flex items-start gap-1.5">
+					<MapPin size={15} class="text-(--accent) shrink-0 mt-0.5" />
+					<span>{address}</span>
+				</div>
 			{/if}
 
-			<div class="flex gap-2">
-				{#if userCoords}
-					<button
-						type="button"
-						onclick={fitBothInView}
-						class="inline-flex items-center justify-center gap-1.5 bg-white/10 hover:bg-white/20 active:bg-white/10 border border-white/15 text-white py-3 px-4 max-sm:py-2.5 max-sm:px-3 rounded-xl text-[0.85rem] font-medium cursor-pointer transition-all duration-150"
-						title="Show Both on Map"
-					>
-						<Maximize size={16} />
-						<span class="max-sm:hidden">Fit Both</span>
-					</button>
-				{/if}
-
+			<div class="flex items-center pt-1">
 				<a 
 					href={directionsUrl} 
 					target="_blank" 
 					rel="noopener noreferrer" 
-					class="flex-1 inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white py-3 px-5 max-sm:py-2.5 max-sm:px-4 max-sm:text-[0.85rem] rounded-xl text-[0.9rem] font-semibold transition-colors duration-150 no-underline shadow-lg"
+					class="btn btn-primary w-full flex-1 py-3 px-5 max-sm:py-2.5 max-sm:px-4 text-[0.9rem] font-bold rounded-xl shadow-(--shadow-md) hover:shadow-(--shadow-lg) transition-all duration-150 no-underline inline-flex items-center justify-center gap-2"
 				>
 					{#if userCoords}
 						<Navigation size={17} />
@@ -634,13 +638,116 @@
 	:global(.leaflet-container) {
 		width: 100% !important;
 		height: 100% !important;
-		background: #0f172a !important;
-		font-family: inherit !important;
+		background: var(--bg-base) !important;
+		font-family: var(--font-sans, inherit) !important;
 	}
+
 	.serviee-map-viewer-wrapper {
 		width: 100%;
 		height: 100%;
 		min-height: 100dvh;
+	}
+
+	/* Leaflet Custom Popups styled according to Serviee Theme */
+	:global(.leaflet-popup-content-wrapper) {
+		background: var(--bg-card) !important;
+		color: var(--text-primary) !important;
+		border: 1px solid var(--border-color) !important;
+		box-shadow: var(--shadow-lg) !important;
+		border-radius: var(--radius-lg, 12px) !important;
+		padding: 4px !important;
+	}
+
+	:global(.leaflet-popup-tip) {
+		background: var(--bg-card) !important;
+		border: 1px solid var(--border-color) !important;
+	}
+
+	:global(.leaflet-popup-close-button) {
+		color: var(--text-muted) !important;
+		padding: 6px !important;
+	}
+
+	:global(.leaflet-popup-close-button:hover) {
+		color: var(--text-primary) !important;
+	}
+
+	:global(.serviee-leaflet-custom-popup) {
+		font-family: inherit;
+		font-size: 0.85rem;
+		color: var(--text-primary);
+		padding: 6px 4px;
+		min-width: 200px;
+	}
+
+	:global(.serviee-popup-title) {
+		font-weight: 700;
+		color: var(--text-primary);
+		font-size: 0.92rem;
+		margin-bottom: 3px;
+	}
+
+	:global(.serviee-popup-address) {
+		font-size: 0.76rem;
+		color: var(--text-secondary);
+		margin-bottom: 6px;
+		line-height: 1.35;
+	}
+
+	:global(.serviee-popup-coords) {
+		font-size: 0.72rem;
+		color: var(--accent);
+		font-weight: 600;
+		margin-bottom: 8px;
+		font-family: monospace;
+	}
+
+	:global(.serviee-popup-cta-btn) {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 6px;
+		width: 100%;
+		background: var(--accent);
+		color: #ffffff !important;
+		text-decoration: none;
+		padding: 7px 12px;
+		border-radius: var(--radius-md, 8px);
+		font-size: 0.78rem;
+		font-weight: 600;
+		transition: background-color var(--transition-fast, 0.15s ease);
+		box-shadow: var(--shadow-sm);
+	}
+
+	:global(.serviee-popup-cta-btn:hover) {
+		background: var(--accent-hover);
+		color: #ffffff !important;
+	}
+
+	:global(.serviee-popup-user-header) {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		font-weight: 700;
+		color: #6366f1;
+		font-size: 0.85rem;
+		margin-bottom: 4px;
+	}
+
+	:global(.serviee-popup-user-dot) {
+		display: inline-block;
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: #6366f1;
+		box-shadow: 0 0 8px rgba(99, 102, 241, 0.6);
+	}
+
+	:global(.serviee-popup-distance-tag) {
+		font-size: 0.76rem;
+		font-weight: 600;
+		color: var(--accent);
+		margin-top: 4px;
 	}
 
 	@keyframes pulseUserMarker {
