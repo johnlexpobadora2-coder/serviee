@@ -11,7 +11,6 @@
 		MapPin, 
 		ExternalLink, 
 		ArrowLeft, 
-		Copy, 
 		Check, 
 		Navigation, 
 		Layers, 
@@ -205,14 +204,11 @@
 
 	function updateJobPopup() {
 		if (!markerInstance) return;
-		const distText = distanceInfo ? ` • ${distanceInfo.text} away` : '';
 		const popupContent = `
 			<div class="serviee-leaflet-custom-popup">
 				<div class="serviee-popup-title">${title || 'Pinned Location'}</div>
 				${address ? `<div class="serviee-popup-address">${address}</div>` : ''}
-				<div class="serviee-popup-coords">
-					${numLat.toFixed(6)}, ${numLng.toFixed(6)}${distText}
-				</div>
+				${distanceInfo ? `<div class="serviee-popup-coords font-sans">📍 ${distanceInfo.text} away from you</div>` : ''}
 				<a 
 					href="${directionsUrl}" 
 					target="_blank" 
@@ -277,7 +273,7 @@
 								<span>Your GPS Location</span>
 							</div>
 							<div class="serviee-popup-address">
-								${coords.latitude.toFixed(6)}, ${coords.longitude.toFixed(6)}
+								Device location verified
 							</div>
 							${distanceInfo ? `<div class="serviee-popup-distance-tag">📍 ${distanceInfo.text} to job</div>` : ''}
 						</div>
@@ -401,14 +397,21 @@
 			try {
 				await navigator.share({
 					title: title || 'Location on Serviee',
-					text: `Location: ${title || 'Job Location'} (${numLat}, ${numLng})${distanceInfo ? ` - ${distanceInfo.text} away` : ''}`,
+					text: `Location: ${title || 'Job Location'}${address ? ` (${address})` : ''}${distanceInfo ? ` - ${distanceInfo.text} away` : ''}`,
 					url: window.location.href
 				});
 			} catch (e) {
 				// User cancelled or share failed
 			}
-		} else {
-			copyCoordinates();
+		} else if (navigator.clipboard) {
+			try {
+				await navigator.clipboard.writeText(window.location.href);
+				copied = true;
+				if (copyTimer) clearTimeout(copyTimer);
+				copyTimer = setTimeout(() => {
+					copied = false;
+				}, 2500);
+			} catch (e) {}
 		}
 	}
 
@@ -487,10 +490,14 @@
 				type="button" 
 				class="inline-flex items-center justify-center p-2 bg-(--bg-input) hover:bg-(--border-color) active:bg-(--bg-input) border border-(--border-color) text-(--text-primary) hover:text-(--accent) rounded-xl text-[0.85rem] font-medium cursor-pointer transition-all duration-150" 
 				onclick={shareLocation} 
-				title="Share location"
+				title="Share location link"
 				aria-label="Share location"
 			>
-				<Share2 size={17} />
+				{#if copied}
+					<Check size={17} class="text-(--success)" />
+				{:else}
+					<Share2 size={17} />
+				{/if}
 			</button>
 
 			<div class="flex items-center">
@@ -570,24 +577,10 @@
 	<div class="absolute bottom-5 left-3.5 right-3.5 max-sm:bottom-3.5 max-sm:left-2.5 max-sm:right-2.5 z-1000 max-w-xl mx-auto">
 		<div class="flex flex-col gap-3.5 bg-(--bg-card)/95 backdrop-blur-xl border border-(--border-color) rounded-2xl p-4 sm:p-5 shadow-(--shadow-sm) transition-colors duration-200">
 			<div class="flex flex-wrap items-center justify-between gap-2">
-				<!-- GPS Coordinates Pill -->
+				<!-- GPS Location Status Pill -->
 				<div class="inline-flex items-center gap-2 bg-(--bg-input) border border-(--border-color) py-1.5 px-3 rounded-xl text-[0.78rem] text-(--text-primary)">
-					<span class="w-2 h-2 bg-(--accent) rounded-full"></span>
-					<span class="font-mono text-[0.78rem] font-semibold text-(--text-primary)">{numLat.toFixed(6)}, {numLng.toFixed(6)}</span>
-					<button 
-						type="button" 
-						class="bg-transparent border-none inline-flex items-center gap-1 text-[0.72rem] text-(--text-secondary) hover:text-(--accent) cursor-pointer py-0.5 px-1.5 rounded transition-all duration-150" 
-						onclick={copyCoordinates} 
-						title="Copy coordinates"
-					>
-						{#if copied}
-							<Check size={13} class="text-(--success)" />
-							<span class="text-(--success) font-semibold">Copied</span>
-						{:else}
-							<Copy size={13} />
-							<span>Copy</span>
-						{/if}
-					</button>
+					<span class="w-2 h-2 bg-emerald-500 rounded-full"></span>
+					<span class="text-[0.78rem] font-semibold text-(--text-primary)">GPS Location Pinned</span>
 				</div>
 
 				<!-- Distance from User GPS Tag -->

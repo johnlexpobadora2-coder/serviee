@@ -259,14 +259,6 @@
 		}
 	}
 
-	function handleManualCoordsChange() {
-		const parsedLat = parseFloat(lat);
-		const parsedLng = parseFloat(lng);
-		if (!isNaN(parsedLat) && !isNaN(parsedLng)) {
-			updatePosition(parsedLat, parsedLng, true);
-		}
-	}
-
 	function saveLocation(e) {
 		if (e) {
 			e.preventDefault();
@@ -276,7 +268,7 @@
 		const parsedLat = parseFloat(lat);
 		const parsedLng = parseFloat(lng);
 		if (isNaN(parsedLat) || isNaN(parsedLng)) {
-			searchError = 'Please enter valid coordinates.';
+			searchError = 'Please select a valid location on the map.';
 			return;
 		}
 
@@ -287,7 +279,7 @@
 		const payload = {
 			latitude: lat,
 			longitude: lng,
-			address: addressLabel || `${lat}, ${lng}`,
+			address: addressLabel || 'Pinned Location',
 			city: cityToSave || ''
 		};
 
@@ -395,7 +387,6 @@
 								<MapPin size={14} color="var(--accent)" style="flex-shrink: 0; margin-top: 0.15rem;" />
 								<div>
 									<div style="font-weight: 500;">{item.displayName}</div>
-									<div style="font-size: 0.7rem; color: var(--text-muted);">({item.lat.toFixed(5)}, {item.lng.toFixed(5)})</div>
 								</div>
 							</button>
 						{/each}
@@ -405,15 +396,17 @@
 
 			<!-- Interactive Leaflet Map Container -->
 			<div style="margin-bottom: 1rem; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border-color); background: #0c0f17; position: relative;">
-				<!-- Top Bar with Coordinates & Google Maps link -->
+				<!-- Top Bar with Pinned status & Google Maps link -->
 				<div style="display: flex; align-items: center; justify-content: space-between; padding: 0.45rem 0.75rem; background: var(--bg-card); border-bottom: 1px solid var(--border-color); font-size: 0.78rem;">
 					<div style="display: flex; align-items: center; gap: 0.4rem; color: var(--success); font-weight: 600;">
-						<MapPin size={14} /> Pinned Pin: {lat}, {lng}
+						<MapPin size={14} /> Location Pinned on Map
 					</div>
 					<a 
 						href={getGoogleMapsUrl(lat, lng)} 
 						class="btn btn-outline" 
 						style="padding: 0.15rem 0.5rem; font-size: 0.72rem; border-color: var(--accent); color: var(--accent-hover);"
+						target="_blank"
+						rel="noopener noreferrer"
 					>
 						<ExternalLink size={11} /> Google Maps
 					</a>
@@ -455,31 +448,9 @@
 				</div>
 			</div>
 
-			<!-- Coordinate & Landmark Form Inputs -->
-			<div class="form-grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
-				<div class="form-group" style="margin-bottom: 0;">
-					<label for="custom-pin-lat" style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.2rem; display: block;">Latitude</label>
-					<input 
-						type="text" 
-						id="custom-pin-lat"
-						bind:value={lat} 
-						onblur={handleManualCoordsChange}
-						placeholder="14.599512" 
-						style="width: 100%; padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.85rem;"
-					/>
-				</div>
-				<div class="form-group" style="margin-bottom: 0;">
-					<label for="custom-pin-lng" style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.2rem; display: block;">Longitude</label>
-					<input 
-						type="text" 
-						id="custom-pin-lng"
-						bind:value={lng} 
-						onblur={handleManualCoordsChange}
-						placeholder="120.984222" 
-						style="width: 100%; padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 0.85rem;"
-					/>
-				</div>
-			</div>
+			<!-- Hidden Coordinates inputs -->
+			<input type="hidden" bind:value={lat} />
+			<input type="hidden" bind:value={lng} />
 
 			<div class="form-group" style="margin-bottom: 1.25rem;">
 				<label for="custom-pin-label" style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.2rem; display: block;">Location / Friend's Place Name / Address</label>

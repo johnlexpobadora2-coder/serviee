@@ -203,9 +203,6 @@
 													loading="lazy"
 												></iframe>
 											</div>
-											<div class="chat-location-coords">
-												Coordinates: {gpsData.lat}, {gpsData.lng}
-											</div>
 											<div class="chat-location-actions">
 												<a 
 													href={gpsData.servieeMapUrl} 

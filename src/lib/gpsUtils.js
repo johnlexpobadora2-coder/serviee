@@ -74,7 +74,7 @@ export async function reverseGeocode(lat, lng) {
 		const city = resolved.city || addr.city || addr.town || addr.municipality || addr.city_district || addr.suburb || addr.village || addr.county || '';
 		const province = resolved.province || addr.province || addr.state || addr.region || '';
 		const region = resolved.region || addr.region || '';
-		const displayName = data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+		const displayName = data.display_name || (city ? `${city}${province ? `, ${province}` : ''}` : 'Pinned Location');
 
 		return {
 			displayName,
@@ -85,7 +85,7 @@ export async function reverseGeocode(lat, lng) {
 	} catch (err) {
 		console.warn('Reverse geocoding error:', err);
 		return {
-			displayName: `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+			displayName: 'Pinned Location',
 			city: '',
 			province: '',
 			region: ''

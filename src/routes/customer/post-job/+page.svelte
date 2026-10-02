@@ -71,7 +71,7 @@
 	function handleCustomLocationSaved(result) {
 		latitude = result.latitude;
 		longitude = result.longitude;
-		detectedAddressLabel = result.address || `${result.latitude}, ${result.longitude}`;
+		detectedAddressLabel = result.address || 'Pinned Location';
 		gpsAccuracy = null;
 		clientError = '';
 		if (result.city) {
@@ -104,7 +104,7 @@
 	<div class="card post-job-card" style="padding: 1.5rem;">
 		<h2 class="post-job-heading" style="font-size: 1.45rem; margin-bottom: 0.25rem;">Post a New Job</h2>
 		<p class="post-job-subtext" style="color: var(--text-secondary); margin-bottom: 1.25rem; font-size: 0.85rem;">
-			Describe the service you need with accurate location & GPS coordinates so nearby workers can locate you easily.
+			Describe the service you need with accurate location & GPS pin so nearby workers can locate you easily.
 		</p>
 
 		<form method="POST" use:enhance={({ cancel }) => {
@@ -180,7 +180,7 @@
 				<div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">
 					<div style="display: flex; align-items: center; gap: 0.4rem; font-weight: 600; font-size: 0.9rem; color: var(--text-primary);">
 						<MapPin size={16} color="var(--accent)" />
-						GPS Coordinates & Google Maps
+						GPS Location & Google Maps
 						<span style="font-size: 0.72rem; color: var(--text-muted); font-weight: normal;">(Optional but Recommended)</span>
 					</div>
 
@@ -232,7 +232,7 @@
 					<div style="margin-top: 0.75rem; background: var(--bg-card); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid hsla(142, 70%, 45%, 0.3);">
 						<div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
 							<div style="display: flex; align-items: center; gap: 0.4rem; color: var(--success); font-weight: 600; font-size: 0.85rem;">
-								<Check size={16} /> GPS Attached: {latitude}, {longitude}
+								<Check size={16} /> GPS Location Attached
 								{#if gpsAccuracy}
 									<span style="font-size: 0.72rem; color: var(--text-muted); font-weight: normal;">(&plusmn;{gpsAccuracy}m)</span>
 								{/if}
@@ -263,7 +263,7 @@
 					</div>
 				{:else}
 					<p style="font-size: 0.78rem; color: var(--text-muted); margin: 0.25rem 0 0 0;">
-						Click <strong>Use Current GPS Location</strong> to automatically attach exact coordinates and generate Google Maps directions for workers.
+						Click <strong>Auto GPS</strong> or <strong>Pin / Custom Location</strong> to automatically attach exact location and generate Google Maps directions for workers.
 					</p>
 				{/if}
 			</div>

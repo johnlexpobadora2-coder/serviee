@@ -377,7 +377,7 @@
 	}
 
 	async function handleCustomChatLocationSaved(loc) {
-		const label = loc.address ? `Custom Pin: ${loc.address}` : `Pinned Location (${loc.latitude}, ${loc.longitude})`;
+		const label = loc.address ? `Custom Pin: ${loc.address}` : 'Pinned Location';
 		const gpsMsgContent = formatGpsChatMessage(loc.latitude, loc.longitude, label);
 		await sendChatMessagePayload(gpsMsgContent);
 	}
