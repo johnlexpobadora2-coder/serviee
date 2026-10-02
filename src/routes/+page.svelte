@@ -402,13 +402,13 @@
 		background: linear-gradient(
 			135deg,
 			var(--accent) 0%,
-			hsl(270, 85%, 48%) 100%
+			#6332ec 100%
 		);
 		color: #ffffff;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		box-shadow: 0 4px 16px hsla(270, 91%, 68%, 0.35);
+		box-shadow: 0 4px 16px rgba(108, 71, 255, 0.35);
 		z-index: 2;
 	}
 

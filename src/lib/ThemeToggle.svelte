@@ -81,7 +81,7 @@
 	}
 
 	:global(.moon-icon) {
-		color: #6366f1;
+		color: #8b5cf6;
 	}
 
 	.theme-toggle-btn:hover :global(.moon-icon) {
