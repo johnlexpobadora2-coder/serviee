@@ -208,7 +208,7 @@
 			<div class="serviee-leaflet-custom-popup">
 				<div class="serviee-popup-title">${title || 'Pinned Location'}</div>
 				${address ? `<div class="serviee-popup-address">${address}</div>` : ''}
-				${distanceInfo ? `<div class="serviee-popup-coords font-sans">📍 ${distanceInfo.text} away from you</div>` : ''}
+				${distanceInfo ? `<div class="serviee-popup-coords font-sans"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px;margin-right:4px;"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>${distanceInfo.text} away from you</div>` : ''}
 				<a 
 					href="${directionsUrl}" 
 					target="_blank" 
@@ -275,7 +275,7 @@
 							<div class="serviee-popup-address">
 								Device location verified
 							</div>
-							${distanceInfo ? `<div class="serviee-popup-distance-tag">📍 ${distanceInfo.text} to job</div>` : ''}
+							${distanceInfo ? `<div class="serviee-popup-distance-tag"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px;margin-right:4px;"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>${distanceInfo.text} to job</div>` : ''}
 						</div>
 					`;
 					userMarkerInstance.bindPopup(userPopupContent);

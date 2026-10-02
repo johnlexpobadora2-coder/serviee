@@ -716,7 +716,7 @@
 			</div>
 		{/if}
 
-		<!-- Tab Content 3: Switch Role (Client ↔ Worker) -->
+		<!-- Tab Content 3: Switch Role (Client <-> Worker) -->
 		{#if activeTab === 'roles'}
 			<div class="bg-(--bg-card) border border-(--border-color) rounded-lg p-3.5 min-[380px]:p-5 sm:p-7 shadow-(--shadow-md) flex flex-col gap-5 sm:gap-6">
 				{#if data.hasComplementaryAccount}

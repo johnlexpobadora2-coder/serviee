@@ -1,6 +1,6 @@
 <script>
 	import { fade } from 'svelte/transition';
-	import { Search, Trash2 } from 'lucide-svelte';
+	import { Search, Trash2, Star, ArrowRight } from 'lucide-svelte';
 
 	let { 
 		reviewSearch = $bindable(''), 
@@ -41,15 +41,15 @@
 		<div class="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
 			<span class="text-xs text-slate-600 dark:text-slate-400 font-semibold shrink-0">Rating:</span>
 			<select 
-				bind:value={reviewRatingFilter}
+				bind:value={reviewRatingFilter} 
 				class="bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white text-xs rounded-lg px-3 py-2.5 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#7261ef] focus:ring-2 focus:ring-[#7261ef]/20 flex-1 sm:flex-initial cursor-pointer font-semibold"
 			>
 				<option value="all">All Ratings</option>
-				<option value="5">5 Stars ⭐⭐⭐⭐⭐</option>
-				<option value="4">4 Stars ⭐⭐⭐⭐</option>
-				<option value="3">3 Stars ⭐⭐⭐</option>
-				<option value="2">2 Stars ⭐⭐</option>
-				<option value="1">1 Star ⭐</option>
+				<option value="5">5 Stars</option>
+				<option value="4">4 Stars</option>
+				<option value="3">3 Stars</option>
+				<option value="2">2 Stars</option>
+				<option value="1">1 Star</option>
 			</select>
 		</div>
 	</div>
@@ -62,7 +62,7 @@
 					<div class="flex items-center justify-between">
 						<div class="flex items-center gap-1 text-xs sm:text-sm {r.rating < 0 ? 'text-red-500' : 'text-amber-500 dark:text-amber-400'}">
 							{#each Array(5) as _, i}
-								<span class={i < Math.abs(r.rating) ? 'opacity-100' : 'opacity-20'}>★</span>
+								<Star size={13} class={i < Math.abs(r.rating) ? 'fill-current opacity-100' : 'opacity-25'} />
 							{/each}
 							<span class="text-[11px] ml-1 font-bold {r.rating < 0 ? 'text-red-600 dark:text-red-400' : 'text-slate-500 dark:text-slate-400'}">({r.rating < 0 ? r.rating.toFixed(1) : `${r.rating}.0`})</span>
 						</div>
@@ -81,7 +81,7 @@
 				<div class="border-t border-slate-100 dark:border-slate-800 pt-2.5 text-[11px] text-slate-500 dark:text-slate-400 space-y-1 mt-auto">
 					<div class="flex items-center justify-between gap-1.5 min-w-0">
 						<span class="text-slate-900 dark:text-white font-bold truncate min-w-0 flex-1">Client: {r.customer_name}</span>
-						<span class="shrink-0 text-slate-400">➔</span>
+						<ArrowRight size={12} class="shrink-0 text-slate-400" />
 						<span class="text-[#7261ef] font-bold truncate min-w-0 flex-1 text-right">Worker: {r.worker_name}</span>
 					</div>
 					<div class="text-slate-400 text-[10px] font-medium">{formatDate(r.created_at)}</div>

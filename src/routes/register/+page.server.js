@@ -24,7 +24,7 @@ export const actions = {
 		// Rate Limiter: Max 5 registration attempts per 2 minutes per IP
 		const rateCheck = checkRateLimit(`register:${clientIp}`, { limit: 5, windowMs: 120 * 1000 });
 		if (!rateCheck.allowed) {
-			console.warn(`🛡️ Rate limit exceeded for IP: ${clientIp} on register.`);
+			console.warn(`[RATE LIMIT] Rate limit exceeded for IP: ${clientIp} on register.`);
 			return fail(429, {
 				error: `Too many registration attempts. Please wait ${rateCheck.retryAfterSeconds} seconds before trying again.`,
 				name: '', email: '', phone: '', role: '', address: ''
@@ -131,7 +131,7 @@ export const actions = {
 			}
 		} catch (error) {
 			if (error.status === 303) throw error;
-			console.error('❌ Registration failed:', error);
+			console.error('[ERROR] Registration failed:', error);
 			return fail(400, {
 				error: error.message || 'An error occurred while creating your account.',
 				name, email, phone, role, address

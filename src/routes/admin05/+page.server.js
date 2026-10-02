@@ -131,7 +131,7 @@ export const actions = {
 		// Strict Admin Brute-Force Rate Limiting (5 tries per 2 minutes)
 		const rateCheck = checkRateLimit(`admin_auth:${clientIp}`, { limit: 5, windowMs: 120 * 1000 });
 		if (!rateCheck.allowed) {
-			console.warn(`🛡️ Admin rate limit exceeded for IP: ${clientIp}`);
+			console.warn(`[RATE LIMIT] Admin rate limit exceeded for IP: ${clientIp}`);
 			await db.auditLogs.record({
 				adminId: 'anonymous',
 				action: 'ADMIN_LOGIN_FAILED',
@@ -147,7 +147,7 @@ export const actions = {
 		const passcode = data.get('passcode')?.toString() || '';
 
 		if (!verifyAdminPasscode(passcode)) {
-			console.warn(`⚠️ Invalid admin passcode attempt from IP: ${clientIp}`);
+			console.warn(`[WARN] Invalid admin passcode attempt from IP: ${clientIp}`);
 			await db.auditLogs.record({
 				adminId: 'anonymous',
 				action: 'ADMIN_LOGIN_FAILED',

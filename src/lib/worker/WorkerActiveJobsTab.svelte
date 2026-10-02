@@ -1,5 +1,5 @@
 <script>
-	import { User, MessageSquare, MapPin, ExternalLink, Clock, Calendar, Loader2 } from 'lucide-svelte';
+	import { User, MessageSquare, MapPin, ExternalLink, Clock, Calendar, Loader2, Zap, CheckCircle2 } from 'lucide-svelte';
 	import { getGoogleMapsUrl, getServieeMapUrl, getEmbedMapUrl } from '$lib/gpsUtils.js';
 	import JobMapPreview from '$lib/JobMapPreview.svelte';
 	import JobDescription from '$lib/JobDescription.svelte';
@@ -160,8 +160,12 @@
 						{#if getScheduleUrgency(job.target_date)}
 							{@const urgency = getScheduleUrgency(job.target_date)}
 							<span class="schedule-urgency-badge {urgency.type}">
-								{#if urgency.type === 'rush'}⚡{:else if urgency.type === 'urgent'}⏰{/if}
-								{urgency.label}
+								{#if urgency.type === 'rush'}
+									<Zap size={11} class="shrink-0" />
+								{:else if urgency.type === 'urgent'}
+									<Clock size={11} class="shrink-0" />
+								{/if}
+								<span>{urgency.label}</span>
 							</span>
 						{/if}
 					</div>
@@ -191,8 +195,9 @@
 				<span style="font-size: 0.9rem;">Loading more active jobs...</span>
 			</div>
 		{:else if !hasMore && activeJobs.length > 0}
-			<div style="text-align: center; padding: 2rem 1rem; color: var(--text-muted); font-size: 0.85rem; border-top: 1px dashed var(--border);">
-				✓ You have viewed all your active assigned jobs ({activeJobs.length} total)
+			<div class="flex items-center justify-center gap-1.5 text-center py-8 px-4 text-(--text-muted) text-[0.85rem] border-t border-dashed border-(--border)">
+				<CheckCircle2 size={14} class="shrink-0 text-(--text-muted)" />
+				<span>You have viewed all your active assigned jobs ({activeJobs.length} total)</span>
 			</div>
 		{/if}
 	{/if}

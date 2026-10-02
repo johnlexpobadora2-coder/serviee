@@ -1,7 +1,7 @@
 <script>
 	import { fade, scale } from 'svelte/transition';
 	import { enhance } from '$app/forms';
-	import { MapPin, CheckCircle } from 'lucide-svelte';
+	import { MapPin, CheckCircle, X } from 'lucide-svelte';
 	import CityAutocomplete from '$lib/CityAutocomplete.svelte';
 
 	let { 
@@ -31,9 +31,10 @@
 				<button 
 					type="button" 
 					onclick={onclose} 
-					class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-xs p-1 cursor-pointer font-bold"
+					class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 cursor-pointer transition-colors"
+					aria-label="Close"
 				>
-					✕
+					<X size={16} />
 				</button>
 			</div>
 

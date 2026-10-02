@@ -399,8 +399,8 @@ export function compressImageFile(file, maxWidth = 1600, maxHeight = 1600, quali
  */
 export function formatMessagePreview(content) {
 	if (!content) return 'No messages yet.';
-	if (isGpsMessage(content)) return '📍 Shared GPS Location';
-	if (isImageMessage(content)) return '📷 Sent a photo';
+	if (isGpsMessage(content)) return 'Shared GPS Location';
+	if (isImageMessage(content)) return 'Sent a photo';
 	return content;
 }
 

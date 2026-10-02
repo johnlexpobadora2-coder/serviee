@@ -126,8 +126,9 @@
 					/>
 
 					{#if editJobModal.latitude && editJobModal.longitude}
-						<span style="font-size: 0.72rem; color: var(--accent-hover); display: block; margin-top: 0.35rem;">
-							📍 GPS Location Pinned
+						<span class="inline-flex items-center gap-1 mt-1 text-[0.72rem] text-(--accent-hover)">
+							<MapPin size={12} class="shrink-0" />
+							<span>GPS Location Pinned</span>
 						</span>
 					{/if}
 				</div>

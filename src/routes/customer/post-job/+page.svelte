@@ -247,8 +247,9 @@
 						</div>
 
 						{#if detectedAddressLabel}
-							<div style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.4rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-								📍 {detectedAddressLabel}
+							<div class="flex items-center gap-1 mt-1 text-[0.78rem] text-(--text-secondary) overflow-hidden text-ellipsis whitespace-nowrap">
+								<MapPin size={12} class="shrink-0 text-(--accent)" />
+								<span class="truncate">{detectedAddressLabel}</span>
 							</div>
 						{/if}
 

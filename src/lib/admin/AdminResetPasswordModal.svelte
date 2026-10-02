@@ -1,7 +1,7 @@
 <script>
 	import { fade, scale } from 'svelte/transition';
 	import { enhance } from '$app/forms';
-	import { KeyRound, CheckCircle, Eye, EyeOff } from 'lucide-svelte';
+	import { KeyRound, CheckCircle, Eye, EyeOff, X } from 'lucide-svelte';
 
 	let { 
 		resetPasswordModal = $bindable({ open: false, userId: null, name: '', email: '' }), 
@@ -53,9 +53,10 @@
 				<button 
 					type="button" 
 					onclick={onclose}
-					class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-xs p-1 cursor-pointer font-bold"
+					class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 cursor-pointer transition-colors"
+					aria-label="Close"
 				>
-					✕
+					<X size={16} />
 				</button>
 			</div>
 

@@ -20,7 +20,7 @@ function getSupabase() {
 
 	// Return a safe mock during build time if environment keys are not yet bound
 	if (!supabaseUrl || !supabaseKey) {
-		console.warn('⚠️ WARNING: Supabase keys are empty! Using Mock Client.');
+		console.warn('[WARNING] Supabase keys are empty! Using Mock Client.');
 		return {
 			from: () => ({
 				select: () => ({
@@ -1444,9 +1444,9 @@ export const db = {
 				let lastMsgContent = 'Inquired on post. Send a message...';
 				if (lastMsg && lastMsg.content) {
 					if (lastMsg.content.startsWith('[GPS_LOCATION:') && lastMsg.content.endsWith(']')) {
-						lastMsgContent = '📍 Shared GPS Location';
+						lastMsgContent = 'Shared GPS Location';
 					} else if (lastMsg.content.startsWith('[IMAGE_MESSAGE:') && lastMsg.content.endsWith(']')) {
-						lastMsgContent = '📷 Sent a photo';
+						lastMsgContent = 'Sent a photo';
 					} else {
 						lastMsgContent = lastMsg.content;
 					}
@@ -1685,7 +1685,7 @@ export const db = {
 				created_at: timestamp
 			};
 
-			console.log(`🛡️ [AUDIT LOG] ${timestamp} | Admin: ${adminId} | Action: ${action} | Target: ${targetId} | IP: ${ip}`);
+			console.log(`[AUDIT LOG] ${timestamp} | Admin: ${adminId} | Action: ${action} | Target: ${targetId} | IP: ${ip}`);
 
 			try {
 				const { data, error } = await supabase.from('audit_logs').insert([logEntry]).select().single();
