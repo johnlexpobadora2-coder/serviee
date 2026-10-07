@@ -41,7 +41,7 @@
 								<ShieldCheck size={13} /> Customer Account
 							</span>
 							{#if user?.address}
-								<span style="font-size: 0.8rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 0.25rem; max-width: 100%;">
+								<span class="badge" style="background: var(--bg-input); color: var(--text-secondary); border: 1px solid var(--border-color); font-size: 0.76rem; display: inline-flex; align-items: center; gap: 0.35rem; max-width: 100%;">
 									<MapPin size={13} style="color: var(--accent); flex-shrink: 0;" />
 									<span style="overflow-wrap: break-word; word-break: break-word;">{user.address}</span>
 								</span>
@@ -53,11 +53,15 @@
 				<!-- Right Side: Stat Numbers (Total Posts & Tasks Completed) -->
 				<div class="profile-stats-group">
 					<div class="profile-stat-item">
-						<span class="profile-stat-value">{posts.length}</span>
+						<div class="profile-stat-value-container">
+							<span class="profile-stat-value">{posts.length}</span>
+						</div>
 						<span class="profile-stat-label">Total Posts</span>
 					</div>
 					<div class="profile-stat-item">
-						<span class="profile-stat-value" style="color: var(--success);">{completedJobs.length}</span>
+						<div class="profile-stat-value-container">
+							<span class="profile-stat-value" style="color: var(--success);">{completedJobs.length}</span>
+						</div>
 						<span class="profile-stat-label">Tasks Completed</span>
 					</div>
 				</div>

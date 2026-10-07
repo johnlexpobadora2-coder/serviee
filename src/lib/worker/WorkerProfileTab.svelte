@@ -110,7 +110,7 @@
 							{/if}
 
 							{#if user?.address}
-								<span style="font-size: 0.8rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 0.25rem; max-width: 100%;">
+								<span class="badge" style="background: var(--bg-input); color: var(--text-secondary); border: 1px solid var(--border-color); font-size: 0.76rem; display: inline-flex; align-items: center; gap: 0.35rem; max-width: 100%;">
 									<MapPin size={13} style="color: var(--accent); flex-shrink: 0;" />
 									<span style="overflow-wrap: break-word; word-break: break-word;">{user.address}</span>
 								</span>
@@ -122,25 +122,29 @@
 				<!-- Right Side: Stat Numbers (Tasks Completed & Star Rating) -->
 				<div class="profile-stats-group">
 					<div class="profile-stat-item">
-						<span class="profile-stat-value" style="color: var(--success);">
-							{stats?.completed_jobs_count || 0}
-						</span>
+						<div class="profile-stat-value-container">
+							<span class="profile-stat-value" style="color: var(--success);">
+								{stats?.completed_jobs_count || 0}
+							</span>
+						</div>
 						<span class="profile-stat-label">Tasks Completed</span>
 					</div>
 					<div class="profile-stat-item">
-						<span
-							class="rating-badge {stats?.average_rating > 0
-								? 'rating-badge-positive'
-								: stats?.average_rating < 0
-									? 'rating-badge-negative'
-									: 'rating-badge-zero'}"
-							style="font-size: 1.05rem; padding: 0.25rem 0.65rem; display: inline-flex; align-items: center; gap: 0.25rem;"
-						>
-							<Star size={13} fill="currentColor" /> {stats?.average_rating > 0
-								? `+${stats.average_rating}`
-								: stats?.average_rating || "0"}
-						</span>
-						<span class="profile-stat-label" style="margin-top: 0.2rem;">Total Rating</span>
+						<div class="profile-stat-value-container">
+							<span
+								class="rating-badge {stats?.average_rating > 0
+									? 'rating-badge-positive'
+									: stats?.average_rating < 0
+										? 'rating-badge-negative'
+										: 'rating-badge-zero'}"
+								style="font-size: 0.95rem; padding: 0.2rem 0.6rem; display: inline-flex; align-items: center; gap: 0.25rem;"
+							>
+								<Star size={13} fill="currentColor" /> {stats?.average_rating > 0
+									? `+${stats.average_rating}`
+									: stats?.average_rating || "0"}
+							</span>
+						</div>
+						<span class="profile-stat-label">Total Rating</span>
 					</div>
 				</div>
 			</div>
