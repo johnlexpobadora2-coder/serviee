@@ -96,7 +96,7 @@
 							<div class="feed-job-badges">
 								<span class="badge {getCategoryBadge(job.category)}">{job.category}</span>
 								<span class="status status-{job.status}">
-									{#if job.status === 'open'} Naghahanap
+									{#if job.status === 'open'} Open
 									{:else if job.status === 'assigned'} Assigned
 									{:else if job.status === 'in_progress'} In Progress
 									{:else} Completed

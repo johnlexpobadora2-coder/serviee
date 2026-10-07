@@ -79,7 +79,7 @@
 
 				<div class="form-group" style="margin-bottom: 1rem;">
 					<label for="edit-category" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem;">Category</label>
-					<select id="edit-category" name="category" class="form-control" bind:value={editJobModal.category} required style="width: 100%; padding: 0.6rem 0.8rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-primary);">
+					<select id="edit-category" name="category" class="form-control" bind:value={editJobModal.category} required style="width: 100%; padding: 0.6rem 2.25rem 0.6rem 0.8rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-primary);">
 						<option value="Plumbing / Tubero">Plumbing / Tubero</option>
 						<option value="Roofing / Ayos Yero">Roofing / Ayos Yero</option>
 						<option value="Excavation / Hukay Lupa">Excavation / Hukay Lupa</option>

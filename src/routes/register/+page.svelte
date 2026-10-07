@@ -274,7 +274,7 @@
 
 			<div class="form-group" style="margin-bottom: 1.25rem;">
 				<label for="role" style="font-size: 0.95rem; margin-bottom: 0.4rem;">What is your role?</label>
-				<select id="role" name="role" required value={selectedRole} style="padding: 0.75rem 1rem; font-size: 1rem;">
+				<select id="role" name="role" required value={selectedRole} style="padding: 0.75rem 2.25rem 0.75rem 1rem; font-size: 1rem;">
 					<option value="" disabled selected={!selectedRole}>Select your role...</option>
 					<option value="customer">Looking for Services (Client / Customer)</option>
 					<option value="worker">Looking for Work (Worker / Provider)</option>
