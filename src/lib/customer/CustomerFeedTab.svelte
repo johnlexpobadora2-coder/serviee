@@ -134,7 +134,7 @@
 	<!-- Filters sidebar -->
 	<aside 
 		class="card feed-filters-card feed-filters-aside {showMobileFilters ? 'mobile-open' : ''}" 
-		style="position: sticky; top: 90px; padding: 1.25rem; height: fit-content;"
+		style="position: sticky; top: 124px; padding: 1.25rem; height: fit-content;"
 	>
 		<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
 			<h4 style="font-size: 1.1rem; margin: 0; display: flex; align-items: center; gap: 0.4rem;">

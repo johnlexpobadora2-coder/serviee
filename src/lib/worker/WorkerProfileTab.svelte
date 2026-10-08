@@ -168,8 +168,8 @@
 				</div>
 				<p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.85rem; line-height: 1.4;">
 					{availabilityStatus === 'available' 
-						? 'Aktibo kang tumatanggap ng mga bagong trabaho. Makikita ka ng mga kliyente bilang Available.' 
-						: 'Naka-set ka bilang Busy o On Leave. Hindi ka muna bibigyan ng bagong direct tasks.'}
+						? 'You are actively accepting new jobs. Clients will see you as Available for hire.' 
+						: 'You are currently set to Busy or On Leave. You will not receive direct tasks or job invitations.'}
 				</p>
 				<button
 					type="button"

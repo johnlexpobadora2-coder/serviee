@@ -1641,6 +1641,14 @@ html.light .feed-job-budget {
 		gap: 0.25rem !important;
 		margin-bottom: 1.25rem !important;
 		overflow-x: visible !important;
+		position: sticky !important;
+		top: 53px !important;
+		z-index: 35 !important;
+		background: var(--bg-header) !important;
+		backdrop-filter: blur(14px) !important;
+		-webkit-backdrop-filter: blur(14px) !important;
+		padding-top: 0.4rem !important;
+		margin-top: -0.4rem !important;
 	}
 	.main-dashboard-tabs .tab-btn {
 		flex: 1 1 0 !important;
@@ -2087,6 +2095,23 @@ html.light .feed-job-budget {
 
 .tabs-header::-webkit-scrollbar {
 	display: none; /* Chrome, Safari, Opera */
+}
+
+/* Sticky Main Dashboard Tabs */
+.main-dashboard-tabs {
+	position: sticky;
+	top: 57px;
+	z-index: 35;
+	background: var(--bg-header);
+	backdrop-filter: blur(14px);
+	-webkit-backdrop-filter: blur(14px);
+	padding-top: 0.5rem;
+	margin-top: -0.5rem;
+	transition: top var(--transition-fast), background var(--transition-fast);
+}
+
+.app-container > main.is-admin .main-dashboard-tabs {
+	top: 0 !important;
 }
 
 .tab-btn {
