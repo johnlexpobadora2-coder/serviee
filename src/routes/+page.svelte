@@ -6,10 +6,7 @@
 		Trees,
 		Hammer,
 		Package,
-		ArrowRight,
-		Briefcase,
-		CheckCircle2,
-		Users
+		ArrowRight
 	} from "lucide-svelte";
 	let { data } = $props();
 </script>
@@ -55,36 +52,59 @@
 </section>
 
 <!-- Statistics counters -->
-<section class="stats-section">
-	<div class="stats-row">
-		<div class="stat-item stat-accent">
-			<div class="stat-icon-wrapper">
-				<Briefcase size={28} />
-			</div>
-			<h3 class="stat-number">{data.stats.activeJobs}</h3>
-			<p class="stat-label">Active Jobs</p>
+<section class="max-w-5xl mx-auto px-4 my-14 md:my-18">
+	<div class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+		<!-- Stat 1: Active Jobs -->
+		<div class="flex flex-col items-center text-center">
+			<span class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-(--accent) tracking-tight">
+				{data.stats.activeJobs}{data.stats.activeJobs > 0 ? '+' : ''}
+			</span>
+			<div class="w-full border-b-2 border-(--accent) my-3.5 md:my-4"></div>
+			<h3 class="text-lg md:text-xl font-bold text-(--text-primary) mb-1 tracking-tight">
+				Active Jobs
+			</h3>
+			<p class="text-xs md:text-sm text-(--text-secondary) leading-relaxed max-w-70">
+				Every job request is verified and ready for skilled local workers to take on.
+			</p>
 		</div>
 
-		<div class="stat-item stat-success">
-			<div class="stat-icon-wrapper">
-				<CheckCircle2 size={28} />
-			</div>
-			<h3 class="stat-number">{data.stats.completedJobs}</h3>
-			<p class="stat-label">Completed Services</p>
+		<!-- Stat 2: Completed Services -->
+		<div class="flex flex-col items-center text-center">
+			<span class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-(--accent) tracking-tight">
+				{data.stats.completedJobs}{data.stats.completedJobs > 0 ? '+' : ''}
+			</span>
+			<div class="w-full border-b-2 border-(--accent) my-3.5 md:my-4"></div>
+			<h3 class="text-lg md:text-xl font-bold text-(--text-primary) mb-1 tracking-tight">
+				Completed Services
+			</h3>
+			<p class="text-xs md:text-sm text-(--text-secondary) leading-relaxed max-w-70">
+				Every project is handled with care and quality service across the community.
+			</p>
 		</div>
 
-		<div class="stat-item stat-warning">
-			<div class="stat-icon-wrapper">
-				<Users size={28} />
-			</div>
-			<h3 class="stat-number">{data.stats.totalWorkers}</h3>
-			<p class="stat-label">Handymen & Workers</p>
+		<!-- Stat 3: Handymen & Workers -->
+		<div class="flex flex-col items-center text-center">
+			<span class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-(--accent) tracking-tight">
+				{data.stats.totalWorkers}{data.stats.totalWorkers > 0 ? '+' : ''}
+			</span>
+			<div class="w-full border-b-2 border-(--accent) my-3.5 md:my-4"></div>
+			<h3 class="text-lg md:text-xl font-bold text-(--text-primary) mb-1 tracking-tight">
+				Handymen & Workers
+			</h3>
+			<p class="text-xs md:text-sm text-(--text-secondary) leading-relaxed max-w-70">
+				Experienced trade professionals ready to assist with your repair needs.
+			</p>
 		</div>
 	</div>
 </section>
 
+<!-- Section Divider -->
+<div class="max-w-5xl mx-auto px-4 my-8 md:my-12">
+	<div class="w-full h-px bg-linear-to-r from-transparent via-(--border-color,#2c235b) to-transparent"></div>
+</div>
+
 <!-- Service Categories Showcase -->
-<section style="margin: 5rem 0 6rem 0;">
+<section style="margin: 3.5rem 0 6rem 0;">
 	<h2
 		style="font-size: 2.25rem; text-align: center; margin-bottom: 0.75rem; font-weight: 700;"
 	>
@@ -271,98 +291,6 @@
 </section>
 
 <style>
-	/* Statistics Section (Minimalist Vertical Divider Layout) */
-	.stats-section {
-		margin: 3rem auto 4rem auto;
-		max-width: 900px;
-		padding: 0 1rem;
-	}
-
-	.stats-row {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 0;
-		border-top: 1px solid var(--border-color, #2a2f3d);
-		border-bottom: 1px solid var(--border-color, #2a2f3d);
-		padding: 2rem 0;
-	}
-
-	.stat-item {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		text-align: center;
-		padding: 0.75rem 1rem;
-		border-right: 1px solid var(--border-color, #2a2f3d);
-		transition: transform 0.25s ease;
-	}
-
-	.stat-item:last-child {
-		border-right: none;
-	}
-
-	.stat-icon-wrapper {
-		margin-bottom: 0.5rem;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.stat-number {
-		font-size: 2.75rem;
-		font-weight: 800;
-		line-height: 1.1;
-		margin: 0.25rem 0;
-		letter-spacing: -0.02em;
-	}
-
-	.stat-label {
-		font-size: 0.82rem;
-		font-weight: 700;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		margin: 0;
-		color: var(--text-secondary);
-	}
-
-	/* Color themes */
-	.stat-accent .stat-icon-wrapper {
-		color: var(--accent, #a855f7);
-	}
-	.stat-accent .stat-number {
-		color: var(--accent, #a855f7);
-	}
-
-	.stat-success .stat-icon-wrapper {
-		color: var(--success, #34d399);
-	}
-	.stat-success .stat-number {
-		color: var(--success, #34d399);
-	}
-
-	.stat-warning .stat-icon-wrapper {
-		color: var(--warning, #fbbf24);
-	}
-	.stat-warning .stat-number {
-		color: var(--warning, #fbbf24);
-	}
-
-	@media (max-width: 640px) {
-		.stats-row {
-			grid-template-columns: 1fr;
-			gap: 1.5rem;
-		}
-		.stat-item {
-			border-right: none;
-			border-bottom: 1px solid var(--border-color, #2a2f3d);
-			padding-bottom: 1.5rem;
-		}
-		.stat-item:last-child {
-			border-bottom: none;
-			padding-bottom: 0;
-		}
-	}
-
 	/* Category Cards (Layout matching reference, theme matching website) */
 	.categories-grid {
 		display: grid;

@@ -507,7 +507,7 @@
 	</div>
 
 	<!-- Right Floating Map Controls -->
-	<div class="absolute right-3.5 top-20 max-sm:right-2.5 max-sm:top-[4.5rem] z-1000 flex flex-col gap-2">
+	<div class="absolute right-3.5 top-20 max-sm:right-2.5 max-sm:top-18 z-1000 flex flex-col gap-2">
 		<!-- Fit Both Button (Only visible if user GPS is loaded) -->
 		{#if userCoords}
 			<button 
