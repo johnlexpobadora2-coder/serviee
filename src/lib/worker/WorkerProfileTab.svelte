@@ -168,8 +168,8 @@
 				</div>
 				<p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.85rem; line-height: 1.4;">
 					{availabilityStatus === 'available' 
-						? 'You are actively accepting new jobs. Clients will see you as Available for hire.' 
-						: 'You are currently set to Busy or On Leave. You will not receive direct tasks or job invitations.'}
+						? 'You are actively accepting new jobs. Clients will see you as Available.' 
+						: 'You are set to Busy or On Leave. You will not receive new direct tasks for now.'}
 				</p>
 				<button
 					type="button"
