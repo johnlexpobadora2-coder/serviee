@@ -10,6 +10,18 @@ export async function handle({ event, resolve }) {
 			const user = await db.users.findById(sessionInfo.userId);
 			const expectedVersion = user?.token_version || 1;
 			if (user && sessionInfo.tokenVersion === expectedVersion) {
+				// If session has a multi-device tracking sessionId, verify it has not been individually revoked
+				if (sessionInfo.sessionId) {
+					const activeSession = await db.sessions.findBySessionId(sessionInfo.sessionId);
+					if (!activeSession) {
+						// Session was revoked in DB -> invalidate cookie and clear locals
+						event.locals.user = null;
+						event.locals.sessionId = null;
+						event.cookies.delete('session_id', { path: '/' });
+						return resolve(event);
+					}
+				}
+
 				// Strip password hash for security before attaching it to locals
 				const { password_hash, ...safeUser } = user;
 				event.locals.user = safeUser;
@@ -18,11 +30,13 @@ export async function handle({ event, resolve }) {
 				// Version mismatch (revoked session) or user deleted
 				event.locals.user = null;
 				event.locals.sessionId = null;
+				event.cookies.delete('session_id', { path: '/' });
 			}
 		} else {
 			// Invalid or forged token
 			event.locals.user = null;
 			event.locals.sessionId = null;
+			event.cookies.delete('session_id', { path: '/' });
 		}
 	} else {
 		event.locals.user = null;

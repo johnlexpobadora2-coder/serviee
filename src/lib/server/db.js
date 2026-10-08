@@ -1822,7 +1822,12 @@ export const db = {
 					.eq('session_id', sessionId)
 					.maybeSingle();
 
-				if (error) return null;
+				if (error) {
+					if (error.code === '42P01' || error.message?.includes('does not exist')) {
+						return { session_id: sessionId, fallback: true };
+					}
+					return null;
+				}
 				return data || null;
 			} catch (err) {
 				return null;
