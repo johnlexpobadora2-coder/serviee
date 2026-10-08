@@ -759,7 +759,6 @@
 									class="w-full py-2.5 pr-3.5 pl-10.5 bg-(--bg-input) border border-(--border-color) rounded-md text-(--text-primary) text-[0.9rem] font-sans transition-colors focus:outline-none focus:border-(--border-focus) focus:ring-2 focus:ring-(--accent-light)"
 								/>
 							</div>
-							<small class="text-[0.78rem] text-(--text-muted)">Enter the password for your other role to authenticate and switch dashboards.</small>
 						</div>
 
 						<div class="mt-2 flex justify-stretch sm:justify-end [&>button]:w-full sm:[&>button]:w-auto">
