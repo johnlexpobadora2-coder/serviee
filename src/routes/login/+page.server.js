@@ -1,7 +1,8 @@
 import { db, hashPassword } from '$lib/server/db.js';
-import { createSignedSession } from '$lib/server/session.js';
+import { createSignedSession, parseDeviceInfo } from '$lib/server/session.js';
 import { checkRateLimit, resetRateLimit, getClientIp, sanitizeInput } from '$lib/server/security.js';
 import { redirect, fail } from '@sveltejs/kit';
+import crypto from 'crypto';
 
 export function load({ locals, url }) {
 	// If already logged in, redirect to appropriate page
@@ -13,7 +14,8 @@ export function load({ locals, url }) {
 		}
 	}
 	const deleted = url.searchParams.get('deleted') === 'true';
-	return { deleted };
+	const loggedOutAll = url.searchParams.get('logged_out_all') === 'true';
+	return { deleted, loggedOutAll };
 }
 
 export const actions = {
@@ -65,10 +67,23 @@ export const actions = {
 			// Successful authentication: Reset rate limit
 			resetRateLimit(`login:${clientIp}`);
 
-			console.log('[SUCCESS] Authentication successful! User ID:', matchingUser.id, 'Role:', matchingUser.role);
+			// Record active device session
+			const sessionId = crypto.randomUUID();
+			const userAgent = request.headers.get('user-agent') || '';
+			const deviceInfo = parseDeviceInfo(userAgent, clientIp);
+
+			await db.sessions.create({
+				userId: matchingUser.id,
+				sessionId,
+				deviceType: deviceInfo.deviceType,
+				os: deviceInfo.os,
+				browser: deviceInfo.browser,
+				ip: clientIp,
+				userAgent
+			});
 
 			// Set cryptographically signed session cookie (expires in 7 days)
-			const signedToken = createSignedSession(matchingUser.id, matchingUser.token_version || 1);
+			const signedToken = createSignedSession(matchingUser.id, matchingUser.token_version || 1, sessionId);
 			cookies.set('session_id', signedToken, {
 				path: '/',
 				httpOnly: true,

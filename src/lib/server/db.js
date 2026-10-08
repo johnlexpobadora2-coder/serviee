@@ -238,14 +238,15 @@ export const db = {
 				throw new Error('For security, you cannot use the same password as your other account with this email.');
 			}
 
+			const nextVersion = (user.token_version || 1) + 1;
 			const supabase = getSupabase();
 			const { error } = await supabase
 				.from('users')
-				.update({ password_hash: newHash })
+				.update({ password_hash: newHash, token_version: nextVersion })
 				.eq('id', id);
 			if (error) throw new Error(error.message);
 			invalidateUserCache(id);
-			return true;
+			return { success: true, tokenVersion: nextVersion };
 		},
 
 		async adminResetPassword(id, newPassword) {
@@ -1744,6 +1745,141 @@ export const db = {
 			} catch (err) {
 				console.error('Error clearing audit logs:', err);
 				throw err;
+			}
+		}
+	},
+
+	sessions: {
+		/**
+		 * Creates and records an active user session in user_sessions table
+		 * @param {{ userId: string, sessionId: string, deviceType: string, os: string, browser: string, ip: string, userAgent: string }} sessionData
+		 */
+		async create({ userId, sessionId, deviceType, os, browser, ip, userAgent }) {
+			const supabase = getSupabase();
+			const sessionRecord = {
+				id: crypto.randomUUID(),
+				user_id: userId,
+				session_id: sessionId,
+				device_type: deviceType || 'desktop',
+				os: os || 'Unknown OS',
+				browser: browser || 'Web Browser',
+				ip_address: ip || '',
+				user_agent: userAgent || '',
+				last_active_at: new Date().toISOString(),
+				created_at: new Date().toISOString()
+			};
+
+			try {
+				const { error } = await supabase.from('user_sessions').insert(sessionRecord);
+				if (error) {
+					console.warn('Notice: Failed to insert user_session (table may need schema migration):', error.message);
+				}
+				return sessionRecord;
+			} catch (err) {
+				console.warn('Notice: Error creating user session:', err.message);
+				return sessionRecord;
+			}
+		},
+
+		/**
+		 * Finds all active sessions for a given user
+		 * @param {string} userId
+		 * @returns {Promise<Array<any>>}
+		 */
+		async findByUserId(userId) {
+			if (!userId) return [];
+			const supabase = getSupabase();
+			try {
+				const { data, error } = await supabase
+					.from('user_sessions')
+					.select('*')
+					.eq('user_id', userId)
+					.order('last_active_at', { ascending: false });
+
+				if (error) {
+					console.warn('Notice: Failed to fetch user_sessions:', error.message);
+					return [];
+				}
+				return data || [];
+			} catch (err) {
+				console.warn('Notice: Error fetching user sessions:', err.message);
+				return [];
+			}
+		},
+
+		/**
+		 * Finds a session by unique session_id
+		 * @param {string} sessionId
+		 * @returns {Promise<any|null>}
+		 */
+		async findBySessionId(sessionId) {
+			if (!sessionId) return null;
+			const supabase = getSupabase();
+			try {
+				const { data, error } = await supabase
+					.from('user_sessions')
+					.select('*')
+					.eq('session_id', sessionId)
+					.maybeSingle();
+
+				if (error) return null;
+				return data || null;
+			} catch (err) {
+				return null;
+			}
+		},
+
+		/**
+		 * Updates last_active_at timestamp for a session
+		 * @param {string} sessionId
+		 * @param {string} [ip='']
+		 */
+		async touch(sessionId, ip = '') {
+			if (!sessionId) return;
+			const supabase = getSupabase();
+			try {
+				const updatePayload = {
+					last_active_at: new Date().toISOString()
+				};
+				if (ip) {
+					updatePayload.ip_address = ip;
+				}
+				await supabase.from('user_sessions').update(updatePayload).eq('session_id', sessionId);
+			} catch (err) {
+				// Silent fail on touch
+			}
+		},
+
+		/**
+		 * Deletes a session by its unique session_id
+		 * @param {string} sessionId
+		 */
+		async deleteBySessionId(sessionId) {
+			if (!sessionId) return;
+			const supabase = getSupabase();
+			try {
+				await supabase.from('user_sessions').delete().eq('session_id', sessionId);
+			} catch (err) {
+				console.warn('Notice: Error deleting session:', err.message);
+			}
+		},
+
+		/**
+		 * Deletes all sessions for a user (or all except a specific session)
+		 * @param {string} userId
+		 * @param {string|null} [exceptSessionId=null]
+		 */
+		async deleteAllForUser(userId, exceptSessionId = null) {
+			if (!userId) return;
+			const supabase = getSupabase();
+			try {
+				let query = supabase.from('user_sessions').delete().eq('user_id', userId);
+				if (exceptSessionId) {
+					query = query.neq('session_id', exceptSessionId);
+				}
+				await query;
+			} catch (err) {
+				console.warn('Notice: Error clearing user sessions:', err.message);
 			}
 		}
 	}

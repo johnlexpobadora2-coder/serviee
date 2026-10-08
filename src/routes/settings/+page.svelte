@@ -27,6 +27,7 @@
 	import CityAutocomplete from '$lib/CityAutocomplete.svelte';
 	import DeleteAccountConfirmModal from '$lib/DeleteAccountConfirmModal.svelte';
 	import PasswordStrengthMeter from '$lib/PasswordStrengthMeter.svelte';
+	import ActiveSessionsCard from '$lib/settings/ActiveSessionsCard.svelte';
 	import { validatePassword, validatePhone } from '$lib/validation.js';
 	import { toast } from '$lib/toast.svelte.js';
 
@@ -686,6 +687,12 @@
 						</div>
 					</form>
 				</div>
+
+				<!-- Active Sessions & Device Management Card -->
+				<ActiveSessionsCard 
+					currentSession={data.currentSession} 
+					activeSessions={data.activeSessions} 
+				/>
 
 				<!-- Danger Zone Card -->
 				<div class="bg-(--bg-card) border border-(--border-color) rounded-lg p-3.5 min-[380px]:p-5 sm:p-7 shadow-(--shadow-md) flex flex-col gap-5 sm:gap-6">

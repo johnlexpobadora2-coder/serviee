@@ -1,8 +1,9 @@
 import { db, hashPassword } from '$lib/server/db.js';
-import { createSignedSession } from '$lib/server/session.js';
+import { createSignedSession, parseDeviceInfo } from '$lib/server/session.js';
 import { checkRateLimit, resetRateLimit, getClientIp, sanitizeInput } from '$lib/server/security.js';
 import { redirect, fail } from '@sveltejs/kit';
 import { validateGmail, validatePassword, validatePhone } from '$lib/validation.js';
+import crypto from 'crypto';
 
 export function load({ locals, url }) {
 	if (locals.user) {
@@ -115,7 +116,22 @@ export const actions = {
 
 			resetRateLimit(`register:${clientIp}`);
 
-			const signedToken = createSignedSession(newUser.id, newUser.token_version || 1);
+			// Record active device session
+			const sessionId = crypto.randomUUID();
+			const userAgent = event.request.headers.get('user-agent') || '';
+			const deviceInfo = parseDeviceInfo(userAgent, clientIp);
+
+			await db.sessions.create({
+				userId: newUser.id,
+				sessionId,
+				deviceType: deviceInfo.deviceType,
+				os: deviceInfo.os,
+				browser: deviceInfo.browser,
+				ip: clientIp,
+				userAgent
+			});
+
+			const signedToken = createSignedSession(newUser.id, newUser.token_version || 1, sessionId);
 			cookies.set('session_id', signedToken, {
 				path: '/',
 				httpOnly: true,

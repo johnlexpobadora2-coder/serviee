@@ -16,6 +16,7 @@ declare global {
 				availability_status?: string;
 				created_at?: string;
 			} | null;
+			sessionId?: string | null;
 		}
 		// interface PageData {}
 		// interface PageState {}

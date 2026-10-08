@@ -1,10 +1,12 @@
 import { db, hashPassword } from '$lib/server/db.js';
-import { createSignedSession } from '$lib/server/session.js';
-import { sanitizeInput } from '$lib/server/security.js';
+import { createSignedSession, parseDeviceInfo } from '$lib/server/session.js';
+import { sanitizeInput, getClientIp } from '$lib/server/security.js';
 import { redirect, fail } from '@sveltejs/kit';
 import { validatePassword, validatePhone } from '$lib/validation.js';
+import crypto from 'crypto';
 
-export async function load({ locals }) {
+export async function load(event) {
+	const { locals, request } = event;
 	if (!locals.user) {
 		throw redirect(303, '/login');
 	}
@@ -21,11 +23,62 @@ export async function load({ locals }) {
 		locals.user = safeUser;
 	}
 
+	const userAgent = request.headers.get('user-agent') || '';
+	const clientIp = getClientIp(event);
+	const currentDeviceInfo = parseDeviceInfo(userAgent, clientIp);
+
+	// Update last active timestamp for the current session if registered
+	if (locals.sessionId) {
+		db.sessions.touch(locals.sessionId, clientIp).catch(() => {});
+	}
+
+	// Fetch all recorded active sessions from DB
+	let sessionsFromDb = [];
+	try {
+		sessionsFromDb = await db.sessions.findByUserId(locals.user.id);
+	} catch (e) {
+		sessionsFromDb = [];
+	}
+
+	let activeSessions = [];
+	if (sessionsFromDb && sessionsFromDb.length > 0) {
+		activeSessions = sessionsFromDb.map(s => ({
+			id: s.id,
+			sessionId: s.session_id,
+			deviceType: s.device_type || 'desktop',
+			os: s.os || 'Unknown OS',
+			browser: s.browser || 'Web Browser',
+			ip: (!s.ip_address || s.ip_address === '::1' || s.ip_address === '127.0.0.1' || s.ip_address === '::ffff:127.0.0.1') ? 'Localhost (Dev)' : s.ip_address,
+			lastActive: s.last_active_at || s.created_at || new Date().toISOString(),
+			isCurrent: locals.sessionId ? s.session_id === locals.sessionId : false
+		}));
+
+		// If no session matches isCurrent explicitly, fallback to the top record or currentDeviceInfo
+		const hasCurrent = activeSessions.some(s => s.isCurrent);
+		if (!hasCurrent && activeSessions.length > 0) {
+			activeSessions[0].isCurrent = true;
+		}
+	} else {
+		// Fallback when user_sessions table has no records yet
+		activeSessions = [{
+			id: 'current',
+			sessionId: locals.sessionId || 'current',
+			deviceType: currentDeviceInfo.deviceType,
+			os: currentDeviceInfo.os,
+			browser: currentDeviceInfo.browser,
+			ip: currentDeviceInfo.ip,
+			lastActive: new Date().toISOString(),
+			isCurrent: true
+		}];
+	}
+
 	return {
 		user: locals.user,
 		complementaryRole,
 		hasComplementaryAccount: Boolean(complementaryAccount),
-		complementaryAccountName: complementaryAccount?.name || null
+		complementaryAccountName: complementaryAccount?.name || null,
+		currentSession: currentDeviceInfo,
+		activeSessions
 	};
 }
 
@@ -110,7 +163,8 @@ export const actions = {
 		}
 	},
 
-	updatePassword: async ({ request, locals }) => {
+	updatePassword: async (event) => {
+		const { request, cookies, locals } = event;
 		if (!locals.user) {
 			throw redirect(303, '/login');
 		}
@@ -143,13 +197,41 @@ export const actions = {
 		}
 
 		try {
-			await db.users.updatePassword(locals.user.id, {
+			const updateResult = await db.users.updatePassword(locals.user.id, {
 				currentPassword,
 				newPassword
 			});
 
+			// Re-sign session cookie with the new token version for this device
+			const newVersion = updateResult?.tokenVersion || 1;
+			const newSessionId = crypto.randomUUID();
+			const userAgent = request.headers.get('user-agent') || '';
+			const clientIp = getClientIp(event);
+			const deviceInfo = parseDeviceInfo(userAgent, clientIp);
+
+			// Delete all other recorded sessions for user in DB and register new one
+			await db.sessions.deleteAllForUser(locals.user.id);
+			await db.sessions.create({
+				userId: locals.user.id,
+				sessionId: newSessionId,
+				deviceType: deviceInfo.deviceType,
+				os: deviceInfo.os,
+				browser: deviceInfo.browser,
+				ip: clientIp,
+				userAgent
+			});
+
+			const signedToken = createSignedSession(locals.user.id, newVersion, newSessionId);
+			cookies.set('session_id', signedToken, {
+				path: '/',
+				httpOnly: true,
+				sameSite: 'lax',
+				secure: process.env.NODE_ENV === 'production',
+				maxAge: 60 * 60 * 24 * 7
+			});
+
 			return {
-				passwordSuccess: 'Password changed successfully!',
+				passwordSuccess: 'Password changed successfully! All other devices have been signed out.',
 				passwordError: null
 			};
 		} catch (error) {
@@ -161,7 +243,8 @@ export const actions = {
 		}
 	},
 
-	switchRole: async ({ request, cookies, locals }) => {
+	switchRole: async (event) => {
+		const { request, cookies, locals } = event;
 		if (!locals.user) {
 			throw redirect(303, '/login');
 		}
@@ -189,7 +272,22 @@ export const actions = {
 			}
 
 			// Switch session to the target role account
-			const signedToken = createSignedSession(targetUser.id, targetUser.token_version || 1);
+			const newSessionId = crypto.randomUUID();
+			const userAgent = request.headers.get('user-agent') || '';
+			const clientIp = getClientIp(event);
+			const deviceInfo = parseDeviceInfo(userAgent, clientIp);
+
+			await db.sessions.create({
+				userId: targetUser.id,
+				sessionId: newSessionId,
+				deviceType: deviceInfo.deviceType,
+				os: deviceInfo.os,
+				browser: deviceInfo.browser,
+				ip: clientIp,
+				userAgent
+			});
+
+			const signedToken = createSignedSession(targetUser.id, targetUser.token_version || 1, newSessionId);
 			cookies.set('session_id', signedToken, {
 				path: '/',
 				httpOnly: true,
@@ -210,7 +308,8 @@ export const actions = {
 		}
 	},
 
-	createComplementaryRole: async ({ request, cookies, locals }) => {
+	createComplementaryRole: async (event) => {
+		const { request, cookies, locals } = event;
 		if (!locals.user) {
 			throw redirect(303, '/login');
 		}
@@ -263,7 +362,22 @@ export const actions = {
 			});
 
 			// Switch to the newly created role account
-			const signedToken = createSignedSession(newUser.id, newUser.token_version || 1);
+			const newSessionId = crypto.randomUUID();
+			const userAgent = request.headers.get('user-agent') || '';
+			const clientIp = getClientIp(event);
+			const deviceInfo = parseDeviceInfo(userAgent, clientIp);
+
+			await db.sessions.create({
+				userId: newUser.id,
+				sessionId: newSessionId,
+				deviceType: deviceInfo.deviceType,
+				os: deviceInfo.os,
+				browser: deviceInfo.browser,
+				ip: clientIp,
+				userAgent
+			});
+
+			const signedToken = createSignedSession(newUser.id, newUser.token_version || 1, newSessionId);
 			cookies.set('session_id', signedToken, {
 				path: '/',
 				httpOnly: true,
@@ -316,6 +430,9 @@ export const actions = {
 				});
 			}
 
+			// Delete all sessions
+			await db.sessions.deleteAllForUser(locals.user.id);
+
 			// Delete user from database
 			await db.users.delete(locals.user.id);
 
@@ -329,6 +446,57 @@ export const actions = {
 			return fail(400, {
 				deleteError: error.message || 'Failed to delete account. Please try again.',
 				deleteSuccess: false
+			});
+		}
+	},
+
+	revokeSession: async ({ request, locals }) => {
+		if (!locals.user) {
+			throw redirect(303, '/login');
+		}
+
+		const data = await request.formData();
+		const targetSessionId = data.get('sessionId')?.toString();
+
+		if (!targetSessionId) {
+			return fail(400, { revokeError: 'Invalid session ID provided.' });
+		}
+
+		try {
+			await db.sessions.deleteBySessionId(targetSessionId);
+			return {
+				revokeSuccess: 'Device session has been signed out and revoked successfully!'
+			};
+		} catch (error) {
+			console.error('Error revoking device session:', error);
+			return fail(500, {
+				revokeError: error.message || 'Failed to revoke device session.'
+			});
+		}
+	},
+
+	logoutAllDevices: async ({ cookies, locals }) => {
+		if (!locals.user) {
+			throw redirect(303, '/login');
+		}
+
+		try {
+			// Increment token_version to invalidate all active session tokens in all devices
+			await db.users.incrementTokenVersion(locals.user.id);
+
+			// Delete all recorded sessions for this user from DB
+			await db.sessions.deleteAllForUser(locals.user.id);
+
+			// Clear current session cookie
+			cookies.delete('session_id', { path: '/' });
+
+			throw redirect(303, '/login?logged_out_all=true');
+		} catch (error) {
+			if (error.status === 303) throw error;
+			console.error('Error logging out all devices:', error);
+			return fail(500, {
+				logoutAllError: 'Failed to log out all devices. Please try again.',
+				logoutAllSuccess: false
 			});
 		}
 	}

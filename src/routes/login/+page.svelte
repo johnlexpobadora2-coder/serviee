@@ -25,6 +25,13 @@
 			</div>
 		{/if}
 
+		{#if data?.loggedOutAll}
+			<div style="background-color: var(--success-light, rgba(16, 185, 129, 0.1)); border: 1px solid var(--success, #10b981); color: var(--text-primary); padding: 1rem 1.25rem; border-radius: var(--radius-md); margin-bottom: 1.75rem; font-size: 0.98rem; display: flex; align-items: center; gap: 0.65rem;">
+				<CheckCircle2 size={20} style="color: var(--success, #10b981); flex-shrink: 0;" />
+				<span>You have been logged out from all devices successfully. Please log in again to continue.</span>
+			</div>
+		{/if}
+
 		{#if form?.error}
 			<div style="background-color: var(--error-light); border: 1px solid var(--error); color: var(--text-primary); padding: 1rem 1.25rem; border-radius: var(--radius-md); margin-bottom: 1.75rem; font-size: 0.98rem; display: flex; align-items: center; gap: 0.65rem;">
 				<AlertTriangle size={20} style="color: var(--error); flex-shrink: 0;" />

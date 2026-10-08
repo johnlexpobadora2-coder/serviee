@@ -79,32 +79,42 @@ export function resetRateLimit(identifier) {
 
 /**
  * Resolves the client IP address across direct connections and reverse proxies (Nginx, Caddy, Cloudflare).
- * @param {import('@sveltejs/kit').RequestEvent} event
+ * @param {any} eventOrRequest
  * @returns {string}
  */
-export function getClientIp(event) {
-	if (!event || !event.request) return '127.0.0.1';
+export function getClientIp(eventOrRequest) {
+	if (!eventOrRequest) return '127.0.0.1';
 
-	// Check standard proxy headers first
-	const cfIp = event.request.headers.get('cf-connecting-ip');
-	if (cfIp) return cfIp.trim();
+	/** @type {Headers|null} */
+	let headers = null;
+	if (eventOrRequest.headers && typeof eventOrRequest.headers.get === 'function') {
+		headers = eventOrRequest.headers;
+	} else if (eventOrRequest.request && eventOrRequest.request.headers && typeof eventOrRequest.request.headers.get === 'function') {
+		headers = eventOrRequest.request.headers;
+	}
 
-	const xRealIp = event.request.headers.get('x-real-ip');
-	if (xRealIp) return xRealIp.trim();
+	if (headers) {
+		// Check standard proxy headers first
+		const cfIp = headers.get('cf-connecting-ip');
+		if (cfIp) return cfIp.trim();
 
-	const xForwardedFor = event.request.headers.get('x-forwarded-for');
-	if (xForwardedFor) {
-		// Take the first client IP in the comma-separated chain
-		const ips = xForwardedFor.split(',');
-		if (ips.length > 0 && ips[0].trim()) {
-			return ips[0].trim();
+		const xRealIp = headers.get('x-real-ip');
+		if (xRealIp) return xRealIp.trim();
+
+		const xForwardedFor = headers.get('x-forwarded-for');
+		if (xForwardedFor) {
+			// Take the first client IP in the comma-separated chain
+			const ips = xForwardedFor.split(',');
+			if (ips.length > 0 && ips[0].trim()) {
+				return ips[0].trim();
+			}
 		}
 	}
 
 	// Fallback to SvelteKit event.getClientAddress() if available
 	try {
-		if (typeof event.getClientAddress === 'function') {
-			return event.getClientAddress() || '127.0.0.1';
+		if (eventOrRequest && typeof eventOrRequest.getClientAddress === 'function') {
+			return eventOrRequest.getClientAddress() || '127.0.0.1';
 		}
 	} catch (e) {
 		// getClientAddress may throw if headers aren't trusted or in dev

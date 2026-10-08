@@ -6,6 +6,10 @@ CREATE TABLE IF NOT EXISTS public.users (
     phone TEXT NOT NULL,
     role TEXT NOT NULL, -- 'customer' or 'worker'
     address TEXT NOT NULL,
+    bio TEXT DEFAULT '',
+    skills TEXT[] DEFAULT '{}'::TEXT[],
+    availability_status TEXT DEFAULT 'available',
+    token_version INTEGER DEFAULT 1 NOT NULL,
     password_hash TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     CONSTRAINT users_email_role_key UNIQUE (email, role)
@@ -29,7 +33,7 @@ CREATE TABLE IF NOT EXISTS public.job_posts (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- Migration helper if table already exists in existing database
+-- Migration helpers for existing databases
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS token_version INTEGER DEFAULT 1 NOT NULL;
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS bio TEXT DEFAULT '';
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS skills TEXT[] DEFAULT '{}'::TEXT[];
@@ -89,6 +93,20 @@ CREATE TABLE IF NOT EXISTS public.audit_logs (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
+-- Create user_sessions table for multi-device active session tracking
+CREATE TABLE IF NOT EXISTS public.user_sessions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES public.users(id) ON DELETE CASCADE NOT NULL,
+    session_id TEXT NOT NULL UNIQUE,
+    device_type TEXT DEFAULT 'desktop', -- 'desktop', 'mobile', 'tablet'
+    os TEXT DEFAULT 'Unknown OS',
+    browser TEXT DEFAULT 'Web Browser',
+    ip_address TEXT DEFAULT '',
+    user_agent TEXT DEFAULT '',
+    last_active_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
 -- Disable Row Level Security (RLS) for testing and ease of use with the anon key
 ALTER TABLE public.users DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.job_posts DISABLE ROW LEVEL SECURITY;
@@ -97,6 +115,7 @@ ALTER TABLE public.messages DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.conversation_deletions DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.saved_jobs DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.audit_logs DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_sessions DISABLE ROW LEVEL SECURITY;
 
 -- Fallback permissive RLS policies in case RLS is enabled on Supabase Dashboard
 DROP POLICY IF EXISTS "Allow anon all on users" ON public.users;
@@ -120,7 +139,13 @@ CREATE POLICY "Allow anon all on saved_jobs" ON public.saved_jobs FOR ALL USING 
 DROP POLICY IF EXISTS "Allow anon all on audit_logs" ON public.audit_logs;
 CREATE POLICY "Allow anon all on audit_logs" ON public.audit_logs FOR ALL USING (true) WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Allow anon all on user_sessions" ON public.user_sessions;
+CREATE POLICY "Allow anon all on user_sessions" ON public.user_sessions FOR ALL USING (true) WITH CHECK (true);
+
 -- Performance Indexes
+CREATE INDEX IF NOT EXISTS idx_users_email ON public.users(email);
+CREATE INDEX IF NOT EXISTS idx_users_role ON public.users(role);
+
 CREATE INDEX IF NOT EXISTS idx_job_posts_customer_id ON public.job_posts(customer_id);
 CREATE INDEX IF NOT EXISTS idx_job_posts_worker_id ON public.job_posts(worker_id);
 CREATE INDEX IF NOT EXISTS idx_job_posts_status ON public.job_posts(status);
@@ -143,6 +168,10 @@ CREATE INDEX IF NOT EXISTS idx_saved_jobs_job_id ON public.saved_jobs(job_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON public.audit_logs(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON public.audit_logs(action);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_admin_id ON public.audit_logs(admin_id);
+
+CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON public.user_sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_sessions_session_id ON public.user_sessions(session_id);
+CREATE INDEX IF NOT EXISTS idx_user_sessions_last_active ON public.user_sessions(last_active_at DESC);
 
 -- Enable Supabase Realtime on messages table
 ALTER TABLE public.messages REPLICA IDENTITY FULL;

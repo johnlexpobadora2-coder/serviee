@@ -13,16 +13,20 @@ export async function handle({ event, resolve }) {
 				// Strip password hash for security before attaching it to locals
 				const { password_hash, ...safeUser } = user;
 				event.locals.user = safeUser;
+				event.locals.sessionId = sessionInfo.sessionId || null;
 			} else {
 				// Version mismatch (revoked session) or user deleted
 				event.locals.user = null;
+				event.locals.sessionId = null;
 			}
 		} else {
 			// Invalid or forged token
 			event.locals.user = null;
+			event.locals.sessionId = null;
 		}
 	} else {
 		event.locals.user = null;
+		event.locals.sessionId = null;
 	}
 
 	const response = await resolve(event);
