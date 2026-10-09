@@ -148,14 +148,14 @@
 	<title>Admin Panel - Serviee [Admin05]</title>
 </svelte:head>
 
-<div class="w-full flex-1 flex flex-col text-[var(--text-primary)] font-sans selection:bg-[#7261ef]/30 selection:text-white">
+<div class="w-full flex-1 flex flex-col text-(--text-primary) font-sans selection:bg-[#7261ef]/30 selection:text-white">
 	{#if !isAuthenticated}
 		<AdminPasscodeLock 
 			bind:passcode 
 			{passError} 
 		/>
 	{:else}
-		<div class="max-w-[1400px] w-full mx-auto px-2 sm:px-6 lg:px-8 py-3 sm:py-6 space-y-3.5 sm:space-y-6 flex-1 flex flex-col justify-start" transition:fade={{ duration: 150 }}>
+		<div class="max-w-350 w-full mx-auto px-2 sm:px-6 lg:px-8 py-3 sm:py-6 space-y-3.5 sm:space-y-6 flex-1 flex flex-col justify-start" transition:fade={{ duration: 150 }}>
 			<AdminHeader onlock={lockAdmin} />
 
 			{#if form?.message}

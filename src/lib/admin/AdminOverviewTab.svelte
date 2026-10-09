@@ -130,7 +130,7 @@
 							<tr class="hover:bg-slate-50/80 dark:hover:bg-[#211a4e]/40 transition-colors">
 								<td class="py-3 px-4">
 									<div class="flex items-center gap-3">
-										<div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#7261ef] to-purple-600 text-white font-bold flex items-center justify-center text-xs shadow-xs shrink-0">
+										<div class="w-8 h-8 rounded-full bg-linear-to-br from-[#7261ef] to-purple-600 text-white font-bold flex items-center justify-center text-xs shadow-xs shrink-0">
 											{u.name?.charAt(0) || 'U'}
 										</div>
 										<div class="min-w-0">
@@ -158,7 +158,7 @@
 				{#each users.slice(0, 5) as u}
 					<div class="p-2.5 bg-slate-50 dark:bg-[#211a4e]/60 border border-slate-200/80 dark:border-[#2c235b] rounded-lg flex items-center justify-between gap-2 text-xs">
 						<div class="flex items-center gap-2 min-w-0">
-							<div class="w-7 h-7 rounded-full bg-gradient-to-br from-[#7261ef] to-purple-600 text-white font-bold flex items-center justify-center text-xs shrink-0">
+							<div class="w-7 h-7 rounded-full bg-linear-to-br from-[#7261ef] to-purple-600 text-white font-bold flex items-center justify-center text-xs shrink-0">
 								{u.name?.charAt(0) || 'U'}
 							</div>
 							<div class="min-w-0">
@@ -205,7 +205,7 @@
 						{#each jobs.slice(0, 5) as j}
 							<tr class="hover:bg-slate-50/80 dark:hover:bg-[#211a4e]/40 transition-colors">
 								<td class="py-3 px-4">
-									<div class="font-bold text-slate-900 dark:text-[#faf9fe] max-w-[200px] truncate">{j.title}</div>
+									<div class="font-bold text-slate-900 dark:text-[#faf9fe] max-w-50 truncate">{j.title}</div>
 									<div class="text-[11px] text-slate-500 dark:text-[#b2acd6] font-medium">{j.category || 'General'} • {j.location || 'PH'}</div>
 								</td>
 								<td class="py-3 px-4 font-extrabold text-emerald-600 dark:text-emerald-400">{formatCurrency(j.budget)}</td>

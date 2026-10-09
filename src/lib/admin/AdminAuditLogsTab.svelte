@@ -225,7 +225,7 @@
 
 		<!-- Filter and Export Actions -->
 		<div class="flex flex-wrap items-center justify-between lg:justify-end gap-2.5">
-			<div class="flex items-center gap-1.5 min-w-[170px]">
+			<div class="flex items-center gap-1.5 min-w-42.5">
 				<Filter size={14} class="text-slate-400 dark:text-[#77719f] shrink-0" />
 				<select 
 					bind:value={auditActionFilter}

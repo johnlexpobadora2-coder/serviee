@@ -62,16 +62,16 @@
 	<!-- Scrollable Jobs Table (Active for All Screens) -->
 	<div class="bg-white dark:bg-[#161138] border border-slate-200 dark:border-[#2c235b] rounded-xl shadow-xs dark:shadow-xl overflow-hidden">
 		<div class="overflow-x-auto w-full">
-			<table class="w-full min-w-[850px] text-left text-xs table-auto">
+			<table class="w-full min-w-212.5 text-left text-xs table-auto">
 				<thead class="bg-slate-100 dark:bg-[#211a4e]/70 text-slate-700 dark:text-[#b2acd6] uppercase tracking-wider border-b border-slate-200 dark:border-[#2c235b] text-[11px]">
 					<tr>
-						<th class="py-3.5 px-4 font-bold whitespace-nowrap min-w-[220px]">Job Info</th>
-						<th class="py-3.5 px-4 font-bold whitespace-nowrap min-w-[110px]">Category</th>
-						<th class="py-3.5 px-4 font-bold whitespace-nowrap min-w-[130px]">Location</th>
-						<th class="py-3.5 px-4 font-bold whitespace-nowrap min-w-[110px]">Budget</th>
-						<th class="py-3.5 px-4 font-bold whitespace-nowrap text-center min-w-[90px]">Applicants</th>
-						<th class="py-3.5 px-4 font-bold whitespace-nowrap min-w-[150px]">Status Update</th>
-						<th class="py-3.5 px-4 font-bold whitespace-nowrap text-right min-w-[110px]">Actions</th>
+						<th class="py-3.5 px-4 font-bold whitespace-nowrap min-w-55">Job Info</th>
+						<th class="py-3.5 px-4 font-bold whitespace-nowrap min-w-27.5">Category</th>
+						<th class="py-3.5 px-4 font-bold whitespace-nowrap min-w-32.5">Location</th>
+						<th class="py-3.5 px-4 font-bold whitespace-nowrap min-w-27.5">Budget</th>
+						<th class="py-3.5 px-4 font-bold whitespace-nowrap text-center min-w-22.5">Applicants</th>
+						<th class="py-3.5 px-4 font-bold whitespace-nowrap min-w-37.5">Status Update</th>
+						<th class="py-3.5 px-4 font-bold whitespace-nowrap text-right min-w-27.5">Actions</th>
 					</tr>
 				</thead>
 				<tbody class="divide-y divide-slate-100 dark:divide-[#2c235b]/60 text-slate-700 dark:text-[#b2acd6]">
@@ -101,7 +101,7 @@
 										name="status" 
 										value={j.status}
 										onchange={(e) => { e.currentTarget.closest('form')?.requestSubmit(); }}
-										class="w-full min-w-[130px] bg-slate-50 dark:bg-[#211a4e] border border-slate-300 dark:border-[#2c235b] text-slate-900 dark:text-[#faf9fe] text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-[#7261ef] focus:ring-2 focus:ring-[#7261ef]/20 font-semibold cursor-pointer"
+										class="w-full min-w-32.5 bg-slate-50 dark:bg-[#211a4e] border border-slate-300 dark:border-[#2c235b] text-slate-900 dark:text-[#faf9fe] text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-[#7261ef] focus:ring-2 focus:ring-[#7261ef]/20 font-semibold cursor-pointer"
 									>
 										<option value="open">Open</option>
 										<option value="assigned">Assigned</option>

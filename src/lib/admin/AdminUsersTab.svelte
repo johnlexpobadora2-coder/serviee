@@ -59,15 +59,15 @@
 	<!-- Scrollable Users Table View (Active for All Screens) -->
 	<div class="bg-white dark:bg-[#161138] border border-slate-200 dark:border-[#2c235b] rounded-xl shadow-xs dark:shadow-xl overflow-hidden">
 		<div class="overflow-x-auto w-full">
-			<table class="w-full min-w-[800px] text-left text-xs table-auto">
+			<table class="w-full min-w-200 text-left text-xs table-auto">
 				<thead class="bg-slate-100 dark:bg-[#211a4e]/70 text-slate-700 dark:text-[#b2acd6] uppercase tracking-wider border-b border-slate-200 dark:border-[#2c235b] text-[11px]">
 					<tr>
-						<th class="py-3.5 px-4 font-bold whitespace-nowrap min-w-[220px]">User Details</th>
-						<th class="py-3.5 px-4 font-bold whitespace-nowrap min-w-[100px]">Role</th>
-						<th class="py-3.5 px-4 font-bold whitespace-nowrap min-w-[120px]">Phone</th>
-						<th class="py-3.5 px-4 font-bold whitespace-nowrap min-w-[180px]">Address</th>
-						<th class="py-3.5 px-4 font-bold whitespace-nowrap min-w-[140px]">Joined Date</th>
-						<th class="py-3.5 px-4 font-bold whitespace-nowrap text-right min-w-[130px]">Actions</th>
+						<th class="py-3.5 px-4 font-bold whitespace-nowrap min-w-55">User Details</th>
+						<th class="py-3.5 px-4 font-bold whitespace-nowrap min-w-25">Role</th>
+						<th class="py-3.5 px-4 font-bold whitespace-nowrap min-w-30">Phone</th>
+						<th class="py-3.5 px-4 font-bold whitespace-nowrap min-w-45">Address</th>
+						<th class="py-3.5 px-4 font-bold whitespace-nowrap min-w-35">Joined Date</th>
+						<th class="py-3.5 px-4 font-bold whitespace-nowrap text-right min-w-32.5">Actions</th>
 					</tr>
 				</thead>
 				<tbody class="divide-y divide-slate-100 dark:divide-[#2c235b]/60 text-slate-700 dark:text-[#b2acd6]">
@@ -75,10 +75,10 @@
 						<tr class="hover:bg-slate-50/80 dark:hover:bg-[#211a4e]/40 transition-colors">
 							<td class="py-3.5 px-4">
 								<div class="flex items-center gap-2.5 sm:gap-3">
-									<div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-[#7261ef] to-purple-600 text-white font-bold flex items-center justify-center text-xs sm:text-sm shadow-xs shrink-0">
+									<div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-linear-to-br from-[#7261ef] to-purple-600 text-white font-bold flex items-center justify-center text-xs sm:text-sm shadow-xs shrink-0">
 										{u.name?.charAt(0) || 'U'}
 									</div>
-									<div class="min-w-0 max-w-[200px]">
+									<div class="min-w-0 max-w-50">
 										<div class="font-bold text-slate-900 dark:text-[#faf9fe] text-xs sm:text-sm truncate">{u.name}</div>
 										<div class="text-slate-500 dark:text-[#b2acd6] font-medium text-[11px] truncate">{u.email}</div>
 										<div class="text-[10px] text-slate-400 dark:text-[#77719f] font-mono mt-0.5 truncate">ID: {u.id}</div>
@@ -91,7 +91,7 @@
 								</span>
 							</td>
 							<td class="py-3.5 px-4 text-slate-600 dark:text-[#b2acd6] font-medium whitespace-nowrap">{u.phone || 'N/A'}</td>
-							<td class="py-3.5 px-4 text-slate-600 dark:text-[#b2acd6] font-medium max-w-[200px] truncate">{u.address || 'No address set'}</td>
+							<td class="py-3.5 px-4 text-slate-600 dark:text-[#b2acd6] font-medium max-w-50 truncate">{u.address || 'No address set'}</td>
 							<td class="py-3.5 px-4 text-slate-500 dark:text-[#77719f] font-medium whitespace-nowrap">{formatDate(u.created_at)}</td>
 							<td class="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
 								<button 
