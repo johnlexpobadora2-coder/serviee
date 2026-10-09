@@ -105,7 +105,7 @@
 			<!-- Current Device Logout Button -->
 			<button
 				type="button"
-				class="inline-flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md text-xs font-medium text-red-500 bg-red-500/5 hover:bg-red-500 hover:text-white transition-all cursor-pointer shrink-0 border border-red-500/20 hover:border-red-500"
+				class="inline-flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md text-xs font-medium text-red-500 bg-red-500/5 hover:bg-red-500 hover:text-white transition-all cursor-pointer shrink-0 border-0"
 				onclick={() => openLogoutModal('single')}
 				title="Log out from this device"
 				id="btn-logout-current-device"
@@ -151,7 +151,7 @@
 						<!-- Revoke Individual Device Button -->
 						<button
 							type="button"
-							class="inline-flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md text-xs font-medium text-red-500 bg-red-500/5 hover:bg-red-500 hover:text-white transition-all cursor-pointer shrink-0 border border-red-500/20 hover:border-red-500"
+							class="inline-flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md text-xs font-medium text-red-500 bg-red-500/5 hover:bg-red-500 hover:text-white transition-all cursor-pointer shrink-0 border-0"
 							onclick={() => openLogoutModal('revoke', device)}
 							title="Revoke session for this device"
 						>
@@ -176,7 +176,7 @@
 	<div class="pt-2 border-t border-(--border-color) flex justify-end">
 		<button
 			type="button"
-			class="btn btn-outline border-red-500 text-red-500 hover:bg-red-500 hover:text-white inline-flex items-center gap-2 py-2 px-4 text-xs sm:text-sm font-medium transition-colors w-full sm:w-auto justify-center cursor-pointer"
+			class="btn border-0 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white inline-flex items-center gap-2 py-2 px-4 text-xs sm:text-sm font-medium transition-colors w-full sm:w-auto justify-center cursor-pointer"
 			onclick={() => openLogoutModal('all')}
 			id="btn-logout-all-devices"
 		>
@@ -255,7 +255,7 @@
 
 				<button 
 					type="submit" 
-					class="btn bg-red-500 hover:bg-red-600 border-red-500 hover:border-red-600 text-white py-2 px-5 text-[0.9rem] inline-flex items-center justify-center gap-1.5 flex-1 font-semibold cursor-pointer" 
+					class="btn bg-red-500 hover:bg-red-600 border-0 text-white py-2 px-5 text-[0.9rem] inline-flex items-center justify-center gap-1.5 flex-1 font-semibold cursor-pointer" 
 					disabled={isSubmitting}
 				>
 					{#if isSubmitting}

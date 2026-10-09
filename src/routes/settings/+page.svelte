@@ -14,7 +14,6 @@
 		Repeat, 
 		Trash2, 
 		UserPlus,
-		ShieldAlert,
 		Wrench,
 		Plus,
 		X,
@@ -723,10 +722,7 @@
 				<!-- Danger Zone Card -->
 				<div class="bg-(--bg-card) border border-(--border-color) rounded-lg p-3.5 min-[380px]:p-5 sm:p-7 shadow-(--shadow-sm) flex flex-col gap-5 sm:gap-6">
 					<div>
-						<div class="flex items-center gap-2">
-							<ShieldAlert size={20} class="text-red-500" />
-							<h3 class="m-0 text-red-500 text-[1.2rem] font-semibold">Danger Zone</h3>
-						</div>
+						<h3 class="m-0 text-red-500 text-[1.2rem] font-semibold">Danger Zone</h3>
 						<p class="text-(--text-muted) text-[0.85rem] mt-1 mb-0">Permanently delete your account and all associated data from the Serviee platform.</p>
 					</div>
 
