@@ -378,10 +378,9 @@
 						</div>
 					</div>
 
-					<!-- Phone Privacy & Masking Toggle Card -->
+					<!-- Phone Privacy & Masking Switch -->
 					<PhonePrivacyCard 
 						bind:maskPhone={mask_phone} 
-						phone={phone} 
 						disabled={profileSubmitting} 
 					/>
 
