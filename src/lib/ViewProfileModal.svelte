@@ -15,9 +15,12 @@
 		FileText,
 		Check,
 		Activity,
-		Eye
+		Eye,
+		Shield,
+		Lock
 	} from "lucide-svelte";
 	import AvatarViewerModal from "$lib/AvatarViewerModal.svelte";
+	import { maskPhoneNumber } from "$lib/validation.js";
 
 	let {
 		userId = null,
@@ -434,8 +437,19 @@
 										<div class="flex items-start gap-2">
 											<Phone size={14} class="text-(--text-muted) shrink-0 mt-0.5" />
 											<div class="min-w-0 wrap-break-word flex flex-col">
-												<span class="text-[0.68rem] text-(--text-muted)">Phone Number</span>
-												<strong class="text-[0.82rem] text-(--accent-hover) font-mono font-semibold">{user.phone || "Not provided"}</strong>
+												<div class="flex items-center gap-1.5 flex-wrap">
+													<span class="text-[0.68rem] text-(--text-muted)">Phone Number</span>
+													{#if user.mask_phone && currentUserId !== user.id}
+														<span class="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[0.62rem] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" title="Phone is masked for privacy">
+															<Shield size={10} /> Masked
+														</span>
+													{/if}
+												</div>
+												<strong class="text-[0.82rem] text-(--accent-hover) font-mono font-semibold">
+													{user.mask_phone && currentUserId !== user.id
+														? maskPhoneNumber(user.phone)
+														: (user.phone || "Not provided")}
+												</strong>
 											</div>
 										</div>
 

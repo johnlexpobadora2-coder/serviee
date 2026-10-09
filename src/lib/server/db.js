@@ -109,6 +109,7 @@ export const db = {
 				skills: [],
 				availability_status: 'available',
 				avatar: null,
+				mask_phone: false,
 				password_hash: passwordHash,
 				created_at: new Date().toISOString()
 			};
@@ -199,7 +200,7 @@ export const db = {
 
 
 		async updateProfile(id, profile = {}) {
-			const { name, phone, address, bio, skills, availability_status, avatar } = profile;
+			const { name, phone, address, bio, skills, availability_status, avatar, mask_phone } = profile;
 			const supabase = getSupabase();
 			const updates = {};
 			if (name !== undefined) updates.name = name;
@@ -209,6 +210,7 @@ export const db = {
 			if (skills !== undefined) updates.skills = Array.isArray(skills) ? skills : [];
 			if (availability_status !== undefined) updates.availability_status = availability_status;
 			if (avatar !== undefined) updates.avatar = avatar ? String(avatar).trim() : null;
+			if (mask_phone !== undefined) updates.mask_phone = Boolean(mask_phone);
 
 			const { data, error } = await supabase
 				.from('users')

@@ -159,6 +159,9 @@ export const actions = {
 			}
 		}
 
+		const rawMaskPhone = data.get('mask_phone');
+		const mask_phone = rawMaskPhone === 'true' || rawMaskPhone === 'on';
+
 		try {
 			const updated = await db.users.updateProfile(locals.user.id, {
 				name,
@@ -167,7 +170,8 @@ export const actions = {
 				bio,
 				skills,
 				availability_status,
-				avatar
+				avatar,
+				mask_phone
 			});
 
 			if (updated) {

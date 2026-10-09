@@ -15,6 +15,7 @@ declare global {
 				skills?: string[];
 				availability_status?: string;
 				avatar?: string | null;
+				mask_phone?: boolean;
 				created_at?: string;
 			} | null;
 			sessionId?: string | null;

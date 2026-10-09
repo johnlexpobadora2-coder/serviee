@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS public.users (
     skills TEXT[] DEFAULT '{}'::TEXT[],
     availability_status TEXT DEFAULT 'available',
     avatar TEXT DEFAULT NULL,
+    mask_phone BOOLEAN DEFAULT false,
     token_version INTEGER DEFAULT 1 NOT NULL,
     password_hash TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
@@ -42,6 +43,7 @@ ALTER TABLE public.users ADD COLUMN IF NOT EXISTS token_version INTEGER DEFAULT 
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS bio TEXT DEFAULT '';
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS skills TEXT[] DEFAULT '{}'::TEXT[];
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS availability_status TEXT DEFAULT 'available';
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS mask_phone BOOLEAN DEFAULT false;
 ALTER TABLE public.job_posts ADD COLUMN IF NOT EXISTS latitude DOUBLE PRECISION;
 ALTER TABLE public.job_posts ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION;
 

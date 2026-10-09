@@ -5,6 +5,7 @@
 	import JobMapPreview from '$lib/JobMapPreview.svelte';
 	import JobDescription from '$lib/JobDescription.svelte';
 	import { formatRelativeTime, formatFullDateTime, getScheduleUrgency } from '$lib/jobCardUtils.js';
+	import { maskPhoneNumber } from '$lib/validation.js';
 
 	let { 
 		activeJobs = [], 
@@ -216,7 +217,7 @@
 
 												<div style="margin-top: 0.25rem; font-size: 0.85rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 0.15rem;">
 													{#if applicant.phone}
-														<span>Phone: <strong style="color: var(--text-primary); font-weight: 500;">{applicant.phone}</strong></span>
+														<span>Phone: <strong style="color: var(--text-primary); font-weight: 500;">{applicant.mask_phone ? maskPhoneNumber(applicant.phone) : applicant.phone}</strong></span>
 													{/if}
 													{#if applicant.address}
 														<span style="font-size: 0.8rem; color: var(--text-muted);">Address: {applicant.address}</span>

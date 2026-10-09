@@ -38,6 +38,21 @@ export function validatePhone(phone) {
 }
 
 /**
+ * Masks a phone number for privacy protection (e.g. 09171234567 -> 0917 ••• •567).
+ * @param {string} phone
+ * @returns {string}
+ */
+export function maskPhoneNumber(phone) {
+	if (!phone || typeof phone !== 'string') return 'Not provided';
+	const trimmed = phone.trim();
+	if (trimmed.length < 7) return '•••••••••••';
+	if (trimmed.length === 11) {
+		return `${trimmed.slice(0, 4)} ••• •${trimmed.slice(8)}`;
+	}
+	return `${trimmed.slice(0, 3)} •••• ${trimmed.slice(-3)}`;
+}
+
+/**
  * Validates password based on required security rules:
  * - Minimum 6 characters
  * - At least 1 uppercase letter (A-Z)

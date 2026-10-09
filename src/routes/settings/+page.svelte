@@ -28,6 +28,7 @@
 	import PasswordStrengthMeter from '$lib/PasswordStrengthMeter.svelte';
 	import ActiveSessionsCard from '$lib/settings/ActiveSessionsCard.svelte';
 	import AvatarUpload from '$lib/settings/AvatarUpload.svelte';
+	import PhonePrivacyCard from '$lib/settings/PhonePrivacyCard.svelte';
 	import AvatarViewerModal from '$lib/AvatarViewerModal.svelte';
 	import { validatePassword, validatePhone } from '$lib/validation.js';
 	import { toast } from '$lib/toast.svelte.js';
@@ -43,6 +44,8 @@
 	let name = $state(data.user?.name || '');
 	// svelte-ignore state_referenced_locally
 	let phone = $state(data.user?.phone || '');
+	// svelte-ignore state_referenced_locally
+	let mask_phone = $state(data.user?.mask_phone ?? false);
 	// svelte-ignore state_referenced_locally
 	let address = $state(data.user?.address || '');
 	// svelte-ignore state_referenced_locally
@@ -170,6 +173,7 @@
 				avatar = u.avatar || '';
 				name = u.name || '';
 				phone = u.phone || '';
+				mask_phone = u.mask_phone ?? false;
 				address = u.address || '';
 				bio = u.bio || '';
 				availability_status = u.availability_status || 'available';
@@ -373,6 +377,13 @@
 							/>
 						</div>
 					</div>
+
+					<!-- Phone Privacy & Masking Toggle Card -->
+					<PhonePrivacyCard 
+						bind:maskPhone={mask_phone} 
+						phone={phone} 
+						disabled={profileSubmitting} 
+					/>
 
 					<div class="flex flex-col gap-1.5 mb-5">
 						<div class="flex justify-between items-center mb-1.5 flex-wrap gap-2">

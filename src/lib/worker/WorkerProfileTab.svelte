@@ -287,7 +287,14 @@
 					<div style="display: flex; align-items: flex-start; gap: 0.65rem;">
 						<Phone size={16} style="color: var(--text-muted); margin-top: 0.2rem; flex-shrink: 0;" />
 						<div>
-							<span style="color: var(--text-muted); font-size: 0.75rem; display: block; text-transform: uppercase; font-weight: 600; letter-spacing: 0.04em;">Phone Number</span>
+							<div class="flex items-center gap-1.5 flex-wrap">
+								<span style="color: var(--text-muted); font-size: 0.75rem; display: block; text-transform: uppercase; font-weight: 600; letter-spacing: 0.04em;">Phone Number</span>
+								{#if user?.mask_phone}
+									<span class="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[0.62rem] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+										Masked on Public
+									</span>
+								{/if}
+							</div>
 							<strong style="color: var(--text-primary); font-size: 0.88rem;">{user?.phone || '—'}</strong>
 						</div>
 					</div>
