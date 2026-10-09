@@ -9,11 +9,15 @@ CREATE TABLE IF NOT EXISTS public.users (
     bio TEXT DEFAULT '',
     skills TEXT[] DEFAULT '{}'::TEXT[],
     availability_status TEXT DEFAULT 'available',
+    avatar TEXT DEFAULT NULL,
     token_version INTEGER DEFAULT 1 NOT NULL,
     password_hash TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     CONSTRAINT users_email_role_key UNIQUE (email, role)
 );
+
+-- Migration helper for existing users table:
+-- ALTER TABLE public.users ADD COLUMN IF NOT EXISTS avatar TEXT DEFAULT NULL;
 
 -- Create job_posts table
 CREATE TABLE IF NOT EXISTS public.job_posts (

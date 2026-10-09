@@ -94,11 +94,36 @@ export const actions = {
 		const rawAddress = data.get('address')?.toString().trim();
 		const rawBio = data.get('bio')?.toString().trim() || '';
 		const availability_status = data.get('availability_status')?.toString().trim() || 'available';
+		const rawAvatar = data.get('avatar');
 
 		const name = sanitizeInput(rawName);
 		const phone = sanitizeInput(rawPhone);
 		const address = sanitizeInput(rawAddress);
 		const bio = sanitizeInput(rawBio);
+
+		let avatar = undefined;
+		if (rawAvatar !== null && rawAvatar !== undefined) {
+			const avatarStr = rawAvatar.toString().trim();
+			if (avatarStr) {
+				// Security guard: Ensure it is a valid data URL
+				if (!avatarStr.startsWith('data:image/')) {
+					return fail(400, {
+						profileError: 'Invalid image format for avatar.',
+						profileSuccess: false
+					});
+				}
+				// Security guard: Strict payload size threshold (compressed 256x256 WebP is ~10-30KB; cap at 150KB)
+				if (avatarStr.length > 150 * 1024) {
+					return fail(400, {
+						profileError: 'Avatar image is too large. Please upload a standard photo.',
+						profileSuccess: false
+					});
+				}
+				avatar = avatarStr;
+			} else {
+				avatar = null;
+			}
+		}
 
 		let skills = [];
 		const skillsRaw = data.get('skills')?.toString();
@@ -141,7 +166,8 @@ export const actions = {
 				address: address || '',
 				bio,
 				skills,
-				availability_status
+				availability_status,
+				avatar
 			});
 
 			if (updated) {

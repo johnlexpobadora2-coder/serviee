@@ -28,6 +28,8 @@
 	import DeleteAccountConfirmModal from '$lib/DeleteAccountConfirmModal.svelte';
 	import PasswordStrengthMeter from '$lib/PasswordStrengthMeter.svelte';
 	import ActiveSessionsCard from '$lib/settings/ActiveSessionsCard.svelte';
+	import AvatarUpload from '$lib/settings/AvatarUpload.svelte';
+	import AvatarViewerModal from '$lib/AvatarViewerModal.svelte';
 	import { validatePassword, validatePhone } from '$lib/validation.js';
 	import { toast } from '$lib/toast.svelte.js';
 
@@ -36,6 +38,8 @@
 	let activeTab = $state('profile'); // 'profile' | 'security' | 'roles'
 
 	// Form states initialized from user data
+	// svelte-ignore state_referenced_locally
+	let avatar = $state(data.user?.avatar || '');
 	// svelte-ignore state_referenced_locally
 	let name = $state(data.user?.name || '');
 	// svelte-ignore state_referenced_locally
@@ -58,6 +62,7 @@
 	let gpsStatus = $state(null); // { type: 'success' | 'error', message: string }
 	let showPickerModal = $state(false);
 	let showDeleteAccountModal = $state(false);
+	let showHeroAvatarModal = $state(false);
 
 	// Security & Role states
 	let currentPassword = $state('');
@@ -163,6 +168,7 @@
 			toast.success(form.profileSuccess);
 			const u = form.user || data.user;
 			if (u) {
+				avatar = u.avatar || '';
 				name = u.name || '';
 				phone = u.phone || '';
 				address = u.address || '';
@@ -216,9 +222,21 @@
 
 		<!-- User Hero Header Banner -->
 		<div class="flex flex-col sm:flex-row items-center text-center sm:text-left gap-3.5 sm:gap-5 bg-(--bg-card) border border-(--border-color) rounded-lg p-3.5 min-[380px]:p-4.5 sm:p-6 shadow-(--shadow-md)">
-			<div class="w-16 h-16 rounded-full bg-linear-to-br from-(--accent) to-[hsl(280,80%,60%)] text-white text-[1.8rem] font-bold flex items-center justify-center shrink-0">
-				{data.user.name ? data.user.name.charAt(0).toUpperCase() : 'U'}
-			</div>
+			{#if avatar || data.user.avatar}
+				<button 
+					type="button" 
+					class="w-16 h-16 rounded-full bg-linear-to-br from-(--accent) to-[hsl(280,80%,60%)] text-white text-[1.8rem] font-bold flex items-center justify-center shrink-0 overflow-hidden ring-1 ring-black/5 dark:ring-white/10 shadow-xs cursor-pointer group p-0 border-0 focus:outline-none focus:ring-2 focus:ring-(--accent)"
+					onclick={() => showHeroAvatarModal = true}
+					title="Click to view photo"
+					aria-label="View full size profile photo"
+				>
+					<img src={avatar || data.user.avatar} alt={data.user.name} class="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105" />
+				</button>
+			{:else}
+				<div class="w-16 h-16 rounded-full bg-linear-to-br from-(--accent) to-[hsl(280,80%,60%)] text-white text-[1.8rem] font-bold flex items-center justify-center shrink-0 overflow-hidden ring-1 ring-black/5 dark:ring-white/10 shadow-xs">
+					{data.user.name ? data.user.name.charAt(0).toUpperCase() : 'U'}
+				</div>
+			{/if}
 			<div class="flex flex-col gap-1">
 				<div class="flex items-center justify-center sm:justify-start gap-3 flex-wrap">
 					<h2 class="m-0 text-[1.4rem] font-semibold text-(--text-primary)">{data.user.name}</h2>
@@ -303,6 +321,14 @@
 						};
 					}}
 				>
+					<!-- Avatar Photo Upload & Ultra-Compression Component -->
+					<AvatarUpload 
+						bind:avatar={avatar} 
+						name={name} 
+						role={data.user.role} 
+						disabled={profileSubmitting} 
+					/>
+
 					<div class="flex flex-col gap-1.5">
 						<label for="name" class="font-medium text-[0.88rem] text-(--text-secondary)">Full Name</label>
 						<div class="relative flex items-center">
@@ -876,4 +902,11 @@
 <DeleteAccountConfirmModal 
 	bind:show={showDeleteAccountModal}
 	deleteError={form?.deleteError || ''}
+/>
+
+<AvatarViewerModal 
+	isOpen={showHeroAvatarModal} 
+	imageUrl={avatar || data.user.avatar} 
+	title={name || data.user.name || 'Profile Photo'} 
+	onclose={() => showHeroAvatarModal = false} 
 />

@@ -14,6 +14,7 @@ declare global {
 				bio?: string;
 				skills?: string[];
 				availability_status?: string;
+				avatar?: string | null;
 				created_at?: string;
 			} | null;
 			sessionId?: string | null;

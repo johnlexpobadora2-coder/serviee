@@ -1,6 +1,21 @@
 <script>
-	import { ClipboardList, CheckCircle2, Trash2, Star, Mail, Phone, MapPin, ShieldCheck, User as UserIcon, Clock, FileText, Settings } from 'lucide-svelte';
+	import { 
+		ClipboardList, 
+		CheckCircle2, 
+		Trash2, 
+		Star, 
+		Mail, 
+		Phone, 
+		MapPin, 
+		ShieldCheck, 
+		User as UserIcon, 
+		Clock, 
+		FileText, 
+		Settings, 
+		Eye 
+	} from 'lucide-svelte';
 	import JobDescription from '$lib/JobDescription.svelte';
+	import AvatarViewerModal from '$lib/AvatarViewerModal.svelte';
 	import { formatRelativeTime, formatFullDateTime } from '$lib/jobCardUtils.js';
 
 	let { 
@@ -10,6 +25,8 @@
 		historySubTab = $bindable('posted'), 
 		onopendeletejob 
 	} = $props();
+
+	let showAvatarModal = $state(false);
 
 	function getCategoryBadge(category) {
 		switch (category) {
@@ -31,9 +48,24 @@
 			<div class="profile-header-row">
 				<!-- Left Side: Avatar + Name + Role Badge -->
 				<div class="profile-user-left">
-					<div class="profile-avatar-wrapper">
-						{user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
-					</div>
+					{#if user?.avatar}
+						<button 
+							type="button" 
+							class="profile-avatar-wrapper relative cursor-pointer group p-0 border-0 bg-transparent rounded-full focus:outline-none focus:ring-2 focus:ring-(--accent)"
+							onclick={() => showAvatarModal = true}
+							title="Click to view photo"
+							aria-label="View full size profile photo"
+						>
+							<img src={user.avatar} alt={user?.name} class="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105" />
+							<div class="absolute inset-0 rounded-full bg-black/40 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+								<Eye size={26} class="drop-shadow-md" />
+							</div>
+						</button>
+					{:else}
+						<div class="profile-avatar-wrapper">
+							{user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+						</div>
+					{/if}
 					<div class="profile-user-text">
 						<h2>{user?.name}</h2>
 						<div class="profile-badges-row">
@@ -282,3 +314,11 @@
 		</section>
 	</div>
 </div>
+
+<AvatarViewerModal 
+	isOpen={showAvatarModal} 
+	imageUrl={user?.avatar} 
+	title={user?.name || 'Customer Profile'} 
+	onclose={() => showAvatarModal = false} 
+/>
+

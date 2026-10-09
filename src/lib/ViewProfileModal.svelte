@@ -14,8 +14,10 @@
 		Wrench,
 		FileText,
 		Check,
-		Activity
+		Activity,
+		Eye
 	} from "lucide-svelte";
+	import AvatarViewerModal from "$lib/AvatarViewerModal.svelte";
 
 	let {
 		userId = null,
@@ -32,6 +34,7 @@
 	let profileData = $state(null);
 	let activeTab = $state("overview"); // 'overview' | 'reviews' | 'history'
 	let customerSubTab = $state("posted"); // 'posted' | 'completed'
+	let showAvatarViewer = $state(false);
 
 	$effect(() => {
 		if (show && userId) {
@@ -193,11 +196,24 @@
 								<!-- Left: Avatar + Identity Info -->
 								<div class="flex flex-col sm:flex-row items-center sm:items-end gap-3 sm:gap-4 min-w-0 w-full sm:w-auto text-center sm:text-left">
 									<!-- Avatar with negative margin so ONLY the avatar overlaps the cover -->
-									<div class="-mt-10 sm:-mt-12 w-20 h-20 sm:w-22 sm:h-22 rounded-full border-4 border-(--bg-card) bg-linear-to-br from-(--accent) via-purple-600 to-indigo-700 flex items-center justify-center text-[1.85rem] sm:text-[2.2rem] font-extrabold text-white shadow-xl ring-1 ring-black/5 dark:ring-white/10 shrink-0 select-none z-2">
-										{user.name
-											? user.name.charAt(0).toUpperCase()
-											: "U"}
-									</div>
+									{#if user.avatar}
+										<button 
+											type="button" 
+											class="-mt-10 sm:-mt-12 w-20 h-20 sm:w-22 sm:h-22 rounded-full border-4 border-(--bg-card) bg-linear-to-br from-(--accent) via-purple-600 to-indigo-700 flex items-center justify-center text-[1.85rem] sm:text-[2.2rem] font-extrabold text-white shadow-xl ring-1 ring-black/5 dark:ring-white/10 shrink-0 select-none z-2 overflow-hidden cursor-pointer group focus:outline-none focus:ring-2 focus:ring-(--accent)"
+											onclick={() => showAvatarViewer = true}
+											title="Click to view photo"
+											aria-label="View full size profile photo"
+										>
+											<img src={user.avatar} alt={user.name} class="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105" />
+											<div class="absolute inset-0 rounded-full bg-black/40 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+												<Eye size={22} class="drop-shadow-md" />
+											</div>
+										</button>
+									{:else}
+										<div class="-mt-10 sm:-mt-12 w-20 h-20 sm:w-22 sm:h-22 rounded-full border-4 border-(--bg-card) bg-linear-to-br from-(--accent) via-purple-600 to-indigo-700 flex items-center justify-center text-[1.85rem] sm:text-[2.2rem] font-extrabold text-white shadow-xl ring-1 ring-black/5 dark:ring-white/10 shrink-0 select-none z-2 overflow-hidden">
+											{user.name ? user.name.charAt(0).toUpperCase() : "U"}
+										</div>
+									{/if}
 
 									<!-- User Name and meta badges (placed safely below banner in the card body) -->
 									<div class="pt-0.5 sm:pt-0 pb-1 flex flex-col items-center sm:items-start gap-1.5 min-w-0 flex-1 w-full">
@@ -719,3 +735,11 @@
 		</div>
 	</div>
 {/if}
+
+<AvatarViewerModal 
+	isOpen={showAvatarViewer} 
+	imageUrl={profileData?.user?.avatar} 
+	title={profileData?.user?.name || 'Profile Photo'} 
+	onclose={() => showAvatarViewer = false} 
+/>
+

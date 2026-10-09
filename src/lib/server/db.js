@@ -108,6 +108,7 @@ export const db = {
 				bio: '',
 				skills: [],
 				availability_status: 'available',
+				avatar: null,
 				password_hash: passwordHash,
 				created_at: new Date().toISOString()
 			};
@@ -198,7 +199,7 @@ export const db = {
 
 
 		async updateProfile(id, profile = {}) {
-			const { name, phone, address, bio, skills, availability_status } = profile;
+			const { name, phone, address, bio, skills, availability_status, avatar } = profile;
 			const supabase = getSupabase();
 			const updates = {};
 			if (name !== undefined) updates.name = name;
@@ -207,6 +208,7 @@ export const db = {
 			if (bio !== undefined) updates.bio = typeof bio === 'string' ? bio.trim() : '';
 			if (skills !== undefined) updates.skills = Array.isArray(skills) ? skills : [];
 			if (availability_status !== undefined) updates.availability_status = availability_status;
+			if (avatar !== undefined) updates.avatar = avatar ? String(avatar).trim() : null;
 
 			const { data, error } = await supabase
 				.from('users')
@@ -1458,6 +1460,7 @@ export const db = {
 					job_title: job ? job.title : 'Job Inquiry',
 					other_user_name: otherUser ? otherUser.name : 'User',
 					other_user_role: otherUser ? otherUser.role : '',
+					other_user_avatar: otherUser ? (otherUser.avatar || null) : null,
 					last_message: lastMsgContent,
 					last_message_at: lastMsg ? lastMsg.created_at : defaultTime,
 					messages: [],

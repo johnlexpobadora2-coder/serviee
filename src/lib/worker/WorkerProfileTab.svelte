@@ -11,8 +11,10 @@
 		Activity, 
 		FileText, 
 		Settings, 
-		RefreshCw 
+		RefreshCw,
+		Eye
 	} from 'lucide-svelte';
+	import AvatarViewerModal from '$lib/AvatarViewerModal.svelte';
 
 	let { 
 		user = {}, 
@@ -22,6 +24,7 @@
 	} = $props();
 
 	let updatingAvailability = $state(false);
+	let showAvatarModal = $state(false);
 	// svelte-ignore state_referenced_locally
 	let availabilityStatus = $state(user?.availability_status || 'available');
 
@@ -86,9 +89,24 @@
 			<div class="profile-header-row">
 				<!-- Left Side: Avatar + Name + Role Badge + Availability Badge -->
 				<div class="profile-user-left">
-					<div class="profile-avatar-wrapper">
-						{user?.name ? user.name.charAt(0).toUpperCase() : "W"}
-					</div>
+					{#if user?.avatar}
+						<button 
+							type="button" 
+							class="profile-avatar-wrapper relative cursor-pointer group p-0 border-0 bg-transparent rounded-full focus:outline-none focus:ring-2 focus:ring-(--accent)"
+							onclick={() => showAvatarModal = true}
+							title="Click to view photo"
+							aria-label="View full size profile photo"
+						>
+							<img src={user.avatar} alt={user?.name} class="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105" />
+							<div class="absolute inset-0 rounded-full bg-black/40 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+								<Eye size={26} class="drop-shadow-md" />
+							</div>
+						</button>
+					{:else}
+						<div class="profile-avatar-wrapper">
+							{user?.name ? user.name.charAt(0).toUpperCase() : "W"}
+						</div>
+					{/if}
 					<div class="profile-user-text">
 						<h2>{user?.name}</h2>
 						<div class="profile-badges-row">
@@ -420,3 +438,11 @@
 		</section>
 	</div>
 </div>
+
+<AvatarViewerModal 
+	isOpen={showAvatarModal} 
+	imageUrl={user?.avatar} 
+	title={user?.name || 'Worker Profile'} 
+	onclose={() => showAvatarModal = false} 
+/>
+

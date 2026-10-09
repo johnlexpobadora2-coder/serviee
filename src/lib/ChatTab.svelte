@@ -61,10 +61,14 @@
 							style="flex: 1;"
 							onclick={() => onselectconversation(conv.id)}
 						>
-							<div class="chat-avatar" style="position: relative;">
-								{conv.other_user_name ? conv.other_user_name.charAt(0).toUpperCase() : 'U'}
+							<div class="chat-avatar" style="position: relative; overflow: hidden;">
+								{#if conv.other_user_avatar}
+									<img src={conv.other_user_avatar} alt={conv.other_user_name} style="width: 100%; height: 100%; object-fit: cover;" />
+								{:else}
+									{conv.other_user_name ? conv.other_user_name.charAt(0).toUpperCase() : 'U'}
+								{/if}
 								{#if unreadConvIds.has(conv.id)}
-									<span class="chat-unread-dot" style="position: absolute; top: -2px; right: -2px; border: 2px solid var(--bg-card);"></span>
+									<span class="chat-unread-dot" style="position: absolute; top: -2px; right: -2px; border: 2px solid var(--bg-card); z-index: 2;"></span>
 								{/if}
 							</div>
 							<div class="chat-thread-info">
