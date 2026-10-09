@@ -155,7 +155,7 @@
 			{passError} 
 		/>
 	{:else}
-		<div class="max-w-[1400px] w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-3.5 sm:py-6 space-y-4 sm:space-y-6 flex-1 flex flex-col justify-start" transition:fade={{ duration: 150 }}>
+		<div class="max-w-[1400px] w-full mx-auto px-2 sm:px-6 lg:px-8 py-3 sm:py-6 space-y-3.5 sm:space-y-6 flex-1 flex flex-col justify-start" transition:fade={{ duration: 150 }}>
 			<AdminHeader onlock={lockAdmin} />
 
 			{#if form?.message}
@@ -174,13 +174,7 @@
 				</div>
 			{/if}
 
-			<AdminTabsNav 
-				bind:activeTab 
-				userCount={data.users?.length || 0} 
-				jobCount={data.jobs?.length || 0} 
-				reviewCount={data.reviews?.length || 0} 
-				auditCount={data.auditLogs?.length || 0}
-			/>
+			<AdminTabsNav bind:activeTab />
 
 			<div class="space-y-4 sm:space-y-6">
 				{#if activeTab === 'overview'}

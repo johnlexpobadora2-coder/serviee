@@ -9,18 +9,18 @@
 </script>
 
 {#if deleteModal.open}
-	<div class="fixed inset-0 bg-slate-950/60 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto" transition:fade={{ duration: 75 }}>
-		<div class="w-full max-w-sm sm:max-w-md bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 text-center space-y-4 shadow-2xl transition-all my-auto" transition:scale={{ duration: 75, start: 0.98 }}>
+	<div class="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto" transition:fade={{ duration: 75 }}>
+		<div class="w-full max-w-sm sm:max-w-md bg-white dark:bg-[#161138] border border-slate-200/80 dark:border-[#2c235b] rounded-2xl p-6 text-center space-y-4 shadow-2xl transition-all my-auto" transition:scale={{ duration: 75, start: 0.98 }}>
 			<div class="space-y-1">
-				<h3 class="text-lg font-bold text-slate-900 dark:text-white">Confirm Deletion</h3>
-				<p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Are you sure you want to delete <strong class="text-slate-900 dark:text-white font-bold">{deleteModal.name}</strong>? This action cannot be undone.</p>
+				<h3 class="text-lg font-bold text-slate-900 dark:text-[#faf9fe]">Confirm Deletion</h3>
+				<p class="text-xs text-slate-500 dark:text-[#b2acd6] font-medium">Are you sure you want to delete <strong class="text-slate-900 dark:text-[#faf9fe] font-bold">{deleteModal.name}</strong>? This action cannot be undone.</p>
 			</div>
 
 			<div class="flex items-center justify-center gap-3 pt-2">
 				<button 
 					type="button" 
 					onclick={onclose}
-					class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold transition-all cursor-pointer"
+					class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#211a4e] dark:hover:bg-[#2b2266] text-slate-700 dark:text-[#faf9fe] border border-slate-200 dark:border-[#2c235b] rounded-lg text-xs font-bold transition-all cursor-pointer"
 				>
 					Cancel
 				</button>

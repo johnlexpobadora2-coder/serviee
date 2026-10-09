@@ -113,11 +113,11 @@
 
 	@media (max-width: 640px) {
 		.admin-header-card {
-			padding: 0.9rem 1rem;
+			padding: 0.75rem 0.85rem;
 			flex-direction: column;
 			align-items: stretch;
-			gap: 0.75rem;
-			margin-bottom: 0.85rem;
+			gap: 0.65rem;
+			margin-bottom: 0.65rem;
 		}
 
 		.admin-brand-section {

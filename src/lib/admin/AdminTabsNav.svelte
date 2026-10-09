@@ -2,11 +2,7 @@
 	import { Activity, Users, Briefcase, Star, Settings, ShieldCheck } from 'lucide-svelte';
 
 	let { 
-		activeTab = $bindable('overview'), 
-		userCount = 0, 
-		jobCount = 0, 
-		reviewCount = 0,
-		auditCount = 0
+		activeTab = $bindable('overview')
 	} = $props();
 </script>
 
@@ -28,11 +24,11 @@
 		class="tab-btn {activeTab === 'users' ? 'active' : ''}" 
 		onclick={() => activeTab = 'users'}
 		id="tab-users-btn"
-		title="Users Directory ({userCount})"
+		title="Users Directory"
 		aria-label="Users Directory"
 	>
 		<Users size={18} class="tab-icon" />
-		<span class="tab-label">Users Directory ({userCount})</span>
+		<span class="tab-label">Users Directory</span>
 	</button>
 
 	<button 
@@ -40,11 +36,11 @@
 		class="tab-btn {activeTab === 'jobs' ? 'active' : ''}" 
 		onclick={() => activeTab = 'jobs'}
 		id="tab-jobs-btn"
-		title="Job Listings ({jobCount})"
+		title="Job Listings"
 		aria-label="Job Listings"
 	>
 		<Briefcase size={18} class="tab-icon" />
-		<span class="tab-label">Job Listings ({jobCount})</span>
+		<span class="tab-label">Job Listings</span>
 	</button>
 
 	<button 
@@ -52,11 +48,11 @@
 		class="tab-btn {activeTab === 'reviews' ? 'active' : ''}" 
 		onclick={() => activeTab = 'reviews'}
 		id="tab-reviews-btn"
-		title="Reviews ({reviewCount})"
+		title="Reviews"
 		aria-label="Reviews"
 	>
 		<Star size={18} class="tab-icon" />
-		<span class="tab-label">Reviews ({reviewCount})</span>
+		<span class="tab-label">Reviews</span>
 	</button>
 
 	<button 
@@ -76,11 +72,10 @@
 		class="tab-btn {activeTab === 'audit' ? 'active' : ''}" 
 		onclick={() => activeTab = 'audit'}
 		id="tab-audit-btn"
-		title="Audit Logs ({auditCount})"
+		title="Audit Logs"
 		aria-label="Audit Logs"
 	>
 		<ShieldCheck size={18} class="tab-icon" />
-		<span class="tab-label">Audit Logs ({auditCount})</span>
+		<span class="tab-label">Audit Logs</span>
 	</button>
 </div>
-
