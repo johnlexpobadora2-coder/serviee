@@ -90,9 +90,8 @@
 						<span class="font-semibold text-[0.95rem] text-(--text-primary) truncate">
 							{currentDevice?.browser || 'Web Browser'} on {currentDevice?.os || 'Device'}
 						</span>
-						<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[0.72rem] font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-							<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-							Active Now (This Device)
+						<span class="text-xs text-emerald-500 font-medium">
+							(this device)
 						</span>
 					</div>
 					<div class="text-[0.8rem] text-(--text-secondary) mt-0.5 flex items-center gap-2 flex-wrap">

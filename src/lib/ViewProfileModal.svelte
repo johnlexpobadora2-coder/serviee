@@ -260,44 +260,52 @@
 								</div>
 
 								<!-- Right / Bottom: Quick Stat Cards -->
-								<div class="flex gap-2 items-center shrink-0 max-sm:w-full max-sm:grid max-sm:grid-cols-2 pt-1 sm:pt-0">
+								<div class="flex gap-2 items-stretch shrink-0 max-sm:w-full max-sm:grid max-sm:grid-cols-2 pt-1 sm:pt-0">
 									{#if user.role === "worker"}
-										<div class="flex flex-col items-center justify-center bg-(--bg-input) border border-(--border-color) py-2 px-3.5 rounded-md min-w-22.5 max-sm:min-w-0 transition-colors">
-											<span
-												class="rating-badge {stats.average_rating >
-												0
-													? 'rating-badge-positive'
-													: stats.average_rating < 0
-														? 'rating-badge-negative'
-														: 'rating-badge-zero'} text-[0.75rem]"
-											>
-												<Star
-													size={11}
-													fill="currentColor"
-												/>
-												{stats.average_rating > 0
-													? `+${stats.average_rating}`
-													: stats.average_rating || 0}
-											</span>
+										<div class="flex flex-col items-center justify-center bg-(--bg-input) border border-(--border-color) py-2 px-3.5 rounded-md min-w-22.5 max-sm:min-w-0 transition-colors h-14">
+											<div class="h-6 flex items-center justify-center">
+												<span
+													class="rating-badge {stats.average_rating >
+													0
+														? 'rating-badge-positive'
+														: stats.average_rating < 0
+															? 'rating-badge-negative'
+															: 'rating-badge-zero'} text-[0.75rem]"
+												>
+													<Star
+														size={11}
+														fill="currentColor"
+													/>
+													{stats.average_rating > 0
+														? `+${stats.average_rating}`
+														: stats.average_rating || 0}
+												</span>
+											</div>
 											<span class="text-[0.62rem] text-(--text-muted) font-semibold uppercase tracking-wider mt-1">Rating</span>
 										</div>
-										<div class="flex flex-col items-center justify-center bg-(--bg-input) border border-(--border-color) py-2 px-3.5 rounded-md min-w-22.5 max-sm:min-w-0 transition-colors">
-											<span class="text-[1.15rem] max-sm:text-[1.05rem] font-extrabold text-(--success) leading-none">
-												{stats.completed_jobs_count || 0}
-											</span>
+										<div class="flex flex-col items-center justify-center bg-(--bg-input) border border-(--border-color) py-2 px-3.5 rounded-md min-w-22.5 max-sm:min-w-0 transition-colors h-14">
+											<div class="h-6 flex items-center justify-center">
+												<span class="text-[1.15rem] max-sm:text-[1.05rem] font-extrabold text-(--success) leading-none">
+													{stats.completed_jobs_count || 0}
+												</span>
+											</div>
 											<span class="text-[0.62rem] text-(--text-muted) font-semibold uppercase tracking-wider mt-1">Completed</span>
 										</div>
 									{:else}
-										<div class="flex flex-col items-center justify-center bg-(--bg-input) border border-(--border-color) py-2 px-3.5 rounded-md min-w-22.5 max-sm:min-w-0 transition-colors">
-											<span class="text-[1.15rem] max-sm:text-[1.05rem] font-extrabold text-(--text-primary) leading-none">
-												{stats.total_posts_count || 0}
-											</span>
+										<div class="flex flex-col items-center justify-center bg-(--bg-input) border border-(--border-color) py-2 px-3.5 rounded-md min-w-22.5 max-sm:min-w-0 transition-colors h-14">
+											<div class="h-6 flex items-center justify-center">
+												<span class="text-[1.15rem] max-sm:text-[1.05rem] font-extrabold text-(--text-primary) leading-none">
+													{stats.total_posts_count || 0}
+												</span>
+											</div>
 											<span class="text-[0.62rem] text-(--text-muted) font-semibold uppercase tracking-wider mt-1">Total Posts</span>
 										</div>
-										<div class="flex flex-col items-center justify-center bg-(--bg-input) border border-(--border-color) py-2 px-3.5 rounded-md min-w-22.5 max-sm:min-w-0 transition-colors">
-											<span class="text-[1.15rem] max-sm:text-[1.05rem] font-extrabold text-(--success) leading-none">
-												{stats.completed_jobs_count || 0}
-											</span>
+										<div class="flex flex-col items-center justify-center bg-(--bg-input) border border-(--border-color) py-2 px-3.5 rounded-md min-w-22.5 max-sm:min-w-0 transition-colors h-14">
+											<div class="h-6 flex items-center justify-center">
+												<span class="text-[1.15rem] max-sm:text-[1.05rem] font-extrabold text-(--success) leading-none">
+													{stats.completed_jobs_count || 0}
+												</span>
+											</div>
 											<span class="text-[0.62rem] text-(--text-muted) font-semibold uppercase tracking-wider mt-1">Done Jobs</span>
 										</div>
 									{/if}

@@ -17,7 +17,7 @@
 
 {#if isOpen && imageUrl}
 	<div 
-		class="fixed inset-0 z-60 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200"
+		class="fixed inset-0 z-100005 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200"
 		role="dialog"
 		aria-modal="true"
 		aria-label={title || "Profile photo preview"}
