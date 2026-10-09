@@ -252,7 +252,7 @@
 		</div>
 
 		<!-- Settings Tabs -->
-		<div class="grid grid-cols-3 gap-1.5 sm:gap-2 mb-0 w-full" role="tablist">
+		<div class="grid grid-cols-3 gap-1.5 sm:gap-2 mb-0 w-full border-b border-(--border-color)" role="tablist">
 			<button
 				type="button"
 				class="tab-btn inline-flex! items-center! justify-center! gap-1 min-[380px]:gap-1.5 sm:gap-2 w-full px-1 min-[380px]:px-1.5 sm:px-3 py-2.5 sm:py-3 text-center shrink text-[0.76rem] min-[380px]:text-[0.82rem] sm:text-[0.9rem]"
