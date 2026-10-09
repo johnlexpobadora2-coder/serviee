@@ -57,13 +57,11 @@
 	}
 </script>
 
-<div class="p-4 sm:p-5 bg-(--bg-input) border border-(--border-color) rounded-lg flex flex-col gap-3.5">
-	<div class="flex items-center justify-between">
-		<label for="avatar-input-hidden" class="flex items-center gap-2 text-[0.9rem] font-semibold text-(--text-primary) m-0">
-			<Camera size={18} class="text-(--accent)" />
-			<span>Profile Photo</span>
-		</label>
-	</div>
+<div class="flex flex-col gap-3">
+	<label for="avatar-input-hidden" class="font-medium text-[0.88rem] text-(--text-secondary) flex items-center gap-2">
+		<Camera size={16} class="text-(--accent)" />
+		<span>Profile Photo</span>
+	</label>
 
 	<div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
 		<!-- Avatar Preview: Clicking only VIEWS the photo if present -->
@@ -75,7 +73,7 @@
 				title="Click to view photo"
 				aria-label="View full size profile photo"
 			>
-				<div class="w-22 h-22 sm:w-24 sm:h-24 rounded-full border-3 border-(--bg-card) bg-linear-to-br from-(--accent) to-[hsl(280,80%,60%)] text-white text-[2rem] font-bold flex items-center justify-center shadow-(--shadow-sm) ring-2 ring-black/5 dark:ring-white/10 overflow-hidden transition-transform duration-200 group-hover:scale-105">
+				<div class="w-20 h-20 sm:w-22 sm:h-22 rounded-full border-2 border-(--border-color) bg-linear-to-br from-(--accent) to-[hsl(280,80%,60%)] text-white text-[1.8rem] font-bold flex items-center justify-center shadow-(--shadow-sm) ring-1 ring-black/5 dark:ring-white/10 overflow-hidden transition-transform duration-200 group-hover:scale-105">
 					<img 
 						src={avatar} 
 						alt={name || 'User Avatar'} 
@@ -85,12 +83,12 @@
 
 				<!-- View overlay icon on hover -->
 				<div class="absolute inset-0 rounded-full bg-black/40 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-					<Eye size={22} class="drop-shadow-md" />
+					<Eye size={20} class="drop-shadow-md" />
 				</div>
 			</button>
 		{:else}
 			<div class="relative shrink-0 select-none">
-				<div class="w-22 h-22 sm:w-24 sm:h-24 rounded-full border-3 border-(--bg-card) bg-linear-to-br from-(--accent) to-[hsl(280,80%,60%)] text-white text-[2rem] font-bold flex items-center justify-center shadow-(--shadow-sm) ring-2 ring-black/5 dark:ring-white/10 overflow-hidden">
+				<div class="w-20 h-20 sm:w-22 sm:h-22 rounded-full border-2 border-(--border-color) bg-linear-to-br from-(--accent) to-[hsl(280,80%,60%)] text-white text-[1.8rem] font-bold flex items-center justify-center shadow-(--shadow-sm) ring-1 ring-black/5 dark:ring-white/10 overflow-hidden">
 					<span>{name ? name.charAt(0).toUpperCase() : (role === 'worker' ? 'W' : 'U')}</span>
 				</div>
 			</div>
