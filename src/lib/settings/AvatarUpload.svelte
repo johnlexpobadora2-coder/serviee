@@ -75,7 +75,7 @@
 				title="Click to view photo"
 				aria-label="View full size profile photo"
 			>
-				<div class="w-22 h-22 sm:w-24 sm:h-24 rounded-full border-3 border-(--bg-card) bg-linear-to-br from-(--accent) to-[hsl(280,80%,60%)] text-white text-[2rem] font-bold flex items-center justify-center shadow-(--shadow-md) ring-2 ring-black/5 dark:ring-white/10 overflow-hidden transition-transform duration-200 group-hover:scale-105">
+				<div class="w-22 h-22 sm:w-24 sm:h-24 rounded-full border-3 border-(--bg-card) bg-linear-to-br from-(--accent) to-[hsl(280,80%,60%)] text-white text-[2rem] font-bold flex items-center justify-center shadow-(--shadow-sm) ring-2 ring-black/5 dark:ring-white/10 overflow-hidden transition-transform duration-200 group-hover:scale-105">
 					<img 
 						src={avatar} 
 						alt={name || 'User Avatar'} 
@@ -90,7 +90,7 @@
 			</button>
 		{:else}
 			<div class="relative shrink-0 select-none">
-				<div class="w-22 h-22 sm:w-24 sm:h-24 rounded-full border-3 border-(--bg-card) bg-linear-to-br from-(--accent) to-[hsl(280,80%,60%)] text-white text-[2rem] font-bold flex items-center justify-center shadow-(--shadow-md) ring-2 ring-black/5 dark:ring-white/10 overflow-hidden">
+				<div class="w-22 h-22 sm:w-24 sm:h-24 rounded-full border-3 border-(--bg-card) bg-linear-to-br from-(--accent) to-[hsl(280,80%,60%)] text-white text-[2rem] font-bold flex items-center justify-center shadow-(--shadow-sm) ring-2 ring-black/5 dark:ring-white/10 overflow-hidden">
 					<span>{name ? name.charAt(0).toUpperCase() : (role === 'worker' ? 'W' : 'U')}</span>
 				</div>
 			</div>

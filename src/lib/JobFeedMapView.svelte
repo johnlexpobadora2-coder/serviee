@@ -360,7 +360,7 @@
 	});
 </script>
 
-<div class="relative w-full h-155 max-sm:h-[calc(100vh-210px)] max-sm:min-h-120 rounded-2xl max-sm:rounded-xl overflow-hidden border border-(--border-color) shadow-(--shadow-md) bg-(--bg-card)">
+<div class="relative w-full h-155 max-sm:h-[calc(100vh-210px)] max-sm:min-h-120 rounded-2xl max-sm:rounded-xl overflow-hidden border border-(--border-color) shadow-(--shadow-sm) bg-(--bg-card)">
 	<!-- Leaflet Map Container -->
 	<div bind:this={mapContainer} class="w-full h-full z-1"></div>
 
@@ -380,7 +380,7 @@
 	</div>
 
 	<!-- Floating Controls (Right) -->
-	<div class="absolute top-3.5 right-3.5 z-990 flex flex-col gap-1.5 bg-(--bg-card) border border-(--border-color) rounded-md p-1.5 shadow-(--shadow-md)">
+	<div class="absolute top-3.5 right-3.5 z-990 flex flex-col gap-1.5 bg-(--bg-card) border border-(--border-color) rounded-md p-1.5 shadow-(--shadow-sm)">
 		<button 
 			type="button" 
 			class="w-8 h-8 rounded-sm flex items-center justify-center cursor-pointer transition-all duration-150 {locatingUser ? 'bg-(--accent) text-white' : 'bg-transparent text-(--text-secondary) hover:text-(--accent) hover:bg-(--accent-light)'}" 

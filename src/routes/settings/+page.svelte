@@ -221,7 +221,7 @@
 		</div>
 
 		<!-- User Hero Header Banner -->
-		<div class="flex flex-col sm:flex-row items-center text-center sm:text-left gap-3.5 sm:gap-5 bg-(--bg-card) border border-(--border-color) rounded-lg p-3.5 min-[380px]:p-4.5 sm:p-6 shadow-(--shadow-md)">
+		<div class="flex flex-col sm:flex-row items-center text-center sm:text-left gap-3.5 sm:gap-5 bg-(--bg-card) border border-(--border-color) rounded-lg p-3.5 min-[380px]:p-4.5 sm:p-6 shadow-(--shadow-sm)">
 			{#if avatar || data.user.avatar}
 				<button 
 					type="button" 
@@ -287,7 +287,7 @@
 
 		<!-- Tab Content 1: Profile Customization -->
 		{#if activeTab === 'profile'}
-			<div class="bg-(--bg-card) border border-(--border-color) rounded-lg p-3.5 min-[380px]:p-5 sm:p-7 shadow-(--shadow-md) flex flex-col gap-5 sm:gap-6">
+			<div class="bg-(--bg-card) border border-(--border-color) rounded-lg p-3.5 min-[380px]:p-5 sm:p-7 shadow-(--shadow-sm) flex flex-col gap-5 sm:gap-6">
 				<div>
 					<h3 class="text-[1.2rem] font-semibold text-(--text-primary) mb-1">Profile Customization</h3>
 					<p class="text-(--text-muted) text-[0.85rem] m-0">Update your public profile details and contact information.</p>
@@ -609,7 +609,7 @@
 		{#if activeTab === 'security'}
 			<div class="flex flex-col gap-6">
 				<!-- Change Password Card -->
-				<div class="bg-(--bg-card) border border-(--border-color) rounded-lg p-3.5 min-[380px]:p-5 sm:p-7 shadow-(--shadow-md) flex flex-col gap-5 sm:gap-6">
+				<div class="bg-(--bg-card) border border-(--border-color) rounded-lg p-3.5 min-[380px]:p-5 sm:p-7 shadow-(--shadow-sm) flex flex-col gap-5 sm:gap-6">
 					<div>
 						<h3 class="text-[1.2rem] font-semibold text-(--text-primary) mb-1">Change Password</h3>
 						<p class="text-(--text-muted) text-[0.85rem] m-0">Ensure your account remains safe with a strong, unique password.</p>
@@ -721,7 +721,7 @@
 				/>
 
 				<!-- Danger Zone Card -->
-				<div class="bg-(--bg-card) border border-(--border-color) rounded-lg p-3.5 min-[380px]:p-5 sm:p-7 shadow-(--shadow-md) flex flex-col gap-5 sm:gap-6">
+				<div class="bg-(--bg-card) border border-(--border-color) rounded-lg p-3.5 min-[380px]:p-5 sm:p-7 shadow-(--shadow-sm) flex flex-col gap-5 sm:gap-6">
 					<div>
 						<div class="flex items-center gap-2">
 							<ShieldAlert size={20} class="text-red-500" />
@@ -751,7 +751,7 @@
 
 		<!-- Tab Content 3: Switch Role (Client <-> Worker) -->
 		{#if activeTab === 'roles'}
-			<div class="bg-(--bg-card) border border-(--border-color) rounded-lg p-3.5 min-[380px]:p-5 sm:p-7 shadow-(--shadow-md) flex flex-col gap-5 sm:gap-6">
+			<div class="bg-(--bg-card) border border-(--border-color) rounded-lg p-3.5 min-[380px]:p-5 sm:p-7 shadow-(--shadow-sm) flex flex-col gap-5 sm:gap-6">
 				{#if data.hasComplementaryAccount}
 					<!-- Case A: Complementary Account already exists -->
 					<div>
