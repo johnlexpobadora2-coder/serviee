@@ -1,5 +1,5 @@
 <script>
-	import { Laptop, Smartphone, Tablet, ShieldAlert, LogOut, Globe, AlertCircle, Clock, Trash2 } from 'lucide-svelte';
+	import { Laptop, Smartphone, Tablet, LogOut, Globe, AlertCircle, Clock, Trash2 } from 'lucide-svelte';
 	import { enhance } from '$app/forms';
 	import { fade, scale } from 'svelte/transition';
 
@@ -202,10 +202,6 @@
 			role="document"
 			transition:scale={{ duration: 75, start: 0.98 }}
 		>
-			<div class="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mx-auto">
-				<ShieldAlert size={26} />
-			</div>
-
 			<div>
 				<h3 class="text-[1.25rem] font-bold text-(--text-primary) mb-1.5">
 					{#if logoutType === 'all'}
