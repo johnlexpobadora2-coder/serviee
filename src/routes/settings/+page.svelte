@@ -18,7 +18,8 @@
 		Plus,
 		X,
 		FileText,
-		Activity
+		Activity,
+		HelpCircle
 	} from 'lucide-svelte';
 	import { enhance } from '$app/forms';
 	import { getCurrentCoordinates, reverseGeocode } from '$lib/gpsUtils.js';
@@ -29,13 +30,23 @@
 	import ActiveSessionsCard from '$lib/settings/ActiveSessionsCard.svelte';
 	import AvatarUpload from '$lib/settings/AvatarUpload.svelte';
 	import PhonePrivacyCard from '$lib/settings/PhonePrivacyCard.svelte';
+	import FaqTab from '$lib/settings/FaqTab.svelte';
 	import AvatarViewerModal from '$lib/AvatarViewerModal.svelte';
 	import { validatePassword, validatePhone } from '$lib/validation.js';
 	import { toast } from '$lib/toast.svelte.js';
+	import { onMount } from 'svelte';
 
 	let { data, form } = $props();
 
-	let activeTab = $state('profile'); // 'profile' | 'security' | 'roles'
+	let activeTab = $state('profile'); // 'profile' | 'security' | 'roles' | 'faq'
+
+	onMount(() => {
+		const params = new URLSearchParams(window.location.search);
+		const tab = params.get('tab');
+		if (tab && ['profile', 'security', 'roles', 'faq'].includes(tab)) {
+			activeTab = tab;
+		}
+	});
 
 	// Form states initialized from user data
 	// svelte-ignore state_referenced_locally
@@ -252,7 +263,7 @@
 		</div>
 
 		<!-- Settings Tabs -->
-		<div class="grid grid-cols-3 gap-1.5 sm:gap-2 mb-0 w-full border-b border-(--border-color)" role="tablist">
+		<div class="grid grid-cols-2 min-[480px]:grid-cols-4 gap-1.5 sm:gap-2 mb-0 w-full border-b border-(--border-color)" role="tablist">
 			<button
 				type="button"
 				class="tab-btn inline-flex! items-center! justify-center! gap-1 min-[380px]:gap-1.5 sm:gap-2 w-full px-1 min-[380px]:px-1.5 sm:px-3 py-2.5 sm:py-3 text-center shrink text-[0.76rem] min-[380px]:text-[0.82rem] sm:text-[0.9rem]"
@@ -285,6 +296,17 @@
 			>
 				<Repeat size={18} />
 				<span class="leading-tight inline-block">Switch Role</span>
+			</button>
+			<button
+				type="button"
+				class="tab-btn inline-flex! items-center! justify-center! gap-1 min-[380px]:gap-1.5 sm:gap-2 w-full px-1 min-[380px]:px-1.5 sm:px-3 py-2.5 sm:py-3 text-center shrink text-[0.76rem] min-[380px]:text-[0.82rem] sm:text-[0.9rem]"
+				class:active={activeTab === 'faq'}
+				onclick={() => (activeTab = 'faq')}
+				role="tab"
+				aria-selected={activeTab === 'faq'}
+			>
+				<HelpCircle size={18} />
+				<span class="leading-tight inline-block">Help & FAQ</span>
 			</button>
 		</div>
 
@@ -895,6 +917,11 @@
 					</form>
 				{/if}
 			</div>
+		{/if}
+
+		<!-- Tab Content 4: Help & FAQ -->
+		{#if activeTab === 'faq'}
+			<FaqTab />
 		{/if}
 	</div>
 </div>
