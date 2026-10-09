@@ -1,6 +1,4 @@
 <script>
-	import { X } from 'lucide-svelte';
-
 	let { 
 		isOpen = false, 
 		imageUrl = '', 
@@ -32,18 +30,8 @@
 			aria-label="Close photo preview"
 		></button>
 
-		<div class="relative z-10 max-w-sm w-full bg-(--bg-card) border border-(--border-color) rounded-2xl p-4 sm:p-6 shadow-2xl flex flex-col items-center gap-4 animate-in zoom-in-95 duration-200">
-			<!-- Close Button -->
-			<button 
-				type="button" 
-				class="absolute top-3.5 right-3.5 w-8 h-8 rounded-full bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 text-(--text-primary) flex items-center justify-center transition-colors cursor-pointer"
-				onclick={() => onclose?.()}
-				aria-label="Close"
-			>
-				<X size={18} />
-			</button>
-
-			<h4 class="m-0 text-base font-semibold text-(--text-primary) text-center truncate max-w-[80%]">
+		<div class="relative z-10 max-w-sm w-full bg-(--bg-card) border border-(--border-color) rounded-2xl p-5 sm:p-6 shadow-2xl flex flex-col items-center gap-4 animate-in zoom-in-95 duration-200">
+			<h4 class="m-0 text-base font-semibold text-(--text-primary) text-center truncate max-w-[90%]">
 				{title || 'Profile Photo'}
 			</h4>
 
@@ -58,7 +46,7 @@
 
 			<button 
 				type="button" 
-				class="btn btn-secondary btn-sm py-1.5 px-4 text-xs mt-1 cursor-pointer"
+				class="btn btn-secondary btn-sm py-1.5 px-5 text-xs mt-1 cursor-pointer"
 				onclick={() => onclose?.()}
 			>
 				Close
