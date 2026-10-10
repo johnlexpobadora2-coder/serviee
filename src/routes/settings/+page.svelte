@@ -18,8 +18,7 @@
 		Plus,
 		X,
 		FileText,
-		Activity,
-		HelpCircle
+		Activity
 	} from 'lucide-svelte';
 	import { enhance } from '$app/forms';
 	import { getCurrentCoordinates, reverseGeocode } from '$lib/gpsUtils.js';
@@ -30,6 +29,7 @@
 	import ActiveSessionsCard from '$lib/settings/ActiveSessionsCard.svelte';
 	import AvatarUpload from '$lib/settings/AvatarUpload.svelte';
 	import PhonePrivacyCard from '$lib/settings/PhonePrivacyCard.svelte';
+	import SettingsTabsNav from '$lib/settings/SettingsTabsNav.svelte';
 	import FaqTab from '$lib/settings/FaqTab.svelte';
 	import AvatarViewerModal from '$lib/AvatarViewerModal.svelte';
 	import { validatePassword, validatePhone } from '$lib/validation.js';
@@ -263,52 +263,7 @@
 		</div>
 
 		<!-- Settings Tabs -->
-		<div class="grid grid-cols-2 min-[480px]:grid-cols-4 gap-1.5 sm:gap-2 mb-0 w-full border-b border-(--border-color)" role="tablist">
-			<button
-				type="button"
-				class="tab-btn inline-flex! items-center! justify-center! gap-1 min-[380px]:gap-1.5 sm:gap-2 w-full px-1 min-[380px]:px-1.5 sm:px-3 py-2.5 sm:py-3 text-center shrink text-[0.76rem] min-[380px]:text-[0.82rem] sm:text-[0.9rem]"
-				class:active={activeTab === 'profile'}
-				onclick={() => (activeTab = 'profile')}
-				role="tab"
-				aria-selected={activeTab === 'profile'}
-			>
-				<User size={18} />
-				<span class="leading-tight inline-block">Profile</span>
-			</button>
-			<button
-				type="button"
-				class="tab-btn inline-flex! items-center! justify-center! gap-1 min-[380px]:gap-1.5 sm:gap-2 w-full px-1 min-[380px]:px-1.5 sm:px-3 py-2.5 sm:py-3 text-center shrink text-[0.76rem] min-[380px]:text-[0.82rem] sm:text-[0.9rem]"
-				class:active={activeTab === 'security'}
-				onclick={() => (activeTab = 'security')}
-				role="tab"
-				aria-selected={activeTab === 'security'}
-			>
-				<Shield size={18} />
-				<span class="leading-tight inline-block">Security</span>
-			</button>
-			<button
-				type="button"
-				class="tab-btn inline-flex! items-center! justify-center! gap-1 min-[380px]:gap-1.5 sm:gap-2 w-full px-1 min-[380px]:px-1.5 sm:px-3 py-2.5 sm:py-3 text-center shrink text-[0.76rem] min-[380px]:text-[0.82rem] sm:text-[0.9rem]"
-				class:active={activeTab === 'roles'}
-				onclick={() => (activeTab = 'roles')}
-				role="tab"
-				aria-selected={activeTab === 'roles'}
-			>
-				<Repeat size={18} />
-				<span class="leading-tight inline-block">Switch Role</span>
-			</button>
-			<button
-				type="button"
-				class="tab-btn inline-flex! items-center! justify-center! gap-1 min-[380px]:gap-1.5 sm:gap-2 w-full px-1 min-[380px]:px-1.5 sm:px-3 py-2.5 sm:py-3 text-center shrink text-[0.76rem] min-[380px]:text-[0.82rem] sm:text-[0.9rem]"
-				class:active={activeTab === 'faq'}
-				onclick={() => (activeTab = 'faq')}
-				role="tab"
-				aria-selected={activeTab === 'faq'}
-			>
-				<HelpCircle size={18} />
-				<span class="leading-tight inline-block">Help & FAQ</span>
-			</button>
-		</div>
+		<SettingsTabsNav bind:activeTab />
 
 		<!-- Tab Content 1: Profile Customization -->
 		{#if activeTab === 'profile'}
