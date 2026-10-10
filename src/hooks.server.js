@@ -70,3 +70,9 @@ export async function handle({ event, resolve }) {
 	return response;
 }
 
+export function handleError({ error, event, status, message }) {
+	return {
+		message: error?.message || message || 'Unknown error',
+		stack: error?.stack || ''
+	};
+}

@@ -211,11 +211,11 @@
 
 	function getStatusBadge(status) {
 		switch (status) {
-			case 'open': return { label: 'Open (Waiting for Admin)', class: 'bg-amber-500/10 text-amber-500 border-amber-500/30' };
-			case 'in_progress': return { label: 'In Progress (Admin Replying)', class: 'bg-blue-500/10 text-blue-500 border-blue-500/30' };
-			case 'resolved': return { label: 'Resolved', class: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30' };
-			case 'closed': return { label: 'Closed', class: 'bg-zinc-500/10 text-zinc-400 border-zinc-500/30' };
-			default: return { label: status, class: 'bg-blue-500/10 text-blue-500 border-blue-500/30' };
+			case 'open': return { label: 'Open (Waiting for Admin)', class: 'bg-amber-500/10 text-amber-500' };
+			case 'in_progress': return { label: 'In Progress (Admin Replying)', class: 'bg-blue-500/10 text-blue-500' };
+			case 'resolved': return { label: 'Resolved', class: 'bg-emerald-500/10 text-emerald-500' };
+			case 'closed': return { label: 'Closed', class: 'bg-zinc-500/10 text-zinc-400' };
+			default: return { label: status, class: 'bg-blue-500/10 text-blue-500' };
 		}
 	}
 
@@ -246,11 +246,11 @@
 
 {#if show}
 	<div 
-		class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[200] flex items-center justify-center p-3 sm:p-5 overflow-y-auto"
+		class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-200 flex items-center justify-center p-3 sm:p-5 overflow-y-auto"
 		transition:fade={{ duration: 150 }}
 	>
 		<div 
-			class="w-full max-w-2xl bg-(--bg-card) border border-(--border-color) rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[640px] max-h-[88vh] my-auto transition-all relative z-[201]"
+			class="w-full max-w-2xl bg-(--bg-card) border border-(--border-color) rounded-2xl shadow-2xl overflow-hidden flex flex-col h-160 max-h-[88vh] my-auto transition-all relative z-201"
 			transition:scale={{ duration: 150, start: 0.96 }}
 		>
 			<!-- Header -->
@@ -304,7 +304,7 @@
 							<span class="text-(--text-muted) font-medium">Topic:</span>
 							<span class="font-semibold text-(--text-primary) ml-1 truncate">{activeTicket.subject}</span>
 						</div>
-						<span class="text-[0.7rem] px-2 py-0.5 rounded-full border font-semibold shrink-0 {badge.class}">
+						<span class="text-[0.7rem] px-2.5 py-0.5 rounded-full font-semibold shrink-0 {badge.class}">
 							{badge.label}
 						</span>
 					</div>
@@ -338,8 +338,13 @@
 								{@const isAdmin = msg.sender_type === 'admin'}
 								<div class="flex flex-col {isAdmin ? 'items-start' : 'items-end'}">
 									<div class="flex items-center gap-1.5 mb-1 px-1">
-										<span class="text-[0.7rem] font-semibold {isAdmin ? 'text-(--accent)' : 'text-(--text-secondary)'}">
-											{isAdmin ? '🛡️ Serviee Support Team' : 'You'}
+										<span class="text-[0.7rem] font-semibold inline-flex items-center gap-1 {isAdmin ? 'text-(--accent)' : 'text-(--text-secondary)'}">
+											{#if isAdmin}
+												<ShieldCheck size={12} class="text-(--accent) shrink-0" />
+												<span>Serviee Support Team</span>
+											{:else}
+												<span>You</span>
+											{/if}
 										</span>
 										<span class="text-[0.68rem] text-(--text-muted)">
 											{formatTime(msg.created_at)}
@@ -347,7 +352,7 @@
 									</div>
 
 									<div class="max-w-[85%] sm:max-w-[78%] px-4 py-2.5 rounded-2xl text-xs sm:text-[0.86rem] leading-relaxed shadow-xs {isAdmin ? 'bg-(--bg-input) border border-(--border-color) text-(--text-primary) rounded-tl-xs' : 'bg-(--accent) text-white rounded-tr-xs'}">
-										<p class="whitespace-pre-wrap break-words m-0">{msg.content}</p>
+										<p class="whitespace-pre-wrap wrap-break-word m-0">{msg.content}</p>
 									</div>
 								</div>
 							{/each}
@@ -364,7 +369,8 @@
 								type="text"
 								bind:value={replyMessage}
 								placeholder="Type your message to support..."
-								class="flex-1 py-2.5 px-3.5 bg-(--bg-input) border border-(--border-color) rounded-xl text-xs sm:text-sm text-(--text-primary) focus:outline-none focus:border-(--accent) transition-colors"
+								autocomplete="off"
+								class="flex-1 h-11 px-3.5 sm:px-4 bg-(--bg-input) border border-(--border-color) rounded-xl text-xs sm:text-sm text-(--text-primary) focus:outline-none focus:border-(--accent) transition-colors"
 								onkeydown={(e) => {
 									if (e.key === 'Enter') {
 										e.preventDefault();
@@ -376,7 +382,7 @@
 							<button
 								type="submit"
 								disabled={!replyMessage.trim() || sendingMessage}
-								class="btn btn-primary px-4 py-2.5 inline-flex items-center gap-1.5 text-xs font-semibold shrink-0 cursor-pointer disabled:opacity-50"
+								class="btn btn-primary h-11 px-4 sm:px-5 inline-flex items-center justify-center gap-1.5 text-xs sm:text-sm font-semibold shrink-0 cursor-pointer disabled:opacity-50"
 							>
 								{#if sendingMessage}
 									<span class="spinner spinner-xs"></span>
@@ -555,7 +561,7 @@
 								>
 									<div class="min-w-0 space-y-1">
 										<div class="flex items-center gap-2">
-											<span class="text-[0.7rem] px-2 py-0.5 rounded-full border uppercase tracking-wider font-semibold {badge.class}">
+											<span class="text-[0.7rem] px-2.5 py-0.5 rounded-full uppercase tracking-wider font-semibold {badge.class}">
 												{badge.label}
 											</span>
 											<span class="text-[0.72rem] text-(--text-muted)">
