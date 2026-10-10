@@ -47,7 +47,6 @@
 		{ id: 'general', label: 'General Question', desc: 'Questions about using Serviee features' },
 		{ id: 'account', label: 'Account & Verification', desc: 'Profile, login, passwords, role switching' },
 		{ id: 'job', label: 'Job Dispute / Assistance', desc: 'Help with job postings, applications, clients or workers' },
-		{ id: 'billing', label: 'Billing & Payout', desc: 'Pricing, payments, or transaction queries' },
 		{ id: 'technical', label: 'Report a Problem / Bug', desc: 'App errors, glitch reports, or performance issues' }
 	];
 

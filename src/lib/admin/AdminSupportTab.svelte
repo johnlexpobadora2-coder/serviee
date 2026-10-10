@@ -55,7 +55,6 @@
 		{ id: 'general', label: 'General' },
 		{ id: 'account', label: 'Account & Verification' },
 		{ id: 'job', label: 'Job Dispute' },
-		{ id: 'billing', label: 'Billing & Payout' },
 		{ id: 'technical', label: 'Bug Report' }
 	];
 
