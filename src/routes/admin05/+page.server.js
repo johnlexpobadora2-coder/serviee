@@ -511,12 +511,13 @@ export const actions = {
 		const ticketId = data.get('ticketId')?.toString();
 		const status = data.get('status')?.toString();
 
-		if (!ticketId || !status) {
-			return fail(400, { message: 'Ticket ID and status are required.' });
+		const validStatuses = /** @type {const} */ (['open', 'in_progress', 'resolved', 'closed']);
+		if (!ticketId || !status || !validStatuses.includes(/** @type {any} */ (status))) {
+			return fail(400, { message: 'Valid ticket ID and status are required.' });
 		}
 
 		try {
-			await db.support.updateTicketStatus(ticketId, status);
+			await db.support.updateTicketStatus(ticketId, /** @type {'open' | 'in_progress' | 'resolved' | 'closed'} */ (status));
 
 			await db.auditLogs.record({
 				adminId: 'admin_master',

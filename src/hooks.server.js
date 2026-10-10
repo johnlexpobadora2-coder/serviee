@@ -70,9 +70,10 @@ export async function handle({ event, resolve }) {
 	return response;
 }
 
-export function handleError({ error, event, status, message }) {
+export function handleError({ error, message }) {
+	console.error('Unhandled server error:', error);
+	const err = /** @type {any} */ (error);
 	return {
-		message: error?.message || message || 'Unknown error',
-		stack: error?.stack || ''
+		message: err?.message || message || 'An unexpected error occurred'
 	};
 }

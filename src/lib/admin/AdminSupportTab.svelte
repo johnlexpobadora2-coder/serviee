@@ -26,7 +26,7 @@
 		onopendelete
 	} = $props();
 
-	let liveTickets = $state(tickets || []);
+	let liveTickets = $state([]);
 	let isRefreshing = $state(false);
 	let pollInterval = null;
 
