@@ -1892,6 +1892,287 @@ export const db = {
 				console.warn('Notice: Error clearing user sessions:', err.message);
 			}
 		}
+	},
+
+	support: {
+		fallbackTickets: [],
+		fallbackMessages: [],
+
+		/**
+		 * List all support tickets for admin
+		 */
+		async listAllTickets() {
+			const supabase = getSupabase();
+			let dbTickets = [];
+			try {
+				const { data, error } = await supabase
+					.from('support_tickets')
+					.select('*')
+					.order('updated_at', { ascending: false });
+				if (!error && data) {
+					dbTickets = data;
+				}
+			} catch (err) {
+				console.warn('Notice: Error fetching support tickets from Supabase:', err.message);
+			}
+
+			const map = new Map();
+			for (const t of [...dbTickets, ...this.fallbackTickets]) {
+				map.set(t.id, t);
+			}
+			return Array.from(map.values()).sort(
+				(a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime()
+			);
+		},
+
+		/**
+		 * List all tickets for a specific user
+		 * @param {string} userId
+		 */
+		async listTicketsForUser(userId) {
+			if (!userId) return [];
+			const supabase = getSupabase();
+			let dbTickets = [];
+			try {
+				const { data, error } = await supabase
+					.from('support_tickets')
+					.select('*')
+					.eq('user_id', userId)
+					.order('updated_at', { ascending: false });
+				if (!error && data) {
+					dbTickets = data;
+				}
+			} catch (err) {
+				console.warn('Notice: Error fetching user support tickets:', err.message);
+			}
+
+			const map = new Map();
+			const userFallback = this.fallbackTickets.filter(t => t.user_id === userId);
+			for (const t of [...dbTickets, ...userFallback]) {
+				map.set(t.id, t);
+			}
+			return Array.from(map.values()).sort(
+				(a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime()
+			);
+		},
+
+		/**
+		 * Get a single ticket by ID
+		 * @param {string} ticketId
+		 */
+		async getTicketById(ticketId) {
+			if (!ticketId) return null;
+			const supabase = getSupabase();
+			try {
+				const { data, error } = await supabase
+					.from('support_tickets')
+					.select('*')
+					.eq('id', ticketId)
+					.maybeSingle();
+				if (!error && data) return data;
+			} catch (err) {
+				// ignore
+			}
+			return this.fallbackTickets.find(t => t.id === ticketId) || null;
+		},
+
+		/**
+		 * Create a new support inquiry ticket
+		 */
+		async createTicket({ userId, userName, userEmail, userRole, category = 'general', subject, initialMessage }) {
+			const supabase = getSupabase();
+			const ticketId = crypto.randomUUID();
+			const now = new Date().toISOString();
+
+			const newTicket = {
+				id: ticketId,
+				user_id: userId,
+				user_name: userName || 'Serviee User',
+				user_email: userEmail || '',
+				user_role: userRole || 'customer',
+				category: category || 'general',
+				subject: subject || 'General Inquiry',
+				status: 'open',
+				unread_admin: true,
+				unread_user: false,
+				created_at: now,
+				updated_at: now
+			};
+
+			// Always keep in local fallback store for instantaneous consistency
+			this.fallbackTickets.unshift(newTicket);
+
+			try {
+				const { error } = await supabase.from('support_tickets').insert(newTicket);
+				if (error) {
+					console.warn('Notice: Supabase insert support ticket error:', error.message);
+				}
+			} catch (err) {
+				console.warn('Notice: Supabase insert support ticket exception:', err.message);
+			}
+
+			if (initialMessage && initialMessage.trim()) {
+				await this.sendMessage({
+					ticketId,
+					senderType: 'user',
+					senderId: userId,
+					senderName: userName || 'User',
+					content: initialMessage.trim()
+				});
+			}
+
+			return newTicket;
+		},
+
+		/**
+		 * List all messages in a ticket
+		 * @param {string} ticketId
+		 */
+		async listMessagesForTicket(ticketId) {
+			if (!ticketId) return [];
+			const supabase = getSupabase();
+			let dbMsgs = [];
+			try {
+				const { data, error } = await supabase
+					.from('support_messages')
+					.select('*')
+					.eq('ticket_id', ticketId)
+					.order('created_at', { ascending: true });
+				if (!error && data) {
+					dbMsgs = data;
+				}
+			} catch (err) {
+				console.warn('Notice: Error fetching support messages:', err.message);
+			}
+
+			const map = new Map();
+			const fbMsgs = this.fallbackMessages.filter(m => m.ticket_id === ticketId);
+			for (const m of [...dbMsgs, ...fbMsgs]) {
+				map.set(m.id, decryptMessageRecord(m));
+			}
+
+			return Array.from(map.values()).sort(
+				(a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+			);
+		},
+
+		/**
+		 * Send a message within a support ticket
+		 */
+		async sendMessage({ ticketId, senderType, senderId, senderName, content }) {
+			const cleanContent = content.trim();
+			const encryptedContent = encryptChatMessage(cleanContent);
+			const msgId = crypto.randomUUID();
+			const now = new Date().toISOString();
+
+			const msgRecord = {
+				id: msgId,
+				ticket_id: ticketId,
+				sender_type: senderType, // 'user' | 'admin'
+				sender_id: senderId,
+				sender_name: senderName || (senderType === 'admin' ? 'Serviee Support Team' : 'User'),
+				content: encryptedContent,
+				created_at: now
+			};
+
+			// Always store in memory for immediate sync
+			this.fallbackMessages.push(msgRecord);
+
+			const supabase = getSupabase();
+			try {
+				const { error } = await supabase.from('support_messages').insert(msgRecord);
+				if (error) {
+					console.warn('Notice: Supabase insert support message error:', error.message);
+				}
+			} catch (err) {
+				console.warn('Notice: Supabase insert support message exception:', err.message);
+			}
+
+			// Update ticket's updated_at and unread flags
+			const updatePayload = {
+				updated_at: now,
+				unread_admin: senderType === 'user',
+				unread_user: senderType === 'admin'
+			};
+
+			if (senderType === 'admin') {
+				updatePayload.status = 'in_progress';
+			}
+
+			try {
+				await supabase.from('support_tickets').update(updatePayload).eq('id', ticketId);
+			} catch (err) {
+				// ignore
+			}
+
+			const fbTicket = this.fallbackTickets.find(t => t.id === ticketId);
+			if (fbTicket) {
+				Object.assign(fbTicket, updatePayload);
+			}
+
+			return {
+				...msgRecord,
+				content: cleanContent
+			};
+		},
+
+		/**
+		 * Update the status of a ticket
+		 * @param {string} ticketId
+		 * @param {'open' | 'in_progress' | 'resolved' | 'closed'} status
+		 */
+		async updateTicketStatus(ticketId, status) {
+			const supabase = getSupabase();
+			const now = new Date().toISOString();
+			try {
+				await supabase.from('support_tickets').update({ status, updated_at: now }).eq('id', ticketId);
+			} catch (err) {
+				// ignore
+			}
+			const fbTicket = this.fallbackTickets.find(t => t.id === ticketId);
+			if (fbTicket) {
+				fbTicket.status = status;
+				fbTicket.updated_at = now;
+			}
+			return true;
+		},
+
+		/**
+		 * Mark ticket as read
+		 * @param {string} ticketId
+		 * @param {'admin' | 'user'} readerType
+		 */
+		async markAsRead(ticketId, readerType = 'admin') {
+			const supabase = getSupabase();
+			const field = readerType === 'admin' ? 'unread_admin' : 'unread_user';
+			try {
+				await supabase.from('support_tickets').update({ [field]: false }).eq('id', ticketId);
+			} catch (err) {
+				// ignore
+			}
+			const fbTicket = this.fallbackTickets.find(t => t.id === ticketId);
+			if (fbTicket) {
+				fbTicket[field] = false;
+			}
+			return true;
+		},
+
+		/**
+		 * Delete a support ticket and all its messages
+		 * @param {string} ticketId
+		 */
+		async deleteTicket(ticketId) {
+			const supabase = getSupabase();
+			try {
+				await supabase.from('support_messages').delete().eq('ticket_id', ticketId);
+				await supabase.from('support_tickets').delete().eq('id', ticketId);
+			} catch (err) {
+				// ignore
+			}
+			this.fallbackMessages = this.fallbackMessages.filter(m => m.ticket_id !== ticketId);
+			this.fallbackTickets = this.fallbackTickets.filter(t => t.id !== ticketId);
+			return true;
+		}
 	}
 };
 

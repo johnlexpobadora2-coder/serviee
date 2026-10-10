@@ -46,6 +46,13 @@
 							Delete Review
 						</button>
 					</form>
+				{:else if deleteModal.type === 'support'}
+					<form method="POST" action="?/deleteSupportTicket" use:enhance={() => { onclose(); }}>
+						<input type="hidden" name="ticketId" value={deleteModal.id} />
+						<button type="submit" class="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-all shadow-md shadow-red-500/25 cursor-pointer">
+							Delete Inquiry
+						</button>
+					</form>
 				{/if}
 			</div>
 		</div>

@@ -7,6 +7,7 @@
 	import AdminHeader from '$lib/admin/AdminHeader.svelte';
 	import AdminTabsNav from '$lib/admin/AdminTabsNav.svelte';
 	import AdminOverviewTab from '$lib/admin/AdminOverviewTab.svelte';
+	import AdminSupportTab from '$lib/admin/AdminSupportTab.svelte';
 	import AdminUsersTab from '$lib/admin/AdminUsersTab.svelte';
 	import AdminJobsTab from '$lib/admin/AdminJobsTab.svelte';
 	import AdminReviewsTab from '$lib/admin/AdminReviewsTab.svelte';
@@ -36,7 +37,7 @@
 	}
 
 	// Navigation Tabs
-	let activeTab = $state('overview'); // 'overview' | 'users' | 'jobs' | 'reviews' | 'system' | 'audit'
+	let activeTab = $state('overview'); // 'overview' | 'support' | 'users' | 'jobs' | 'reviews' | 'system' | 'audit'
 
 	// Search & Filters
 	let userSearch = $state('');
@@ -174,7 +175,7 @@
 				</div>
 			{/if}
 
-			<AdminTabsNav bind:activeTab />
+			<AdminTabsNav bind:activeTab unreadSupportCount={data.stats?.unreadSupportCount || 0} />
 
 			<div class="space-y-4 sm:space-y-6">
 				{#if activeTab === 'overview'}
@@ -184,6 +185,12 @@
 						jobs={data.jobs} 
 						onviewallusers={() => activeTab = 'users'} 
 						onviewalljobs={() => activeTab = 'jobs'} 
+						onviewallsupport={() => activeTab = 'support'}
+					/>
+				{:else if activeTab === 'support'}
+					<AdminSupportTab 
+						tickets={data.supportTickets || []} 
+						onopendelete={openDeleteModal} 
 					/>
 				{:else if activeTab === 'users'}
 					<AdminUsersTab 

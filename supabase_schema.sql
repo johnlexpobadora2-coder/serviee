@@ -113,6 +113,33 @@ CREATE TABLE IF NOT EXISTS public.user_sessions (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
+-- Create support_tickets table for admin chat & customer service
+CREATE TABLE IF NOT EXISTS public.support_tickets (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES public.users(id) ON DELETE CASCADE NOT NULL,
+    user_name TEXT NOT NULL,
+    user_email TEXT,
+    user_role TEXT DEFAULT 'customer', -- 'customer' or 'worker'
+    category TEXT DEFAULT 'general', -- 'general', 'account', 'job', 'billing', 'technical'
+    subject TEXT NOT NULL,
+    status TEXT DEFAULT 'open', -- 'open', 'in_progress', 'resolved', 'closed'
+    unread_admin BOOLEAN DEFAULT true,
+    unread_user BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Create support_messages table for conversation history
+CREATE TABLE IF NOT EXISTS public.support_messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    ticket_id UUID REFERENCES public.support_tickets(id) ON DELETE CASCADE NOT NULL,
+    sender_type TEXT NOT NULL, -- 'user' or 'admin'
+    sender_id TEXT NOT NULL,
+    sender_name TEXT NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
 -- Disable Row Level Security (RLS) for testing and ease of use with the anon key
 ALTER TABLE public.users DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.job_posts DISABLE ROW LEVEL SECURITY;
@@ -122,6 +149,8 @@ ALTER TABLE public.conversation_deletions DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.saved_jobs DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.audit_logs DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_sessions DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.support_tickets DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.support_messages DISABLE ROW LEVEL SECURITY;
 
 -- Fallback permissive RLS policies in case RLS is enabled on Supabase Dashboard
 DROP POLICY IF EXISTS "Allow anon all on users" ON public.users;
@@ -147,6 +176,12 @@ CREATE POLICY "Allow anon all on audit_logs" ON public.audit_logs FOR ALL USING 
 
 DROP POLICY IF EXISTS "Allow anon all on user_sessions" ON public.user_sessions;
 CREATE POLICY "Allow anon all on user_sessions" ON public.user_sessions FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow anon all on support_tickets" ON public.support_tickets;
+CREATE POLICY "Allow anon all on support_tickets" ON public.support_tickets FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow anon all on support_messages" ON public.support_messages;
+CREATE POLICY "Allow anon all on support_messages" ON public.support_messages FOR ALL USING (true) WITH CHECK (true);
 
 -- Performance Indexes
 CREATE INDEX IF NOT EXISTS idx_users_email ON public.users(email);
@@ -179,13 +214,25 @@ CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON public.user_sessions(use
 CREATE INDEX IF NOT EXISTS idx_user_sessions_session_id ON public.user_sessions(session_id);
 CREATE INDEX IF NOT EXISTS idx_user_sessions_last_active ON public.user_sessions(last_active_at DESC);
 
--- Enable Supabase Realtime on messages table
+CREATE INDEX IF NOT EXISTS idx_support_tickets_user_id ON public.support_tickets(user_id);
+CREATE INDEX IF NOT EXISTS idx_support_tickets_status ON public.support_tickets(status);
+CREATE INDEX IF NOT EXISTS idx_support_tickets_updated_at ON public.support_tickets(updated_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_support_messages_ticket_id ON public.support_messages(ticket_id);
+CREATE INDEX IF NOT EXISTS idx_support_messages_created_at ON public.support_messages(created_at ASC);
+
+-- Enable Supabase Realtime on messages & support tables
 ALTER TABLE public.messages REPLICA IDENTITY FULL;
+ALTER TABLE public.support_tickets REPLICA IDENTITY FULL;
+ALTER TABLE public.support_messages REPLICA IDENTITY FULL;
 
 DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
     ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.support_tickets;
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.support_messages;
   END IF;
 END $$;
+
 

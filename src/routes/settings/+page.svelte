@@ -921,7 +921,7 @@
 
 		<!-- Tab Content 4: Help & FAQ -->
 		{#if activeTab === 'faq'}
-			<FaqTab />
+			<FaqTab user={data.user} />
 		{/if}
 	</div>
 </div>

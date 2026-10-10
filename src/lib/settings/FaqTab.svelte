@@ -6,14 +6,18 @@
 		Briefcase, 
 		ShieldCheck, 
 		User, 
-		FileText,
-		X,
-		Mail
+		FileText, 
+		X, 
+		Headset 
 	} from 'lucide-svelte';
+	import SupportChatModal from '$lib/settings/SupportChatModal.svelte';
+
+	let { user = null } = $props();
 
 	let searchQuery = $state('');
 	let selectedCategory = $state('all'); // 'all' | 'general' | 'client' | 'worker' | 'security'
 	let openIndices = $state(new Set([1])); // First item open by default
+	let showSupportChatModal = $state(false);
 
 	const FAQ_ITEMS = [
 		{
@@ -227,25 +231,39 @@
 		{/if}
 	</div>
 
-	<!-- Quick Contact / Support Help Card -->
-	<div class="mt-2 p-4 rounded-lg bg-(--accent)/5 border border-(--accent)/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-		<div class="flex items-start gap-3">
-			<div class="p-2 rounded-full bg-(--accent)/10 text-(--accent) shrink-0 mt-0.5">
-				<Mail size={18} />
+	<!-- Direct Admin Chat Support Card for Further Questions -->
+	<div class="mt-3 p-4 sm:p-5 rounded-2xl bg-linear-to-r from-(--accent)/15 via-(--accent)/5 to-(--bg-card) border border-(--accent)/30 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+		<div class="flex items-start gap-3.5">
+			<div class="p-2.5 sm:p-3 rounded-xl bg-(--accent) text-white shadow-md shadow-(--accent)/20 shrink-0 mt-0.5">
+				<Headset size={22} />
 			</div>
 			<div>
-				<h4 class="text-[0.9rem] font-semibold text-(--text-primary) m-0">Still have questions?</h4>
-				<p class="text-[0.8rem] text-(--text-muted) m-0 mt-0.5">
-					Our support team is always here to assist you with any questions, issues, or feedback.
+				<h4 class="text-[0.95rem] sm:text-[1rem] font-bold text-(--text-primary) m-0 flex items-center gap-2">
+					<span>Have Further Questions?</span>
+					<span class="inline-flex items-center gap-1.5 text-[0.7rem] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 font-semibold border border-emerald-500/30">
+						<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+						Admin Desk Online
+					</span>
+				</h4>
+				<p class="text-[0.82rem] sm:text-[0.85rem] text-(--text-muted) m-0 mt-1 leading-relaxed max-w-xl">
+					Couldn't find what you're looking for? Reach out directly to our administrative support desk for prompt assistance with your account, jobs, or payments.
 				</p>
 			</div>
 		</div>
-		<a
-			href="mailto:support@serviee.com"
-			class="btn btn-secondary inline-flex items-center justify-center gap-1.5 text-[0.82rem] px-3.5 py-2 w-full sm:w-auto shrink-0"
+
+		<button
+			type="button"
+			onclick={() => (showSupportChatModal = true)}
+			class="btn btn-primary inline-flex items-center justify-center gap-2 text-[0.88rem] px-5 py-3 w-full sm:w-auto shrink-0 cursor-pointer shadow-md hover:shadow-lg transition-all font-semibold rounded-xl"
 		>
-			<Mail size={14} />
-			<span>Contact Support</span>
-		</a>
+			<Headset size={17} />
+			<span>Chat for Further Questions</span>
+		</button>
 	</div>
 </div>
+
+<!-- Support Chat Modal -->
+<SupportChatModal 
+	bind:show={showSupportChatModal}
+	{user}
+/>

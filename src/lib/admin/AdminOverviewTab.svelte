@@ -1,13 +1,14 @@
 <script>
 	import { fade } from 'svelte/transition';
-	import { Users, Briefcase, DollarSign, Star, User, ArrowRight } from 'lucide-svelte';
+	import { Users, Briefcase, DollarSign, Star, User, ArrowRight, Headset } from 'lucide-svelte';
 
 	let { 
 		stats = {}, 
 		users = [], 
 		jobs = [], 
 		onviewallusers, 
-		onviewalljobs 
+		onviewalljobs,
+		onviewallsupport
 	} = $props();
 
 	function formatDate(isoStr) {
@@ -32,6 +33,32 @@
 </script>
 
 <div class="space-y-4 sm:space-y-6" transition:fade={{ duration: 150 }}>
+	{#if (stats.openInquiries || 0) > 0 || (stats.unreadSupportCount || 0) > 0}
+		<div class="p-3.5 sm:p-4 rounded-xl bg-purple-500/10 dark:bg-purple-500/15 border border-[#7261ef]/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+			<div class="flex items-center gap-3">
+				<div class="p-2 rounded-lg bg-[#7261ef] text-white shrink-0 shadow-xs">
+					<Headset size={18} />
+				</div>
+				<div>
+					<h4 class="font-bold text-slate-900 dark:text-[#faf9fe] text-xs sm:text-sm m-0">
+						{stats.openInquiries || stats.unreadSupportCount} Active Support {stats.openInquiries === 1 ? 'Inquiry' : 'Inquiries'} Awaiting Response
+					</h4>
+					<p class="text-[11px] text-slate-500 dark:text-[#b2acd6] m-0 mt-0.5">
+						Users have submitted support inquiries from Account Settings.
+					</p>
+				</div>
+			</div>
+			<button
+				type="button"
+				class="px-3.5 py-1.5 rounded-lg bg-[#7261ef] hover:bg-[#6251df] text-white text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
+				onclick={onviewallsupport}
+			>
+				<span>Open Support Desk</span>
+				<ArrowRight size={13} />
+			</button>
+		</div>
+	{/if}
+
 	<!-- Key Performance Metrics Grid -->
 	<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
 		<!-- Stat Card 1 -->
