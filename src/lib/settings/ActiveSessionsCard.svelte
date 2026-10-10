@@ -53,6 +53,12 @@
 		activeSessions.filter(s => !s.isCurrent)
 	);
 
+	let showAllOtherDevices = $state(false);
+
+	const visibleOtherDevices = $derived(
+		showAllOtherDevices ? otherDevices : otherDevices.slice(0, 3)
+	);
+
 	const CurrentDeviceIcon = $derived(getDeviceIcon(currentDevice?.deviceType));
 </script>
 
@@ -124,7 +130,7 @@
 			</span>
 
 			<div class="flex flex-col gap-2.5">
-				{#each otherDevices as device (device.id || device.sessionId)}
+				{#each visibleOtherDevices as device (device.id || device.sessionId)}
 					{@const Icon = getDeviceIcon(device.deviceType)}
 					<div class="p-3.5 sm:p-4 bg-(--bg-input) border border-(--border-color) rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 sm:gap-4 transition-all hover:border-(--text-muted)">
 						<div class="flex items-start sm:items-center gap-3.5 flex-1 min-w-0">
@@ -161,6 +167,19 @@
 					</div>
 				{/each}
 			</div>
+
+			{#if otherDevices.length > 3}
+				<div class="pt-0.5">
+					<button
+						type="button"
+						class="text-xs sm:text-sm text-(--accent) hover:underline font-medium cursor-pointer bg-transparent border-0 p-0 transition-colors focus:outline-none"
+						onclick={() => (showAllOtherDevices = !showAllOtherDevices)}
+						id="btn-toggle-other-devices"
+					>
+						{showAllOtherDevices ? 'View less' : 'View more'}
+					</button>
+				</div>
+			{/if}
 		</div>
 	{/if}
 
