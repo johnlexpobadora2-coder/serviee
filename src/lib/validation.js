@@ -53,6 +53,30 @@ export function maskPhoneNumber(phone) {
 }
 
 /**
+ * Masks an email address for privacy protection (e.g. johndoe@gmail.com -> j•••••e@gmail.com).
+ * @param {string} email
+ * @returns {string}
+ */
+export function maskEmail(email) {
+	if (!email || typeof email !== 'string') return 'Not provided';
+	const trimmed = email.trim();
+	const atIndex = trimmed.indexOf('@');
+	if (atIndex === -1) return '••••••';
+
+	const username = trimmed.slice(0, atIndex);
+	const domain = trimmed.slice(atIndex);
+
+	if (username.length <= 1) {
+		return `•${domain}`;
+	}
+	if (username.length === 2) {
+		return `${username[0]}•${domain}`;
+	}
+	const bullets = '•'.repeat(Math.min(Math.max(username.length - 2, 3), 5));
+	return `${username[0]}${bullets}${username[username.length - 1]}${domain}`;
+}
+
+/**
  * Validates password based on required security rules:
  * - Minimum 6 characters
  * - At least 1 uppercase letter (A-Z)

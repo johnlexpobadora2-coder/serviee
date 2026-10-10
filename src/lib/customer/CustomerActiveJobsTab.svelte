@@ -220,7 +220,7 @@
 														<span>Phone: <strong style="color: var(--text-primary); font-weight: 500;">{applicant.mask_phone ? maskPhoneNumber(applicant.phone) : applicant.phone}</strong></span>
 													{/if}
 													{#if applicant.address}
-														<span style="font-size: 0.8rem; color: var(--text-muted);">Address: {applicant.address}</span>
+														<span style="font-size: 0.8rem; color: var(--text-muted);">Address: {applicant.hide_location ? 'Hidden for privacy' : applicant.address}</span>
 													{/if}
 												</div>
 											</div>

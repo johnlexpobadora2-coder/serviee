@@ -162,6 +162,12 @@ export const actions = {
 		const rawMaskPhone = data.get('mask_phone');
 		const mask_phone = rawMaskPhone === 'true' || rawMaskPhone === 'on';
 
+		const rawMaskEmail = data.get('mask_email');
+		const mask_email = rawMaskEmail === 'true' || rawMaskEmail === 'on';
+
+		const rawHideLocation = data.get('hide_location');
+		const hide_location = rawHideLocation === 'true' || rawHideLocation === 'on';
+
 		try {
 			const updated = await db.users.updateProfile(locals.user.id, {
 				name,
@@ -171,7 +177,9 @@ export const actions = {
 				skills,
 				availability_status,
 				avatar,
-				mask_phone
+				mask_phone,
+				mask_email,
+				hide_location
 			});
 
 			if (updated) {

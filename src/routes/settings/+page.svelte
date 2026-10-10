@@ -29,6 +29,8 @@
 	import ActiveSessionsCard from '$lib/settings/ActiveSessionsCard.svelte';
 	import AvatarUpload from '$lib/settings/AvatarUpload.svelte';
 	import PhonePrivacyCard from '$lib/settings/PhonePrivacyCard.svelte';
+	import EmailPrivacyCard from '$lib/settings/EmailPrivacyCard.svelte';
+	import LocationPrivacyCard from '$lib/settings/LocationPrivacyCard.svelte';
 	import SettingsTabsNav from '$lib/settings/SettingsTabsNav.svelte';
 	import FaqTab from '$lib/settings/FaqTab.svelte';
 	import AvatarViewerModal from '$lib/AvatarViewerModal.svelte';
@@ -57,6 +59,10 @@
 	let phone = $state(data.user?.phone || '');
 	// svelte-ignore state_referenced_locally
 	let mask_phone = $state(data.user?.mask_phone ?? false);
+	// svelte-ignore state_referenced_locally
+	let mask_email = $state(data.user?.mask_email ?? false);
+	// svelte-ignore state_referenced_locally
+	let hide_location = $state(data.user?.hide_location ?? false);
 	// svelte-ignore state_referenced_locally
 	let address = $state(data.user?.address || '');
 	// svelte-ignore state_referenced_locally
@@ -185,6 +191,8 @@
 				name = u.name || '';
 				phone = u.phone || '';
 				mask_phone = u.mask_phone ?? false;
+				mask_email = u.mask_email ?? false;
+				hide_location = u.hide_location ?? false;
 				address = u.address || '';
 				bio = u.bio || '';
 				availability_status = u.availability_status || 'available';
@@ -340,6 +348,12 @@
 						<small class="text-[0.78rem] text-(--text-muted)">Email address is tied to your account identity.</small>
 					</div>
 
+					<!-- Email Privacy & Masking Switch -->
+					<EmailPrivacyCard 
+						bind:maskEmail={mask_email} 
+						disabled={profileSubmitting} 
+					/>
+
 					<div class="flex flex-col gap-1.5">
 						<label for="phone" class="font-medium text-[0.88rem] text-(--text-secondary)">Phone Number</label>
 						<div class="relative flex items-center">
@@ -361,7 +375,7 @@
 						disabled={profileSubmitting} 
 					/>
 
-					<div class="flex flex-col gap-1.5 mb-5">
+					<div class="flex flex-col gap-1.5">
 						<div class="flex justify-between items-center mb-1.5 flex-wrap gap-2">
 							<label for="address" class="font-medium text-[0.88rem] text-(--text-secondary) mb-0">City/Municipality</label>
 							<div class="flex gap-1.5 items-center">
@@ -415,6 +429,12 @@
 							</div>
 						{/if}
 					</div>
+
+					<!-- Location Privacy & Hide/Show Switch -->
+					<LocationPrivacyCard 
+						bind:hideLocation={hide_location} 
+						disabled={profileSubmitting} 
+					/>
 
 					<!-- Bio / About Me -->
 					<div class="flex flex-col gap-1.5">

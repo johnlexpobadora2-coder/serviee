@@ -110,13 +110,23 @@ export const db = {
 				availability_status: 'available',
 				avatar: null,
 				mask_phone: false,
+				mask_email: false,
+				hide_location: false,
 				password_hash: passwordHash,
 				created_at: new Date().toISOString()
 			};
 
 			const supabase = getSupabase();
-			const { error } = await supabase.from('users').insert(newUser);
-			if (error) throw new Error(error.message);
+			let { error } = await supabase.from('users').insert(newUser);
+			if (error && (error.message?.includes('mask_email') || error.message?.includes('hide_location'))) {
+				const fallbackUser = { ...newUser };
+				delete fallbackUser.mask_email;
+				delete fallbackUser.hide_location;
+				const retry = await supabase.from('users').insert(fallbackUser);
+				if (retry.error) throw new Error(retry.error.message);
+			} else if (error) {
+				throw new Error(error.message);
+			}
 			return newUser;
 		},
 
@@ -200,7 +210,7 @@ export const db = {
 
 
 		async updateProfile(id, profile = {}) {
-			const { name, phone, address, bio, skills, availability_status, avatar, mask_phone } = profile;
+			const { name, phone, address, bio, skills, availability_status, avatar, mask_phone, mask_email, hide_location } = profile;
 			const supabase = getSupabase();
 			const updates = {};
 			if (name !== undefined) updates.name = name;
@@ -211,14 +221,33 @@ export const db = {
 			if (availability_status !== undefined) updates.availability_status = availability_status;
 			if (avatar !== undefined) updates.avatar = avatar ? String(avatar).trim() : null;
 			if (mask_phone !== undefined) updates.mask_phone = Boolean(mask_phone);
+			if (mask_email !== undefined) updates.mask_email = Boolean(mask_email);
+			if (hide_location !== undefined) updates.hide_location = Boolean(hide_location);
 
-			const { data, error } = await supabase
+			let { data, error } = await supabase
 				.from('users')
 				.update(updates)
 				.eq('id', id)
 				.select()
 				.maybeSingle();
-			if (error) throw new Error(error.message);
+
+			if (error) {
+				if (error.message?.includes('mask_email') || error.message?.includes('hide_location')) {
+					const fallbackUpdates = { ...updates };
+					delete fallbackUpdates.mask_email;
+					delete fallbackUpdates.hide_location;
+					const fallbackResult = await supabase
+						.from('users')
+						.update(fallbackUpdates)
+						.eq('id', id)
+						.select()
+						.maybeSingle();
+					if (fallbackResult.error) throw new Error(fallbackResult.error.message);
+					data = { ...(fallbackResult.data || {}), ...updates };
+				} else {
+					throw new Error(error.message);
+				}
+			}
 			invalidateUserCache(id);
 			return data || null;
 		},

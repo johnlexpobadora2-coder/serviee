@@ -16,6 +16,8 @@ declare global {
 				availability_status?: string;
 				avatar?: string | null;
 				mask_phone?: boolean;
+				mask_email?: boolean;
+				hide_location?: boolean;
 				created_at?: string;
 			} | null;
 			sessionId?: string | null;
