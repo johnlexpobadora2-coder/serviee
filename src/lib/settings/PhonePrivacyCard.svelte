@@ -5,7 +5,8 @@
 	let {
 		maskPhone = $bindable(false),
 		disabled = false,
-		onchange = null
+		onchange = null,
+		withDivider = true
 	} = $props();
 
 	let saving = $state(false);
@@ -50,7 +51,7 @@
 	}
 </script>
 
-<div class="flex items-center justify-between gap-3 pt-0.5 pb-1">
+<div class="flex items-center justify-between gap-3 pt-0.5 {withDivider ? 'pb-3.5 sm:pb-4 border-b border-(--border-color)' : 'pb-1'}">
 	<div class="flex flex-col">
 		<label for="mask_phone_toggle" class="text-[0.84rem] font-medium text-(--text-secondary) cursor-pointer select-none flex items-center gap-2">
 			<span>Mask phone number on public profile</span>
