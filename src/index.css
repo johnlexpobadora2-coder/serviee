@@ -224,6 +224,13 @@ header {
 	background-color: var(--bg-input);
 }
 
+@media (min-width: 769px) {
+	.nav-links .nav-link {
+		height: 38px;
+		box-sizing: border-box;
+	}
+}
+
 .user-greeting {
 	font-size: 0.85rem;
 	color: var(--text-secondary);

@@ -140,7 +140,7 @@
 					<!-- Settings Link -->
 					<a 
 						href="/settings" 
-						class="nav-link" 
+						class="nav-link md:h-9.5" 
 						class:active={currentPath === '/settings'}
 						onclick={closeMenu} 
 						id="nav-settings-link"
@@ -179,7 +179,7 @@
 					<form method="POST" action="/logout" class="nav-logout-form" bind:this={logoutFormRef}>
 						<button 
 							type="button" 
-							class="nav-link nav-logout-btn" 
+							class="nav-link nav-logout-btn md:h-9.5" 
 							onclick={() => {
 								closeMenu();
 								showLogoutModal = true;
@@ -196,7 +196,7 @@
 					</div>
 					<a 
 						href="/login" 
-						class="nav-link" 
+						class="nav-link md:h-9.5" 
 						class:active={currentPath === '/login'}
 						onclick={closeMenu} 
 						id="nav-login-link"
@@ -206,7 +206,7 @@
 					</a>
 					<a 
 						href="/register" 
-						class="nav-link mobile-nav-signup" 
+						class="nav-link mobile-nav-signup md:h-9.5" 
 						class:active={currentPath === '/register'}
 						onclick={closeMenu} 
 						id="nav-register-btn"
