@@ -371,22 +371,18 @@ header {
 }
 
 @media (max-width: 768px) {
-	.app-container > main.is-admin {
-		padding: 1rem 1rem;
-	}
+	.app-container > main.is-admin,
 	.app-container > main.is-settings-page,
 	.app-container > main.is-post-job-page {
-		padding: 0.65rem 0.4rem;
+		padding: 1rem 1rem;
 	}
 }
 
 @media (max-width: 480px) {
-	.app-container > main.is-admin {
-		padding: 0.85rem 0.85rem;
-	}
+	.app-container > main.is-admin,
 	.app-container > main.is-settings-page,
 	.app-container > main.is-post-job-page {
-		padding: 0.5rem 0.25rem;
+		padding: 0.85rem 0.85rem;
 	}
 }
 
