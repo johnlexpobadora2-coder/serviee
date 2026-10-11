@@ -18,6 +18,8 @@
 
 	let isAdminPage = $derived(page.url.pathname.startsWith('/admin'));
 	let isMapPage = $derived(page.url.pathname === '/map' || page.url.pathname.startsWith('/map/'));
+	let isSettingsPage = $derived(page.url.pathname.startsWith('/settings'));
+	let isPostJobPage = $derived(page.url.pathname.startsWith('/customer/post-job'));
 	let currentPath = $derived(page.url.pathname);
 
 	function toggleMenu() {
@@ -234,7 +236,7 @@
 	</header>
 	{/if}
 
-	<main class:is-admin={isAdminPage} class:is-map-page={isMapPage}>
+	<main class:is-admin={isAdminPage} class:is-map-page={isMapPage} class:is-settings-page={isSettingsPage} class:is-post-job-page={isPostJobPage}>
 		{@render children()}
 	</main>
 

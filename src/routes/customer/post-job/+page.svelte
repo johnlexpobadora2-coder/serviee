@@ -3,7 +3,7 @@
 	import { getCurrentCoordinates, reverseGeocode, getGoogleMapsUrl, getServieeMapUrl, getEmbedMapUrl } from '$lib/gpsUtils.js';
 	import LocationPickerModal from '$lib/LocationPickerModal.svelte';
 	import CityAutocomplete from '$lib/CityAutocomplete.svelte';
-	import { MapPin, Navigation, ExternalLink, Check, AlertCircle, RefreshCw, Compass } from 'lucide-svelte';
+	import { MapPin, Navigation, ExternalLink, Check, AlertCircle, RefreshCw, Compass, ArrowLeft } from 'lucide-svelte';
 	import { toast } from '$lib/toast.svelte.js';
 
 	let { form } = $props();
@@ -94,19 +94,25 @@
 	<title>Post a New Job | Serviee</title>
 </svelte:head>
 
-<div class="post-job-container" style="max-width: 680px; margin: 1.5rem auto; width: 100%;">
-	<div style="margin-bottom: 1rem;">
-		<a href="/customer" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 0.35rem; width: auto; font-size: 0.85rem; padding: 0.4rem 0.85rem;">
-			&larr; Back to Dashboard
+<div class="post-job-container max-w-170 my-3 sm:my-6 mx-auto w-full px-0 sm:px-0">
+	<div class="mb-4">
+		<a 
+			href="/customer" 
+			class="inline-flex items-center gap-1.5 text-(--text-secondary) text-[0.88rem] font-medium transition-colors hover:text-(--accent)"
+		>
+			<ArrowLeft size={16} />
+			Back to Dashboard
 		</a>
 	</div>
 
-	<div class="card post-job-card" style="padding: 1.5rem;">
-		<h2 class="post-job-heading" style="font-size: 1.45rem; margin-bottom: 0.25rem;">Post a New Job</h2>
-		<p class="post-job-subtext" style="color: var(--text-secondary); margin-bottom: 1.25rem; font-size: 0.85rem;">
+	<div class="post-job-header mb-5">
+		<h2 class="post-job-heading text-[1.45rem] font-bold mb-1">Post a New Job</h2>
+		<p class="post-job-subtext text-(--text-secondary) text-[0.85rem]">
 			Describe the service you need with accurate location & GPS pin so nearby workers can locate you easily.
 		</p>
+	</div>
 
+	<div class="card post-job-card post-job-form p-3.5 min-[380px]:p-4.5 sm:p-6">
 		<form method="POST" use:enhance={({ cancel }) => {
 			clientError = '';
 			if (!selectedLocation || !isLocationValid) {
@@ -176,7 +182,7 @@
 			</div>
 
 			<!-- GPS & Google Maps Location Picker Section -->
-			<div class="gps-picker-box" style="margin-bottom: 1.25rem; padding: 1rem; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+			<div class="gps-picker-box mb-4 p-2.5 sm:p-4 bg-(--bg-input) border border-(--border-color) rounded-md">
 				<div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">
 					<div style="display: flex; align-items: center; gap: 0.4rem; font-weight: 600; font-size: 0.9rem; color: var(--text-primary);">
 						<MapPin size={16} color="var(--accent)" />
@@ -307,7 +313,7 @@
 				>{form?.description ?? ''}</textarea>
 			</div>
 
-			<div class="post-job-actions" style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+			<div class="post-job-actions flex gap-3 justify-end mt-4">
 				<a href="/customer" class="btn btn-secondary">Cancel</a>
 				<button type="submit" class="btn btn-primary" disabled={loading}>
 					{loading ? 'Posting...' : 'Post Job'}

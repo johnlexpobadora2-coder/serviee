@@ -131,7 +131,7 @@
 	);
 </script>
 
-<div class="bg-(--bg-card) border border-(--border-color) rounded-lg p-3.5 min-[380px]:p-5 sm:p-7 shadow-(--shadow-sm) flex flex-col gap-5 sm:gap-6">
+<div class="bg-(--bg-card) border border-(--border-color) rounded-lg p-3 min-[380px]:p-4.5 sm:p-7 shadow-(--shadow-sm) flex flex-col gap-4 sm:gap-6">
 	<!-- Header -->
 	<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
 		<div>

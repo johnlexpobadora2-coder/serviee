@@ -62,7 +62,7 @@
 	const CurrentDeviceIcon = $derived(getDeviceIcon(currentDevice?.deviceType));
 </script>
 
-<div class="bg-(--bg-card) border border-(--border-color) rounded-lg p-3.5 min-[380px]:p-5 sm:p-7 shadow-(--shadow-sm) flex flex-col gap-5 sm:gap-6">
+<div class="bg-(--bg-card) border border-(--border-color) rounded-lg p-3 min-[380px]:p-4.5 sm:p-7 shadow-(--shadow-sm) flex flex-col gap-4 sm:gap-6">
 	<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
 		<div>
 			<h3 class="text-[1.2rem] font-semibold text-(--text-primary) mb-1 flex items-center gap-2">

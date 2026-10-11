@@ -156,7 +156,7 @@
 			{passError} 
 		/>
 	{:else}
-		<div class="max-w-350 w-full mx-auto px-2 sm:px-6 lg:px-8 py-3 sm:py-6 space-y-3.5 sm:space-y-6 flex-1 flex flex-col justify-start" transition:fade={{ duration: 150 }}>
+		<div class="max-w-350 w-full mx-auto px-0 sm:px-6 lg:px-8 py-2 sm:py-6 space-y-3 sm:space-y-6 flex-1 flex flex-col justify-start" transition:fade={{ duration: 150 }}>
 			<AdminHeader onlock={lockAdmin} />
 
 			{#if form?.message}

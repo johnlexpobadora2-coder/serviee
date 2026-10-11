@@ -370,6 +370,26 @@ header {
 	padding: 1.25rem 1.5rem;
 }
 
+@media (max-width: 768px) {
+	.app-container > main.is-admin {
+		padding: 1rem 1rem;
+	}
+	.app-container > main.is-settings-page,
+	.app-container > main.is-post-job-page {
+		padding: 0.65rem 0.4rem;
+	}
+}
+
+@media (max-width: 480px) {
+	.app-container > main.is-admin {
+		padding: 0.85rem 0.85rem;
+	}
+	.app-container > main.is-settings-page,
+	.app-container > main.is-post-job-page {
+		padding: 0.5rem 0.25rem;
+	}
+}
+
 .app-container > main.is-map-page {
 	max-width: 100% !important;
 	width: 100% !important;
@@ -1896,9 +1916,6 @@ html.light .feed-job-budget {
 	.post-job-container {
 		margin: 0 auto !important;
 	}
-	.post-job-card {
-		padding: 1rem !important;
-	}
 	.post-job-heading {
 		font-size: 1.2rem !important;
 	}
@@ -1906,6 +1923,7 @@ html.light .feed-job-budget {
 		font-size: 0.8rem !important;
 		margin-bottom: 0.9rem !important;
 	}
+	.post-job-form .form-group,
 	.post-job-card .form-group {
 		margin-bottom: 0.65rem !important;
 	}
