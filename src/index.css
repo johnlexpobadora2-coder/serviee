@@ -1909,9 +1909,6 @@ html.light .feed-job-budget {
 		grid-template-columns: 1fr !important;
 		gap: 0.65rem !important;
 	}
-	.post-job-container {
-		margin: 0 auto !important;
-	}
 	.post-job-heading {
 		font-size: 1.2rem !important;
 	}

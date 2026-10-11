@@ -94,25 +94,27 @@
 	<title>Post a New Job | Serviee</title>
 </svelte:head>
 
-<div class="post-job-container max-w-170 my-3 sm:my-6 mx-auto w-full px-0 sm:px-0">
-	<div class="mb-4">
-		<a 
-			href="/customer" 
-			class="inline-flex items-center gap-1.5 text-(--text-secondary) text-[0.88rem] font-medium transition-colors hover:text-(--accent)"
-		>
-			<ArrowLeft size={16} />
-			Back to Dashboard
-		</a>
-	</div>
+<div class="post-job-container max-w-170 mx-auto my-3 sm:my-8 w-full px-0 sm:px-0">
+	<div class="flex flex-col gap-4 sm:gap-6">
+		<!-- Navigation Breadcrumb / Back Link -->
+		<div class="flex items-center">
+			<a 
+				href="/customer" 
+				class="inline-flex items-center gap-2 text-(--text-secondary) text-[0.9rem] font-medium transition-colors hover:text-(--accent)"
+			>
+				<ArrowLeft size={18} />
+				Back to Dashboard
+			</a>
+		</div>
 
-	<div class="post-job-header mb-5">
-		<h2 class="post-job-heading text-[1.45rem] font-bold mb-1">Post a New Job</h2>
-		<p class="post-job-subtext text-(--text-secondary) text-[0.85rem]">
-			Describe the service you need with accurate location & GPS pin so nearby workers can locate you easily.
-		</p>
-	</div>
+		<div class="post-job-header">
+			<h2 class="post-job-heading text-[1.45rem] font-bold mb-1">Post a New Job</h2>
+			<p class="post-job-subtext text-(--text-secondary) text-[0.85rem]">
+				Describe the service you need with accurate location & GPS pin so nearby workers can locate you easily.
+			</p>
+		</div>
 
-	<div class="card post-job-card post-job-form p-3.5 min-[380px]:p-4.5 sm:p-6">
+		<div class="card post-job-card post-job-form p-3.5 min-[380px]:p-4.5 sm:p-6">
 		<form method="POST" use:enhance={({ cancel }) => {
 			clientError = '';
 			if (!selectedLocation || !isLocationValid) {
@@ -320,6 +322,7 @@
 				</button>
 			</div>
 		</form>
+	</div>
 	</div>
 </div>
 
