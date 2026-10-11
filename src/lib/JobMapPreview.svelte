@@ -55,7 +55,7 @@
 			<div class="job-map-bar-actions">
 				<button
 					type="button"
-					class="job-map-toggle-btn {isExpanded ? 'active' : ''}"
+					class="btn btn-secondary text-xs py-1 px-2.5 rounded-md inline-flex items-center gap-1.5 transition-colors cursor-pointer {isExpanded ? 'border-(--accent)! text-(--accent)! bg-(--accent-light)!' : 'text-(--text-secondary) hover:text-(--text-primary)'}"
 					onclick={toggleMap}
 					title={isExpanded ? 'Hide Map Preview' : 'Show Map Preview'}
 					aria-expanded={isExpanded}
@@ -71,13 +71,13 @@
 
 				<a
 					href={getServieeMapUrl(latitude, longitude, title, location)}
-					class="job-map-fullscreen-btn"
+					class="btn btn-outline text-xs py-1 px-2.5 rounded-md inline-flex items-center gap-1.5 no-underline transition-colors cursor-pointer text-(--text-secondary) hover:text-(--accent) hover:border-(--accent) hover:bg-(--accent-light)"
 					title="Open Fullscreen Interactive Map"
 					aria-label="Open Fullscreen Interactive Map"
 					onclick={(e) => e.stopPropagation()}
 				>
 					<ExternalLink size={12} />
-					<span class="job-map-full-text">View Map</span>
+					<span class="max-[480px]:hidden">View Map</span>
 				</a>
 			</div>
 		</div>
@@ -109,7 +109,7 @@
 	}
 
 	.job-map-preview-wrapper:hover {
-		border-color: rgba(99, 102, 241, 0.4);
+		border-color: var(--border-focus);
 	}
 
 	.job-map-bar {
@@ -165,56 +165,6 @@
 		flex-shrink: 0;
 	}
 
-	.job-map-toggle-btn {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.3rem;
-		padding: 0.28rem 0.6rem;
-		font-size: 0.75rem;
-		font-weight: 500;
-		color: var(--text-secondary);
-		background: rgba(255, 255, 255, 0.05);
-		border: 1px solid var(--border-color);
-		border-radius: 6px;
-		cursor: pointer;
-		transition: all 0.15s ease;
-		line-height: 1.2;
-	}
-
-	.job-map-toggle-btn:hover {
-		color: var(--text-primary);
-		background: rgba(255, 255, 255, 0.09);
-		border-color: rgba(255, 255, 255, 0.2);
-	}
-
-	.job-map-toggle-btn.active {
-		color: var(--accent-hover);
-		background: rgba(99, 102, 241, 0.12);
-		border-color: rgba(99, 102, 241, 0.35);
-	}
-
-	.job-map-fullscreen-btn {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.3rem;
-		padding: 0.28rem 0.6rem;
-		font-size: 0.75rem;
-		font-weight: 500;
-		color: var(--accent-hover);
-		background: rgba(99, 102, 241, 0.08);
-		border: 1px solid rgba(99, 102, 241, 0.3);
-		border-radius: 6px;
-		text-decoration: none;
-		transition: all 0.15s ease;
-		line-height: 1.2;
-	}
-
-	.job-map-fullscreen-btn:hover {
-		background: rgba(99, 102, 241, 0.18);
-		border-color: rgba(99, 102, 241, 0.5);
-		color: var(--accent-hover);
-	}
-
 	.job-map-iframe-box {
 		border-top: 1px solid var(--border-color);
 		position: relative;
@@ -237,14 +187,6 @@
 		border: 0;
 	}
 
-	@media (max-width: 480px) {
-		.job-map-full-text {
-			display: none;
-		}
-		.job-map-fullscreen-btn {
-			padding: 0.28rem 0.45rem;
-		}
-	}
 
 	.animate-fade-in {
 		animation: fadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);

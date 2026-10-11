@@ -247,7 +247,7 @@
 							</div>
 							<a 
 								href={getServieeMapUrl(latitude, longitude, 'New Job Location', detectedAddressLabel)} 
-								class="btn btn-outline feed-job-edit-btn" 
+								class="btn btn-outline text-xs py-1 px-2.5 rounded-md inline-flex items-center gap-1.5 no-underline transition-colors hover:border-(--accent) hover:text-(--accent) hover:bg-(--accent-light) cursor-pointer" 
 							>
 								<MapPin size={13} />
 								<span>View Map</span>

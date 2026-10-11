@@ -10,6 +10,7 @@
 		X, 
 		Headset 
 	} from 'lucide-svelte';
+	import { slide } from 'svelte/transition';
 	import SupportChatModal from '$lib/settings/SupportChatModal.svelte';
 
 	let { user = null } = $props();
@@ -207,8 +208,13 @@
 					</button>
 
 					{#if isOpen}
-						<div class="px-4 pb-4 pt-1 text-[0.88rem] text-(--text-secondary) leading-relaxed border-t border-(--border-color)/50 bg-(--bg-card)">
-							{faq.answer}
+						<div 
+							transition:slide={{ duration: 240 }}
+							class="border-t border-(--border-color)/50 bg-(--bg-card) overflow-hidden"
+						>
+							<div class="px-4 pb-4 pt-2.5 text-[0.88rem] text-(--text-secondary) leading-relaxed">
+								{faq.answer}
+							</div>
 						</div>
 					{/if}
 				</div>

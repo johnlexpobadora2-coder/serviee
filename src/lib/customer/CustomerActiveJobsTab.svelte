@@ -166,7 +166,7 @@
 						<div class="feed-job-actions-group">
 							<button
 								type="button"
-								class="btn btn-outline feed-job-edit-btn"
+								class="btn btn-outline text-xs py-1 px-2.5 rounded-md inline-flex items-center gap-1.5 transition-colors hover:border-(--accent) hover:text-(--accent) hover:bg-(--accent-light) cursor-pointer"
 								onclick={() => onopeneditjob(job)}
 								title="Edit Job Post"
 							>
@@ -175,7 +175,7 @@
 							</button>
 							<button
 								type="button"
-								class="btn btn-outline feed-job-delete-btn"
+								class="btn btn-outline text-xs py-1 px-2.5 rounded-md inline-flex items-center gap-1.5 transition-colors text-rose-500 border-rose-500/30 hover:bg-rose-500 hover:text-white dark:text-rose-400 dark:border-rose-500/40 dark:hover:bg-rose-500 dark:hover:text-white cursor-pointer"
 								onclick={() => onopendeletejob(job)}
 								title="Delete Job Post"
 							>
