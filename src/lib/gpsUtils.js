@@ -322,14 +322,14 @@ export function parseImageMessage(content) {
 /**
  * Compress, downscale and strip EXIF GPS metadata from an image File using HTML5 Canvas.
  * Validates file MIME type and enforces a safe pre-compression size threshold (max 15MB).
- * Employs smart WebP compression with JPEG fallback to keep files lightweight (<250KB) while retaining crisp 1600px HD clarity.
+ * Employs smart WebP compression with JPEG fallback to keep files lightweight (<70KB) while retaining crisp 1200px clarity.
  * @param {File} file
- * @param {number} [maxWidth=1600]
- * @param {number} [maxHeight=1600]
- * @param {number} [quality=0.8]
+ * @param {number} [maxWidth=1200]
+ * @param {number} [maxHeight=1200]
+ * @param {number} [quality=0.7]
  * @returns {Promise<string>} Data URL of compressed image with EXIF metadata stripped
  */
-export function compressImageFile(file, maxWidth = 1600, maxHeight = 1600, quality = 0.8) {
+export function compressImageFile(file, maxWidth = 1200, maxHeight = 1200, quality = 0.7) {
 	return new Promise((resolve, reject) => {
 		if (!file) {
 			return reject(new Error('No image file provided.'));
@@ -371,6 +371,10 @@ export function compressImageFile(file, maxWidth = 1600, maxHeight = 1600, quali
 				if (!ctx) {
 					return reject(new Error('Canvas context could not be created.'));
 				}
+
+				// Enable high-quality smoothing for clean downscaling
+				ctx.imageSmoothingEnabled = true;
+				ctx.imageSmoothingQuality = 'high';
 
 				// Drawing pure pixel bitmap to canvas strips all EXIF headers & GPS tags
 				ctx.drawImage(img, 0, 0, width, height);
