@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <strong>Connect local sideline workers, handymen, and skilled tradespeople with clients in their community.</strong>
+  <strong>Connect local sideline workers, handymen, and skilled tradespeople with clients in their community!.</strong>
 </p>
 
 <p align="center">
