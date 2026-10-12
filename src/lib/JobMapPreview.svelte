@@ -52,10 +52,10 @@
 				</span>
 			</div>
 
-			<div class="job-map-bar-actions">
+			<div class="job-map-bar-actions flex items-stretch gap-1.5 shrink-0">
 				<button
 					type="button"
-					class="btn btn-secondary text-xs py-1 px-2.5 rounded-md inline-flex items-center gap-1.5 transition-colors cursor-pointer {isExpanded ? 'border-(--accent)! text-(--accent)! bg-(--accent-light)!' : 'text-(--text-secondary) hover:text-(--text-primary)'}"
+					class="btn btn-secondary h-7 text-xs px-2.5 rounded-md inline-flex items-center gap-1.5 transition-colors cursor-pointer {isExpanded ? 'border-(--accent)! text-(--accent)! bg-(--accent-light)!' : 'text-(--text-secondary) hover:text-(--text-primary)'}"
 					onclick={toggleMap}
 					title={isExpanded ? 'Hide Map Preview' : 'Show Map Preview'}
 					aria-expanded={isExpanded}
@@ -71,7 +71,7 @@
 
 				<a
 					href={getServieeMapUrl(latitude, longitude, title, location)}
-					class="btn btn-outline text-xs py-1 px-2.5 rounded-md inline-flex items-center gap-1.5 no-underline transition-colors cursor-pointer text-(--text-secondary) hover:text-(--accent) hover:border-(--accent) hover:bg-(--accent-light)"
+					class="btn btn-outline h-7 text-xs px-2.5 rounded-md inline-flex items-center justify-center gap-1.5 no-underline transition-colors cursor-pointer self-stretch text-(--text-secondary) hover:text-(--accent) hover:border-(--accent) hover:bg-(--accent-light)"
 					title="Open Fullscreen Interactive Map"
 					aria-label="Open Fullscreen Interactive Map"
 					onclick={(e) => e.stopPropagation()}
@@ -160,7 +160,7 @@
 
 	.job-map-bar-actions {
 		display: flex;
-		align-items: center;
+		align-items: stretch;
 		gap: 0.35rem;
 		flex-shrink: 0;
 	}
