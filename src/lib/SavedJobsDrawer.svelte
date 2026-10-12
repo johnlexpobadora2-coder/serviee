@@ -1,5 +1,7 @@
 <script>
 	import { enhance } from '$app/forms';
+	import { fade, fly } from 'svelte/transition';
+	import { cubicOut } from 'svelte/easing';
 	import { 
 		Bookmark, 
 		X, 
@@ -11,10 +13,9 @@
 	} from 'lucide-svelte';
 	import { savedJobs } from '$lib/savedJobs.svelte.js';
 	import { getPhilippineCityCoordinates } from '$lib/philippinesLocations.js';
-	import { getServieeMapUrl, getEmbedMapUrl } from '$lib/gpsUtils.js';
 	import JobMapPreview from '$lib/JobMapPreview.svelte';
 	import JobDescription from '$lib/JobDescription.svelte';
-	import { formatRelativeTime, formatFullDateTime, getScheduleUrgency } from '$lib/jobCardUtils.js';
+	import { getScheduleUrgency } from '$lib/jobCardUtils.js';
 
 	/**
 	 * @type {{
@@ -34,6 +35,31 @@
 	} = $props();
 
 	let applyingJobId = $state(null);
+	let touchStartY = $state(0);
+	let touchCurrentY = $state(0);
+	let isDragging = $state(false);
+
+	function onTouchStart(e) {
+		touchStartY = e.touches[0].clientY;
+		touchCurrentY = touchStartY;
+		isDragging = true;
+	}
+
+	function onTouchMove(e) {
+		if (!isDragging) return;
+		touchCurrentY = e.touches[0].clientY;
+	}
+
+	function onTouchEnd() {
+		if (!isDragging) return;
+		const diff = touchCurrentY - touchStartY;
+		if (diff > 50) {
+			savedJobs.closeDrawer();
+		}
+		isDragging = false;
+		touchStartY = 0;
+		touchCurrentY = 0;
+	}
 
 	function getJobCoordinates(job) {
 		if (!job) return null;
@@ -79,6 +105,17 @@
 			document.body.style.overflow = '';
 		};
 	});
+
+	function drawerTransition(node) {
+		if (typeof window !== 'undefined' && window.innerWidth < 640) {
+			return fly(node, { y: 500, duration: 280, easing: cubicOut });
+		}
+		return fly(node, { x: 440, duration: 280, easing: cubicOut });
+	}
+
+	function backdropFade(node) {
+		return fade(node, { duration: 200 });
+	}
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -86,28 +123,47 @@
 {#if savedJobs.isDrawerOpen}
 	<!-- Backdrop -->
 	<div 
-		class="fixed inset-0 bg-black/65 backdrop-blur-xs z-9998 flex justify-end max-sm:items-end" 
+		class="fixed inset-0 bg-black/65 backdrop-blur-xs z-9998 flex justify-end max-sm:justify-center max-sm:items-end" 
 		onclick={() => savedJobs.closeDrawer()}
 		role="presentation"
+		transition:backdropFade
 	>
-		<!-- Slide-in Drawer Container -->
+		<!-- Drawer Container (Side drawer on desktop, bottom drawer on mobile) -->
 		<div 
-			class="bg-(--bg-card) border-l max-sm:border-l-0 max-sm:border-t border-(--border-color) w-full max-w-110 h-full max-sm:h-[88vh] max-sm:rounded-t-lg flex flex-col shadow-2xl outline-none" 
+			class="bg-(--bg-card) border-(--border-color) sm:border-l max-sm:border-t max-sm:border-x-0 w-full sm:max-w-110 h-full max-sm:h-[88dvh] max-sm:max-h-[90dvh] max-sm:rounded-t-2xl max-sm:rounded-b-none flex flex-col shadow-2xl outline-none" 
 			onclick={(e) => e.stopPropagation()}
 			onkeydown={(e) => e.stopPropagation()}
 			role="dialog"
 			tabindex="-1"
 			aria-labelledby="saved-drawer-title"
 			aria-modal="true"
+			transition:drawerTransition
 		>
-			<!-- Header without icon box -->
-			<div class="p-5 border-b border-(--border-color) flex items-center justify-between bg-(--bg-card)">
+			<!-- Mobile Drag Handle Bar -->
+			<div 
+				class="sm:hidden pt-3 pb-1.5 flex justify-center items-center w-full cursor-grab active:cursor-grabbing select-none shrink-0"
+				ontouchstart={onTouchStart}
+				ontouchmove={onTouchMove}
+				ontouchend={onTouchEnd}
+				onclick={() => savedJobs.closeDrawer()}
+				role="button"
+				tabindex="0"
+				onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') savedJobs.closeDrawer(); }}
+				aria-label="Swipe or click to close bottom drawer"
+			>
+				<div class="w-12 h-1.5 rounded-full bg-(--border-color) hover:bg-(--text-muted) transition-colors"></div>
+			</div>
+
+			<!-- Header -->
+			<div 
+				class="px-4 py-3 sm:p-5 border-b border-(--border-color) flex items-center justify-between bg-(--bg-card) shrink-0"
+			>
 				<div class="flex flex-col gap-0.5">
-					<h3 id="saved-drawer-title" class="text-[1.15rem] font-bold m-0 text-(--text-primary) flex items-center gap-2">
+					<h3 id="saved-drawer-title" class="text-[1.05rem] sm:text-[1.15rem] font-bold m-0 text-(--text-primary) flex items-center gap-2">
 						Saved Jobs
 						<span class="text-[0.72rem] bg-(--accent) text-white py-0.5 px-2 rounded-sm font-bold">{savedJobs.count}</span>
 					</h3>
-					<p class="text-[0.78rem] m-0 text-(--text-muted)">Your bookmarked sideline jobs</p>
+					<p class="text-[0.76rem] sm:text-[0.78rem] m-0 text-(--text-muted)">Your bookmarked sideline jobs</p>
 				</div>
 				<div class="flex items-center gap-2">
 					{#if savedJobs.count > 0}
@@ -137,10 +193,10 @@
 			</div>
 
 			<!-- Drawer Body -->
-			<div class="flex-1 overflow-y-auto p-5 flex flex-col">
+			<div class="flex-1 overflow-y-auto p-4 sm:p-5 pb-8 sm:pb-5 flex flex-col overscroll-contain">
 				{#if savedJobs.count === 0}
 					<div class="flex-1 flex flex-col items-center justify-center text-center py-10 px-4 text-(--text-muted)">
-						<div class="w-16 h-16 rounded-md bg-(--bg-input) border border-dashed border-(--border-color) flex items-center justify-center mb-4 text-(--text-muted)">
+						<div class="w-16 h-16 rounded-md bg-(--accent-light) border border-dashed border-(--accent)/35 flex items-center justify-center mb-4 text-(--accent)">
 							<Bookmark size={32} />
 						</div>
 						<h4 class="text-[1.1rem] text-(--text-primary) mb-1.5 font-semibold">No Saved Jobs</h4>
@@ -226,18 +282,6 @@
 									</div>
 
 									<div class="flex items-center gap-1.5">
-										{#if coords}
-											<a 
-												href={getServieeMapUrl(coords.latitude, coords.longitude, job.title, job.location)} 
-												class="btn btn-outline py-1.5 px-2.5 text-[0.78rem] inline-flex items-center gap-1 hover:border-emerald-500 hover:text-emerald-500 no-underline"
-												onclick={() => savedJobs.closeDrawer()}
-												title="View Map"
-												aria-label="View Map"
-											>
-												<MapPin size={13} class="text-emerald-500 shrink-0" />
-												<span class="text-[0.75rem]">View Map</span>
-											</a>
-										{/if}
 										{#if userRole === 'worker'}
 											{#if (jobs.find(j => j.id === job.id)?.hasApplied || job.hasApplied)}
 												<button

@@ -732,19 +732,41 @@ select {
 }
 
 .feed-job-action-btn:hover {
-	color: var(--text-primary);
-	background: rgba(255, 255, 255, 0.08);
-	border-color: var(--border-color);
+	color: var(--accent);
+	background: var(--accent-light);
+	border-color: var(--accent);
+}
+
+.feed-job-action-btn:active {
+	transform: scale(0.88);
 }
 
 .feed-job-action-btn.saved {
-	color: #f59e0b;
-	background: rgba(245, 158, 11, 0.12);
-	border-color: rgba(245, 158, 11, 0.3);
+	color: var(--accent);
+	background: var(--accent-light);
+	border-color: var(--accent);
+}
+
+.feed-job-action-btn.saved svg {
+	animation: bookmarkPop 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .feed-job-action-btn.saved:hover {
-	background: rgba(245, 158, 11, 0.2);
+	color: var(--accent-hover);
+	background: var(--accent-light);
+	border-color: var(--accent-hover);
+}
+
+@keyframes bookmarkPop {
+	0% {
+		transform: scale(0.75);
+	}
+	50% {
+		transform: scale(1.22);
+	}
+	100% {
+		transform: scale(1);
+	}
 }
 
 .feed-header-section {
@@ -798,16 +820,30 @@ select {
 	transition: all 0.15s ease;
 }
 
+.feed-saved-trigger-btn:active {
+	transform: scale(0.94);
+}
+
 .feed-saved-trigger-btn:hover {
-	color: var(--text-primary);
+	color: var(--accent);
 	border-color: var(--accent);
-	background: rgba(255, 255, 255, 0.05);
+	background: var(--accent-light);
 }
 
 .feed-saved-trigger-btn.has-saved {
-	color: #f59e0b;
-	border-color: rgba(245, 158, 11, 0.35);
-	background: rgba(245, 158, 11, 0.08);
+	color: var(--accent);
+	border-color: var(--accent);
+	background: var(--accent-light);
+}
+
+.feed-saved-trigger-btn.has-saved svg {
+	animation: bookmarkPop 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.feed-saved-trigger-btn.has-saved:hover {
+	color: var(--accent-hover);
+	border-color: var(--accent-hover);
+	background: var(--accent-light);
 }
 
 @media (max-width: 640px) {

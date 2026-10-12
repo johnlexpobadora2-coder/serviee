@@ -470,7 +470,7 @@
 			<div class="flex items-center gap-2 mt-1.5 pt-2.5 border-t border-(--border-color)">
 				<button 
 					type="button" 
-					class="w-8.5 h-8.5 rounded-lg flex items-center justify-center cursor-pointer transition-all duration-150 border {savedJobs.isSaved(selectedJob.id) ? 'bg-(--warning-light) border-(--warning) text-(--warning) hover:bg-amber-500/25' : 'bg-(--bg-input) border-(--border-color) text-(--text-secondary) hover:text-(--accent) hover:border-(--accent) hover:bg-(--accent-light)'}"
+					class="w-8.5 h-8.5 rounded-lg flex items-center justify-center cursor-pointer transition-all duration-150 border {savedJobs.isSaved(selectedJob.id) ? 'bg-(--accent-light) border-(--accent) text-(--accent) hover:bg-(--accent)/25' : 'bg-(--bg-input) border-(--border-color) text-(--text-secondary) hover:text-(--accent) hover:border-(--accent) hover:bg-(--accent-light)'}"
 					onclick={() => savedJobs.toggle(selectedJob)}
 					title={savedJobs.isSaved(selectedJob.id) ? 'Saved' : 'Save Job'}
 				>
