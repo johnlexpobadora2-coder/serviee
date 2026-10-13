@@ -12,7 +12,10 @@
 	let saving = $state(false);
 
 	async function handleToggle(e) {
-		if (disabled || saving) return;
+		if (disabled || saving) {
+			if (e?.target) e.target.checked = maskPhone;
+			return;
+		}
 		const nextState = e.target.checked;
 		const prevState = maskPhone;
 		maskPhone = nextState;
@@ -44,6 +47,9 @@
 		} catch (err) {
 			console.error('Error saving phone privacy:', err);
 			maskPhone = prevState;
+			if (e?.target) {
+				e.target.checked = prevState;
+			}
 			toast.error(err.message || 'Failed to update phone privacy');
 		} finally {
 			saving = false;
@@ -73,7 +79,7 @@
 			id="mask_phone_toggle"
 			name="mask_phone"
 			value="true"
-			checked={maskPhone}
+			bind:checked={maskPhone}
 			onchange={handleToggle}
 			disabled={disabled || saving}
 			class="sr-only peer"

@@ -12,7 +12,10 @@
 	let saving = $state(false);
 
 	async function handleToggle(e) {
-		if (disabled || saving) return;
+		if (disabled || saving) {
+			if (e?.target) e.target.checked = hideLocation;
+			return;
+		}
 		const nextState = e.target.checked;
 		const prevState = hideLocation;
 		hideLocation = nextState;
@@ -44,6 +47,9 @@
 		} catch (err) {
 			console.error('Error saving location privacy:', err);
 			hideLocation = prevState;
+			if (e?.target) {
+				e.target.checked = prevState;
+			}
 			toast.error(err.message || 'Failed to update location privacy');
 		} finally {
 			saving = false;
@@ -73,7 +79,7 @@
 			id="hide_location_toggle"
 			name="hide_location"
 			value="true"
-			checked={hideLocation}
+			bind:checked={hideLocation}
 			onchange={handleToggle}
 			disabled={disabled || saving}
 			class="sr-only peer"

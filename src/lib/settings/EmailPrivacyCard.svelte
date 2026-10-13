@@ -12,7 +12,10 @@
 	let saving = $state(false);
 
 	async function handleToggle(e) {
-		if (disabled || saving) return;
+		if (disabled || saving) {
+			if (e?.target) e.target.checked = maskEmail;
+			return;
+		}
 		const nextState = e.target.checked;
 		const prevState = maskEmail;
 		maskEmail = nextState;
@@ -44,6 +47,9 @@
 		} catch (err) {
 			console.error('Error saving email privacy:', err);
 			maskEmail = prevState;
+			if (e?.target) {
+				e.target.checked = prevState;
+			}
 			toast.error(err.message || 'Failed to update email privacy');
 		} finally {
 			saving = false;
@@ -73,7 +79,7 @@
 			id="mask_email_toggle"
 			name="mask_email"
 			value="true"
-			checked={maskEmail}
+			bind:checked={maskEmail}
 			onchange={handleToggle}
 			disabled={disabled || saving}
 			class="sr-only peer"

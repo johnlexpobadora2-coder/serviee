@@ -74,7 +74,6 @@
 	let newSkillInput = $state('');
 	// svelte-ignore state_referenced_locally
 	let isAddressValid = $state(!!(data.user?.address));
-	let clientProfileError = $state('');
 
 	// GPS & Modal States
 	let detectingGps = $state(false);
@@ -142,7 +141,6 @@
 	async function handleAutoGps() {
 		detectingGps = true;
 		gpsStatus = null;
-		clientProfileError = '';
 		try {
 			const coords = await getCurrentCoordinates();
 			const geo = await reverseGeocode(coords.latitude, coords.longitude);
@@ -164,7 +162,6 @@
 
 	function handleCustomLocationSaved(result) {
 		gpsStatus = null;
-		clientProfileError = '';
 		const candidate = result.city || result.address || '';
 		if (candidate) {
 			address = candidate;
@@ -286,7 +283,6 @@
 					action="?/updateProfile"
 					class="flex flex-col gap-5"
 					use:enhance={({ cancel }) => {
-						clientProfileError = '';
 						if (phone) {
 							const phoneCheck = validatePhone(phone);
 							if (!phoneCheck.isValid) {
@@ -297,7 +293,6 @@
 						}
 						if (!address || !isAddressValid) {
 							const msg = 'Please search and select a valid City or Municipality from the suggestions.';
-							clientProfileError = msg;
 							toast.error(msg);
 							cancel();
 							return;
@@ -305,7 +300,7 @@
 						profileSubmitting = true;
 						return async ({ update }) => {
 							profileSubmitting = false;
-							await update();
+							await update({ reset: false });
 						};
 					}}
 				>
