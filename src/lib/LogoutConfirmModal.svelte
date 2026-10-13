@@ -67,7 +67,7 @@
 
 				<button 
 					type="button" 
-					class="btn btn-primary bg-(--accent) hover:bg-(--accent-hover) border-(--accent) hover:border-(--accent-hover) text-white py-2 px-5 text-[0.9rem] inline-flex items-center gap-1.5" 
+					class="btn btn-danger bg-red-500 hover:bg-red-600 border-0 text-white py-2 px-5 text-[0.9rem] inline-flex items-center gap-1.5 font-semibold cursor-pointer shadow-xs" 
 					onclick={handleConfirm}
 					disabled={isLoggingOut}
 				>

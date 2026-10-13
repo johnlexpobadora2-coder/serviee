@@ -74,7 +74,7 @@
 			</p>
 		</div>
 		<div class="self-start sm:self-auto">
-			<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-(--accent-light) text-(--accent) border border-(--accent)/20">
+			<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-(--accent-light) text-(--accent)">
 				{activeSessions.length || 1} {activeSessions.length === 1 ? 'Device' : 'Devices'} Connected
 			</span>
 		</div>
@@ -111,7 +111,7 @@
 			<!-- Current Device Logout Button -->
 			<button
 				type="button"
-				class="inline-flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md text-xs font-medium text-red-500 bg-red-500/5 hover:bg-red-500 hover:text-white transition-all cursor-pointer shrink-0 border-0"
+				class="inline-flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md text-xs font-semibold text-white bg-red-500 hover:bg-red-600 transition-all cursor-pointer shrink-0 border-0 shadow-xs"
 				onclick={() => openLogoutModal('single')}
 				title="Log out from this device"
 				id="btn-logout-current-device"
@@ -157,7 +157,7 @@
 						<!-- Revoke Individual Device Button -->
 						<button
 							type="button"
-							class="inline-flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md text-xs font-medium text-red-500 bg-red-500/5 hover:bg-red-500 hover:text-white transition-all cursor-pointer shrink-0 border-0"
+							class="inline-flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md text-xs font-semibold text-white bg-red-500 hover:bg-red-600 transition-all cursor-pointer shrink-0 border-0 shadow-xs"
 							onclick={() => openLogoutModal('revoke', device)}
 							title="Revoke session for this device"
 						>
@@ -195,7 +195,7 @@
 	<div class="pt-2 border-t border-(--border-color) flex justify-end">
 		<button
 			type="button"
-			class="btn border-0 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white inline-flex items-center gap-2 py-2 px-4 text-xs sm:text-sm font-medium transition-colors w-full sm:w-auto justify-center cursor-pointer"
+			class="btn border-0 bg-red-500 hover:bg-red-600 text-white inline-flex items-center gap-2 py-2 px-4 text-xs sm:text-sm font-semibold transition-colors w-full sm:w-auto justify-center cursor-pointer shadow-xs"
 			onclick={() => openLogoutModal('all')}
 			id="btn-logout-all-devices"
 		>
