@@ -1,6 +1,6 @@
 <script>
 	import { enhance } from '$app/forms';
-	import { Star, User, MessageSquare, UserCheck, Pencil, Trash2, MapPin, ExternalLink, Clock, Calendar, Loader2, Zap, CheckCircle2 } from 'lucide-svelte';
+	import { Star, User, MessageSquare, UserCheck, Pencil, Trash2, MapPin, ExternalLink, Clock, Calendar, Loader2, CheckCircle2 } from 'lucide-svelte';
 	import { getGoogleMapsUrl, getServieeMapUrl, getEmbedMapUrl } from '$lib/gpsUtils.js';
 	import JobMapPreview from '$lib/JobMapPreview.svelte';
 	import JobDescription from '$lib/JobDescription.svelte';
@@ -137,11 +137,6 @@
 							{#if getScheduleUrgency(job.target_date)}
 								{@const urgency = getScheduleUrgency(job.target_date)}
 								<span class="schedule-urgency-badge {urgency.type}">
-									{#if urgency.type === 'rush'}
-										<Zap size={11} class="shrink-0" />
-									{:else if urgency.type === 'urgent'}
-										<Clock size={11} class="shrink-0" />
-									{/if}
 									<span>{urgency.label}</span>
 								</span>
 							{/if}

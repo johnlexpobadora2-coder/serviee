@@ -16,7 +16,6 @@
 		Settings,
 		Bookmark,
 		Share2,
-		Zap,
 		CheckCircle2
 	} from 'lucide-svelte';
 	import { getGoogleMapsUrl, getServieeMapUrl, getEmbedMapUrl } from '$lib/gpsUtils.js';
@@ -449,11 +448,6 @@
 								{#if getScheduleUrgency(job.target_date)}
 									{@const urgency = getScheduleUrgency(job.target_date)}
 									<span class="schedule-urgency-badge {urgency.type}">
-										{#if urgency.type === 'rush'}
-											<Zap size={11} class="shrink-0" />
-										{:else if urgency.type === 'urgent'}
-											<Clock size={11} class="shrink-0" />
-										{/if}
 										<span>{urgency.label}</span>
 									</span>
 								{/if}
