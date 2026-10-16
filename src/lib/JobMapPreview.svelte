@@ -1,5 +1,5 @@
 <script>
-	import { MapPin, ChevronDown, ChevronUp, ExternalLink } from 'lucide-svelte';
+	import { ChevronDown, ChevronUp, ExternalLink } from 'lucide-svelte';
 	import { getEmbedMapUrl, getServieeMapUrl } from '$lib/gpsUtils.js';
 
 	/**
@@ -41,9 +41,6 @@
 		<!-- Map Banner Bar -->
 		<div class="job-map-bar">
 			<div class="job-map-bar-left">
-				<span class="job-map-pin-badge">
-					<MapPin size={13} class="text-sky-400" />
-				</span>
 				<span class="job-map-label">
 					Pinned on Map
 					{#if location}
@@ -129,18 +126,6 @@
 		gap: 0.4rem;
 		min-width: 0;
 		flex: 1;
-	}
-
-	.job-map-pin-badge {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: 22px;
-		height: 22px;
-		border-radius: 6px;
-		background: rgba(56, 189, 248, 0.12);
-		color: #38bdf8;
-		flex-shrink: 0;
 	}
 
 	.job-map-label {

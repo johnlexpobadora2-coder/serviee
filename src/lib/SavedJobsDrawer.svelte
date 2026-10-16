@@ -259,7 +259,7 @@
 										</span>
 										{#if job.target_date && getScheduleUrgency(job.target_date)}
 											{@const urgency = getScheduleUrgency(job.target_date)}
-											<span class="schedule-urgency-badge {urgency.type} text-[0.68rem] px-1.5 py-0.5">
+											<span class="schedule-urgency-badge {urgency.type} text-[0.68rem]">
 												{urgency.label}
 											</span>
 										{/if}

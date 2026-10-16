@@ -734,7 +734,7 @@ select {
 .feed-job-action-btn:hover {
 	color: var(--accent);
 	background: var(--accent-light);
-	border-color: var(--accent);
+	border-color: transparent;
 }
 
 .feed-job-action-btn:active {
@@ -743,8 +743,8 @@ select {
 
 .feed-job-action-btn.saved {
 	color: var(--accent);
-	background: var(--accent-light);
-	border-color: var(--accent);
+	background: transparent;
+	border-color: transparent;
 }
 
 .feed-job-action-btn.saved svg {
@@ -754,7 +754,7 @@ select {
 .feed-job-action-btn.saved:hover {
 	color: var(--accent-hover);
 	background: var(--accent-light);
-	border-color: var(--accent-hover);
+	border-color: transparent;
 }
 
 @keyframes bookmarkPop {
@@ -809,41 +809,48 @@ select {
 	display: inline-flex;
 	align-items: center;
 	gap: 0.4rem;
-	padding: 0.4rem 0.85rem;
+	padding: 0.42rem 0.95rem;
 	border-radius: var(--radius-md, 6px);
-	background: var(--bg-card, #1e293b);
-	border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12));
-	color: var(--text-secondary);
+	background-color: var(--accent);
+	border: 1px solid var(--accent);
+	color: #ffffff !important;
 	font-size: 0.82rem;
-	font-weight: 500;
+	font-weight: 600;
 	cursor: pointer;
 	transition: all 0.15s ease;
+	line-height: 1;
+}
+
+.feed-saved-trigger-btn:hover {
+	background-color: var(--accent-hover);
+	border-color: var(--accent-hover);
+	color: #ffffff !important;
 }
 
 .feed-saved-trigger-btn:active {
 	transform: scale(0.94);
 }
 
-.feed-saved-trigger-btn:hover {
-	color: var(--accent);
-	border-color: var(--accent);
-	background: var(--accent-light);
+.feed-saved-trigger-btn svg {
+	color: #ffffff !important;
 }
 
 .feed-saved-trigger-btn.has-saved {
-	color: var(--accent);
+	background-color: var(--accent);
 	border-color: var(--accent);
-	background: var(--accent-light);
+	color: #ffffff !important;
 }
 
 .feed-saved-trigger-btn.has-saved svg {
 	animation: bookmarkPop 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+	fill: #ffffff !important;
+	color: #ffffff !important;
 }
 
 .feed-saved-trigger-btn.has-saved:hover {
-	color: var(--accent-hover);
+	background-color: var(--accent-hover);
 	border-color: var(--accent-hover);
-	background: var(--accent-light);
+	color: #ffffff !important;
 }
 
 @media (max-width: 640px) {
@@ -1079,9 +1086,10 @@ html.light .feed-job-budget {
 	display: inline-flex;
 	align-items: center;
 	gap: 0.25rem;
-	padding: 0.15rem 0.45rem;
-	border-radius: 6px;
-	font-size: 0.72rem;
+	padding: 0;
+	background: transparent;
+	border: none;
+	font-size: 0.75rem;
 	font-weight: 600;
 	letter-spacing: 0.01em;
 	line-height: 1.2;
@@ -1089,27 +1097,27 @@ html.light .feed-job-budget {
 }
 
 .schedule-urgency-badge.rush {
-	background: rgba(239, 68, 68, 0.15);
+	background: transparent;
 	color: #ef4444;
-	border: 1px solid rgba(239, 68, 68, 0.35);
+	border: none;
 }
 
 .schedule-urgency-badge.urgent {
-	background: rgba(245, 158, 11, 0.15);
+	background: transparent;
 	color: #f59e0b;
-	border: 1px solid rgba(245, 158, 11, 0.35);
+	border: none;
 }
 
 .schedule-urgency-badge.upcoming {
-	background: rgba(99, 102, 241, 0.12);
+	background: transparent;
 	color: var(--accent-hover);
-	border: 1px solid rgba(99, 102, 241, 0.25);
+	border: none;
 }
 
 .schedule-urgency-badge.past {
-	background: rgba(148, 163, 184, 0.12);
+	background: transparent;
 	color: var(--text-muted);
-	border: 1px solid rgba(148, 163, 184, 0.2);
+	border: none;
 }
 
 /* Price / Budget Range Filter Styles */

@@ -400,7 +400,7 @@
 										title={savedJobs.isSaved(job.id) ? 'Remove from Saved Jobs' : 'Save Job for Later'}
 										aria-label={savedJobs.isSaved(job.id) ? 'Remove from Saved Jobs' : 'Save Job for Later'}
 									>
-										<Bookmark size={16} style={savedJobs.isSaved(job.id) ? 'fill: currentColor;' : ''} />
+										<Bookmark size={savedJobs.isSaved(job.id) ? 19 : 16} style={savedJobs.isSaved(job.id) ? 'fill: currentColor;' : ''} />
 									</button>
 								</div>
 							</div>

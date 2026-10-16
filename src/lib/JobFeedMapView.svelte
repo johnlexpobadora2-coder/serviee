@@ -470,11 +470,11 @@
 			<div class="flex items-center gap-2 mt-1.5 pt-2.5 border-t border-(--border-color)">
 				<button 
 					type="button" 
-					class="w-8.5 h-8.5 rounded-lg flex items-center justify-center cursor-pointer transition-all duration-150 border {savedJobs.isSaved(selectedJob.id) ? 'bg-(--accent-light) border-(--accent) text-(--accent) hover:bg-(--accent)/25' : 'bg-(--bg-input) border-(--border-color) text-(--text-secondary) hover:text-(--accent) hover:border-(--accent) hover:bg-(--accent-light)'}"
+					class="w-8.5 h-8.5 rounded-lg flex items-center justify-center cursor-pointer transition-all duration-150 {savedJobs.isSaved(selectedJob.id) ? 'border border-transparent bg-transparent text-(--accent) hover:bg-(--accent-light)' : 'border bg-(--bg-input) border-(--border-color) text-(--text-secondary) hover:text-(--accent) hover:border-(--accent) hover:bg-(--accent-light)'}"
 					onclick={() => savedJobs.toggle(selectedJob)}
 					title={savedJobs.isSaved(selectedJob.id) ? 'Saved' : 'Save Job'}
 				>
-					<Bookmark size={15} style={savedJobs.isSaved(selectedJob.id) ? 'fill: currentColor;' : ''} />
+					<Bookmark size={savedJobs.isSaved(selectedJob.id) ? 18 : 15} style={savedJobs.isSaved(selectedJob.id) ? 'fill: currentColor;' : ''} />
 				</button>
 
 				<button 
