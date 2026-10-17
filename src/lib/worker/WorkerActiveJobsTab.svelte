@@ -80,9 +80,6 @@
 					<div class="feed-job-top-bar">
 						<div class="feed-job-badges">
 							<span class="badge {getCategoryBadge(job.category)}">{job.category}</span>
-							<span class="status status-{job.status}">
-								{job.status === "assigned" ? "Assigned" : "In Progress"}
-							</span>
 						</div>
 					</div>
 

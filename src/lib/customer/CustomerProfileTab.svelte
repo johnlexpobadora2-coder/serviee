@@ -208,13 +208,6 @@
 								<div class="feed-job-top-bar">
 									<div class="feed-job-badges">
 										<span class="badge {getCategoryBadge(job.category)}">{job.category}</span>
-										{#if job.status === 'completed'}
-											<span class="status status-completed">Completed</span>
-										{:else if job.status === 'in_progress'}
-											<span class="status status-in-progress">In Progress</span>
-										{:else}
-											<span class="status status-open">Open</span>
-										{/if}
 									</div>
 								</div>
 								<h3 class="feed-job-title">{job.title}</h3>
@@ -269,7 +262,6 @@
 								<div class="feed-job-top-bar">
 									<div class="feed-job-badges">
 										<span class="badge {getCategoryBadge(job.category)}">{job.category}</span>
-										<span class="status status-completed">Completed</span>
 									</div>
 								</div>
 								<h3 class="feed-job-title">{job.title}</h3>

@@ -616,13 +616,6 @@
 																<span class="badge {getCategoryBadge(job.category)} text-[0.66rem] py-0.5 px-1.5">
 																	{job.category}
 																</span>
-																{#if job.status === "completed"}
-																	<span class="status status-completed text-[0.66rem] py-0.5 px-1.5">Completed</span>
-																{:else if job.status === "in_progress"}
-																	<span class="status status-in-progress text-[0.66rem] py-0.5 px-1.5">In Progress</span>
-																{:else}
-																	<span class="status status-open text-[0.66rem] py-0.5 px-1.5">Open</span>
-																{/if}
 																{#if job.created_at}
 																	<span class="text-[0.66rem] text-(--text-muted)">
 																		{new Date(job.created_at).toLocaleDateString("en-PH", {

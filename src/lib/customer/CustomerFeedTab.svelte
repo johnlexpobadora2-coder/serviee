@@ -368,13 +368,6 @@
 							<div class="feed-job-top-bar">
 								<div class="feed-job-badges">
 									<span class="badge {getCategoryBadge(job.category)}">{job.category}</span>
-									<span class="status status-{job.status}">
-										{#if job.status === 'open'} Open
-										{:else if job.status === 'assigned'} Assigned
-										{:else if job.status === 'in_progress'} In Progress
-										{:else} Completed
-										{/if}
-									</span>
 								</div>
 								<div class="feed-job-card-actions">
 									<button 
