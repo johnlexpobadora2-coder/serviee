@@ -13,9 +13,9 @@
 	
 	--text-primary: #faf9fe;
 	--text-secondary: #b2acd6;
-	--text-muted: #77719f;
+	--text-muted: #938db9;
 	
-	--border-color: #2c235b;
+	--border-color: #312763;
 	--border-focus: #8b5cf6;
 	
 	--success: #34d399;
@@ -27,9 +27,9 @@
 	
 	--font-sans: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
 	
-	--shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.12);
-	--shadow-md: 0 4px 12px rgba(0, 0, 0, 0.28);
-	--shadow-lg: 0 10px 24px -4px rgba(0, 0, 0, 0.4), 0 4px 8px -2px rgba(0, 0, 0, 0.2);
+	--shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.15);
+	--shadow-md: 0 4px 16px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+	--shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 	
 	--radius-sm: 4px;
 	--radius-md: 6px;
@@ -43,21 +43,21 @@
 }
 
 html.light, [data-theme="light"] {
-	--bg-base: #f6f5fe;
+	--bg-base: #f8fafc;
 	--bg-card: #ffffff;
-	--bg-input: #eeebf9;
-	--bg-header: rgba(246, 245, 254, 0.88);
+	--bg-input: #f1f5f9;
+	--bg-header: rgba(248, 250, 252, 0.88);
 	
-	--accent: #6c47ff;
-	--accent-hover: #5835ea;
-	--accent-light: rgba(108, 71, 255, 0.1);
+	--accent: #6366f1;
+	--accent-hover: #4f46e5;
+	--accent-light: rgba(99, 102, 241, 0.12);
 	
-	--text-primary: #141033;
-	--text-secondary: #5d587c;
-	--text-muted: #8f8aa8;
+	--text-primary: #0f172a;
+	--text-secondary: #475569;
+	--text-muted: #64748b;
 	
-	--border-color: #e5e1f7;
-	--border-focus: #6c47ff;
+	--border-color: #e2e8f0;
+	--border-focus: #6366f1;
 	
 	--success: #10b981;
 	--success-light: rgba(16, 185, 129, 0.12);
@@ -66,25 +66,25 @@ html.light, [data-theme="light"] {
 	--error: #f43f5e;
 	--error-light: rgba(244, 63, 94, 0.12);
 	
-	--shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(108, 71, 255, 0.02);
-	--shadow-md: 0 4px 12px -2px rgba(108, 71, 255, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
-	--shadow-lg: 0 10px 24px -4px rgba(108, 71, 255, 0.08), 0 4px 8px -2px rgba(0, 0, 0, 0.03);
+	--shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+	--shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+	--shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
 	
-	--glow: 0 4px 24px rgba(108, 71, 255, 0.28);
+	--glow: 0 4px 20px rgba(99, 102, 241, 0.25);
 }
 
-html.light .badge-plumbing { background: #e0f2fe; color: #0369a1; }
-html.light .badge-roofing { background: #fce7f3; color: #be185d; }
-html.light .badge-excavation { background: #fed7aa; color: #c2410c; }
-html.light .badge-gardening { background: #dcfce7; color: #15803d; }
-html.light .badge-carpentry { background: #ede9fe; color: #6d28d9; }
-html.light .badge-general { background: #f3e8ff; color: #7e22ce; }
-html.light .badge-electrical { background: #fef08a; color: #a16207; }
-html.light .badge-appliance { background: #e0e7ff; color: #4338ca; }
-html.light .badge-cleaning { background: #ccfbf1; color: #0f766e; }
-html.light .badge-painting { background: #fae8ff; color: #a21caf; }
-html.light .badge-masonry { background: #f1f5f9; color: #475569; }
-html.light .badge-welding { background: #fee2e2; color: #b91c1c; }
+html.light .badge-plumbing, [data-theme="light"] .badge-plumbing { background: #e0f2fe; color: #0369a1; }
+html.light .badge-roofing, [data-theme="light"] .badge-roofing { background: #fce7f3; color: #be185d; }
+html.light .badge-excavation, [data-theme="light"] .badge-excavation { background: #fed7aa; color: #c2410c; }
+html.light .badge-gardening, [data-theme="light"] .badge-gardening { background: #dcfce7; color: #15803d; }
+html.light .badge-carpentry, [data-theme="light"] .badge-carpentry { background: #ede9fe; color: #6d28d9; }
+html.light .badge-general, [data-theme="light"] .badge-general { background: #f1f5f9; color: #334155; }
+html.light .badge-electrical, [data-theme="light"] .badge-electrical { background: #fef9c3; color: #854d0e; }
+html.light .badge-appliance, [data-theme="light"] .badge-appliance { background: #e0e7ff; color: #4338ca; }
+html.light .badge-cleaning, [data-theme="light"] .badge-cleaning { background: #ccfbf1; color: #0f766e; }
+html.light .badge-painting, [data-theme="light"] .badge-painting { background: #fae8ff; color: #a21caf; }
+html.light .badge-masonry, [data-theme="light"] .badge-masonry { background: #f1f5f9; color: #475569; }
+html.light .badge-welding, [data-theme="light"] .badge-welding { background: #fee2e2; color: #b91c1c; }
 
 /* Reset and Base Styles */
 @layer base {
@@ -322,17 +322,36 @@ header {
 .btn-secondary {
 	background-color: var(--bg-input);
 	color: var(--text-primary);
-	border-color: var(--border-color);
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .btn-secondary:hover {
-	background-color: var(--border-color);
+	background-color: #2b2266;
+	border-color: rgba(255, 255, 255, 0.2);
+}
+
+html.light .btn-secondary, [data-theme="light"] .btn-secondary {
+	background-color: #ffffff;
+	color: #0f172a;
+	border-color: #cbd5e1;
+	box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+html.light .btn-secondary:hover, [data-theme="light"] .btn-secondary:hover {
+	background-color: #f8fafc;
+	border-color: #94a3b8;
 }
 
 .btn-outline {
 	background-color: transparent;
 	color: var(--text-primary);
-	border-color: var(--border-color);
+	border-color: rgba(255, 255, 255, 0.14);
+}
+
+html.light .btn-outline, [data-theme="light"] .btn-outline {
+	border-color: #cbd5e1;
+	color: var(--text-primary);
 }
 
 .btn-outline:hover {
@@ -416,6 +435,11 @@ header {
 	border-color: hsla(252, 78%, 62%, 0.3);
 }
 
+html.light .card:hover, [data-theme="light"] .card:hover {
+	border-color: #cbd5e1;
+	box-shadow: var(--shadow-md);
+}
+
 /* Grid system */
 .grid-2 {
 	display: grid;
@@ -488,7 +512,7 @@ header {
 	}
 
 	html.light select, [data-theme="light"] select {
-		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235d587c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
 	}
 
 	select option {
@@ -500,6 +524,11 @@ header {
 	input:focus, select:focus, textarea:focus {
 		border-color: var(--border-focus);
 		box-shadow: 0 0 0 3px var(--accent-light);
+	}
+
+	html.light input:focus, html.light select:focus, html.light textarea:focus,
+	[data-theme="light"] input:focus, [data-theme="light"] select:focus, [data-theme="light"] textarea:focus {
+		background-color: #ffffff;
 	}
 
 	textarea {
@@ -528,12 +557,12 @@ header {
 .badge-excavation { background: hsla(30, 90%, 60%, 0.2); color: #fb923c; }
 .badge-gardening { background: hsla(142, 70%, 50%, 0.2); color: #4ade80; }
 .badge-carpentry { background: hsla(260, 90%, 70%, 0.2); color: #c084fc; }
-.badge-general { background: hsla(200, 95%, 65%, 0.2); color: #38bdf8; }
+.badge-general { background: hsla(220, 25%, 65%, 0.18); color: #cbd5e1; }
 .badge-electrical { background: hsla(50, 95%, 55%, 0.2); color: #facc15; }
 .badge-appliance { background: hsla(230, 85%, 65%, 0.2); color: #818cf8; }
 .badge-cleaning { background: hsla(168, 80%, 50%, 0.2); color: #2dd4bf; }
 .badge-painting { background: hsla(290, 80%, 65%, 0.2); color: #e879f9; }
-.badge-masonry { background: hsla(215, 20%, 65%, 0.2); color: #94a3b8; }
+.badge-masonry { background: hsla(215, 25%, 60%, 0.2); color: #cbd5e1; }
 .badge-welding { background: hsla(0, 85%, 60%, 0.2); color: #f87171; }
 
 /* Status Badges */
@@ -553,10 +582,10 @@ header {
 .status-in-progress { background: hsla(260, 90%, 70%, 0.2); color: #c084fc; }
 .status-completed { background: hsla(142, 70%, 50%, 0.2); color: #4ade80; }
 
-html.light .status-open { background: #bae6fd; color: #0369a1; }
-html.light .status-assigned { background: #fed7aa; color: #c2410c; }
-html.light .status-in-progress { background: #ede9fe; color: #6d28d9; }
-html.light .status-completed { background: #bbf7d0; color: #15803d; }
+html.light .status-open, [data-theme="light"] .status-open { background: #bae6fd; color: #0369a1; }
+html.light .status-assigned, [data-theme="light"] .status-assigned { background: #fed7aa; color: #c2410c; }
+html.light .status-in-progress, [data-theme="light"] .status-in-progress { background: #ede9fe; color: #6d28d9; }
+html.light .status-completed, [data-theme="light"] .status-completed { background: #bbf7d0; color: #15803d; }
 
 /* Modals */
 .modal-backdrop {
@@ -990,11 +1019,12 @@ select {
 	-webkit-text-fill-color: transparent;
 }
 
-html.light .feed-job-budget {
-	background: linear-gradient(135deg, hsl(270, 85%, 48%) 0%, hsl(270, 90%, 38%) 100%);
-	-webkit-background-clip: text;
-	background-clip: text;
-	-webkit-text-fill-color: transparent;
+html.light .feed-job-budget, [data-theme="light"] .feed-job-budget {
+	background: none !important;
+	-webkit-background-clip: unset !important;
+	background-clip: unset !important;
+	-webkit-text-fill-color: initial !important;
+	color: var(--accent) !important;
 }
 
 .feed-job-actions-group {
@@ -2203,6 +2233,17 @@ html.light .feed-job-budget {
 	border-bottom: 3px solid var(--accent);
 }
 
+html.light .tab-btn.active, [data-theme="light"] .tab-btn.active {
+	background-color: transparent;
+	color: var(--accent);
+	border-bottom: 3px solid var(--accent);
+}
+
+html.light .tab-btn:hover, [data-theme="light"] .tab-btn:hover {
+	color: var(--text-primary);
+	background-color: #f1f5f9;
+}
+
 /* Chat System Layout & Styling */
 .chat-container {
 	display: grid;
@@ -2333,7 +2374,7 @@ html.light .feed-job-budget {
 	line-height: 1.2;
 }
 
-html.light .chat-role-badge {
+html.light .chat-role-badge, [data-theme="light"] .chat-role-badge {
 	background: #ede9fe;
 	color: #6d28d9;
 }
@@ -2973,17 +3014,17 @@ html.light .chat-role-badge {
 	color: #94a3b8;
 }
 
-html.light .rating-badge-positive {
+html.light .rating-badge-positive, [data-theme="light"] .rating-badge-positive {
 	background: #bbf7d0;
 	color: #15803d;
 }
 
-html.light .rating-badge-negative {
+html.light .rating-badge-negative, [data-theme="light"] .rating-badge-negative {
 	background: #fce7f3;
 	color: #be185d;
 }
 
-html.light .rating-badge-zero {
+html.light .rating-badge-zero, [data-theme="light"] .rating-badge-zero {
 	background: #e2e8f0;
 	color: #475569;
 }
