@@ -1,6 +1,5 @@
 <script>
 	import {
-		X,
 		Star,
 		MessageSquare,
 		MapPin,
@@ -136,16 +135,6 @@
 			tabindex="-1"
 			aria-modal="true"
 		>
-			<!-- Close Button Floating Header -->
-			<button
-				type="button"
-				class="absolute top-3 right-3 bg-slate-900/70 backdrop-blur-md border border-white/20 text-white w-8 h-8 rounded-full flex items-center justify-center cursor-pointer z-30 transition-all duration-200 hover:bg-slate-900/90 hover:scale-105 active:scale-95 shadow-md"
-				onclick={closeModal}
-				aria-label="Close modal"
-			>
-				<X size={18} />
-			</button>
-
 			{#if loading}
 				<div class="py-20 px-8 text-center text-(--text-secondary) flex-1 flex flex-col items-center justify-center">
 					<div class="spinner spinner-accent spinner-lg mb-4"></div>
