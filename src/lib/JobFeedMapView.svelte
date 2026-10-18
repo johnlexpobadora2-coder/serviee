@@ -76,7 +76,7 @@
 	}
 
 	function createJobPinIcon(L, job, isSelected = false) {
-		const pinColor = isSelected ? '#6366f1' : '#10b981';
+		const pinColor = isSelected ? '#a855f7' : '#6366f1';
 		const budgetFormatted = Number(job.budget || 0) >= 1000 
 			? `₱${(Number(job.budget) / 1000).toFixed(Number(job.budget) % 1000 === 0 ? 0 : 1)}k`
 			: `₱${job.budget || 0}`;
@@ -87,7 +87,7 @@
 				<div style="position: relative; display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%); cursor: pointer;">
 					<!-- Price Bubble -->
 					<div style="
-						background: ${isSelected ? '#6366f1' : '#10b981'};
+						background: ${isSelected ? 'linear-gradient(135deg, #a855f7, #7c3aed)' : 'linear-gradient(135deg, #8b5cf6, #6366f1)'};
 						color: #ffffff;
 						font-weight: 700;
 						font-size: 11px;
@@ -99,7 +99,7 @@
 						margin-bottom: 2px;
 						letter-spacing: -0.01em;
 						transition: all 0.2s ease;
-						transform: ${isSelected ? 'scale(1.1)' : 'scale(1)'};
+						transform: ${isSelected ? 'scale(1.15)' : 'scale(1)'};
 						z-index: 3;
 					">
 						${budgetFormatted}
@@ -117,14 +117,14 @@
 						<div style="
 							width: 32px;
 							height: 32px;
-							background: ${pinColor};
+							background: ${isSelected ? 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)' : 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)'};
 							border: 3px solid #ffffff;
 							border-radius: 50% 50% 50% 0;
 							transform: rotate(-45deg);
 							display: flex;
 							align-items: center;
 							justify-content: center;
-							box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+							box-shadow: 0 4px 12px ${isSelected ? 'rgba(168, 85, 247, 0.6)' : 'rgba(99, 102, 241, 0.4)'}, 0 2px 6px rgba(0,0,0,0.3);
 							z-index: 2;
 						">
 							<svg style="transform: rotate(45deg); width: 17px; height: 17px;" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -367,7 +367,7 @@
 	<!-- Top Info / Banner Status -->
 	<div class="absolute top-3.5 left-3.5 z-990 flex items-center gap-2 flex-wrap pointer-events-none">
 		<span class="pointer-events-auto bg-(--bg-card) border border-(--border-color) rounded-sm py-1.5 px-2.5 text-[0.76rem] text-(--text-primary) inline-flex items-center gap-1.5 shadow-(--shadow-sm) font-medium normal-case tracking-normal">
-			<MapPin size={12} class="text-(--success)" />
+			<MapPin size={12} class="text-(--accent)" />
 			<span><strong>{mappedJobs.length}</strong> Pinned Jobs</span>
 		</span>
 
@@ -470,20 +470,22 @@
 			<div class="flex items-center gap-2 mt-1.5 pt-2.5 border-t border-(--border-color)">
 				<button 
 					type="button" 
-					class="w-8.5 h-8.5 rounded-lg flex items-center justify-center cursor-pointer transition-all duration-150 {savedJobs.isSaved(selectedJob.id) ? 'border border-transparent bg-transparent text-(--accent) hover:bg-(--accent-light)' : 'border bg-(--bg-input) border-(--border-color) text-(--text-secondary) hover:text-(--accent) hover:border-(--accent) hover:bg-(--accent-light)'}"
+					class="p-2 rounded-lg flex items-center justify-center cursor-pointer transition-all duration-150 bg-transparent border-none {savedJobs.isSaved(selectedJob.id) ? 'text-(--accent)' : 'text-(--text-secondary) hover:text-(--accent) hover:bg-(--accent-light)'}"
 					onclick={() => savedJobs.toggle(selectedJob)}
 					title={savedJobs.isSaved(selectedJob.id) ? 'Saved' : 'Save Job'}
+					aria-label={savedJobs.isSaved(selectedJob.id) ? 'Remove from Saved Jobs' : 'Save Job'}
 				>
-					<Bookmark size={savedJobs.isSaved(selectedJob.id) ? 18 : 15} style={savedJobs.isSaved(selectedJob.id) ? 'fill: currentColor;' : ''} />
+					<Bookmark size={18} style={savedJobs.isSaved(selectedJob.id) ? 'fill: currentColor;' : ''} />
 				</button>
 
 				<button 
 					type="button" 
-					class="w-8.5 h-8.5 rounded-lg flex items-center justify-center cursor-pointer transition-all duration-150 border bg-(--bg-input) border-(--border-color) text-(--text-secondary) hover:text-(--accent) hover:border-(--accent) hover:bg-(--accent-light)"
+					class="p-2 rounded-lg flex items-center justify-center cursor-pointer transition-all duration-150 bg-transparent border-none text-(--text-secondary) hover:text-(--accent) hover:bg-(--accent-light)"
 					onclick={() => onopenshare(selectedJob)}
 					title="Share Job"
+					aria-label="Share Job"
 				>
-					<Share2 size={15} />
+					<Share2 size={18} />
 				</button>
 
 				{#if userRole === 'worker'}

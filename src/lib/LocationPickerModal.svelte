@@ -61,20 +61,20 @@
 
 	function createGreenPinIcon(L) {
 		return L.divIcon({
-			className: 'serviee-leaflet-green-pin',
+			className: 'serviee-leaflet-accent-pin',
 			html: `
 				<div style="position: relative; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -100%);">
 					<div style="
 						width: 36px;
 						height: 36px;
-						background: #10b981;
+						background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
 						border: 2.5px solid #ffffff;
 						border-radius: 50% 50% 50% 0;
 						transform: rotate(-45deg);
 						display: flex;
 						align-items: center;
 						justify-content: center;
-						box-shadow: 0 4px 14px rgba(16, 185, 129, 0.6), 0 2px 6px rgba(0,0,0,0.35);
+						box-shadow: 0 4px 14px rgba(99, 102, 241, 0.6), 0 2px 6px rgba(0,0,0,0.35);
 					">
 						<svg style="transform: rotate(45deg); width: 18px; height: 18px;" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
 							<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0Z"/>
@@ -422,8 +422,8 @@
 
 					<!-- Floating Interaction Instruction Pill -->
 					<div class="map-floating-hint">
-						<MapPin size={13} color="#10b981" style="flex-shrink: 0;" />
-						<span>Click map or drag green pin to move location</span>
+						<MapPin size={13} color="var(--accent, #6366f1)" style="flex-shrink: 0;" />
+						<span>Click map or drag pin to move location</span>
 					</div>
 
 					<!-- Floating "Detect My Location" button -->

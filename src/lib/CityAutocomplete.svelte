@@ -166,14 +166,14 @@
 	<input type="hidden" {name} {value} {required} />
 
 	<div
-		class="relative flex items-center w-full rounded-md border-[1.5px] bg-(--bg-input,#1e293b) transition-all duration-200 focus-within:border-(--accent,#6366f1) focus-within:ring-3 focus-within:ring-indigo-500/20 {isValid
-			? 'border-emerald-500 bg-emerald-500/5'
+		class="relative flex items-center w-full rounded-md border-[1.5px] bg-(--bg-input,#1e293b) transition-all duration-200 focus-within:border-(--accent,#6366f1) focus-within:ring-3 focus-within:ring-(--accent)/20 {isValid
+			? 'border-(--accent) bg-(--accent)/5'
 			: hasInteracted && query && !isValid
 				? 'border-amber-500 bg-amber-500/5'
 				: 'border-(--border-color,#334155)'}"
 	>
 		<div class="flex items-center justify-center pl-3.5 text-(--text-muted,#94a3b8)">
-			<MapPin size={18} class={isValid ? "text-emerald-500" : "text-slate-400"} />
+			<MapPin size={18} class={isValid ? "text-(--accent)" : "text-slate-400"} />
 		</div>
 
 		<input
@@ -201,7 +201,7 @@
 					<Loader2 size={16} class="animate-spin" />
 				</span>
 			{:else if isValid}
-				<span class="flex items-center text-emerald-500" title="Verified Location">
+				<span class="flex items-center text-(--accent)" title="Verified Location">
 					<CheckCircle2 size={16} />
 				</span>
 			{/if}
