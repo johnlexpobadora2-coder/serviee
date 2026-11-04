@@ -61,7 +61,7 @@
 			<span
 				class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-(--accent) tracking-tight"
 			>
-				{data.stats.activeJobs}{data.stats.activeJobs > 0 ? "+" : ""}
+				{data.stats.activeJobs}
 			</span>
 			<div
 				class="w-full border-b-2 border-(--accent) my-3.5 md:my-4"
@@ -84,9 +84,7 @@
 			<span
 				class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-(--accent) tracking-tight"
 			>
-				{data.stats.completedJobs}{data.stats.completedJobs > 0
-					? "+"
-					: ""}
+				{data.stats.completedJobs}
 			</span>
 			<div
 				class="w-full border-b-2 border-(--accent) my-3.5 md:my-4"
@@ -109,9 +107,7 @@
 			<span
 				class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-(--accent) tracking-tight"
 			>
-				{data.stats.totalWorkers}{data.stats.totalWorkers > 0
-					? "+"
-					: ""}
+				{data.stats.totalWorkers}
 			</span>
 			<div
 				class="w-full border-b-2 border-(--accent) my-3.5 md:my-4"
