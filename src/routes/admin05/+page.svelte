@@ -149,7 +149,7 @@
 	<title>Admin Panel - Serviee [Admin05]</title>
 </svelte:head>
 
-<div class="w-full flex-1 flex flex-col text-(--text-primary) font-sans selection:bg-[#7261ef]/30 selection:text-white">
+<div class="w-full flex-1 flex flex-col text-(--text-primary) font-sans selection:bg-[#8b5cf6]/30 selection:text-white">
 	{#if !isAuthenticated}
 		<AdminPasscodeLock 
 			bind:passcode 

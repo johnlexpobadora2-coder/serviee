@@ -30,6 +30,11 @@
 			document.documentElement.classList.remove('dark');
 			document.documentElement.setAttribute('data-theme', 'light');
 		}
+
+		const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+		if (metaThemeColor) {
+			metaThemeColor.setAttribute('content', dark ? '#13111a' : '#f8fafc');
+		}
 	}
 </script>
 

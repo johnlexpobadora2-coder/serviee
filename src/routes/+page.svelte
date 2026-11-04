@@ -6,7 +6,7 @@
 		Trees,
 		Hammer,
 		Package,
-		ArrowRight
+		ArrowRight,
 	} from "lucide-svelte";
 	let { data } = $props();
 </script>
@@ -37,15 +37,17 @@
 	>
 		{#if data.user}
 			<a
-				href={data.user.role === 'customer' ? '/customer' : '/worker'}
+				href={data.user.role === "customer" ? "/customer" : "/worker"}
 				class="btn btn-primary"
 				id="hero-view-jobs-btn"
 			>
 				View Job Listings
 			</a>
 		{:else}
-			<a href="/login" class="btn btn-primary" id="hero-join-community-btn"
-				>Join Community</a
+			<a
+				href="/login"
+				class="btn btn-primary"
+				id="hero-join-community-btn">Join Community</a
 			>
 		{/if}
 	</div>
@@ -56,43 +58,74 @@
 	<div class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
 		<!-- Stat 1: Active Jobs -->
 		<div class="flex flex-col items-center text-center">
-			<span class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-(--accent) tracking-tight">
-				{data.stats.activeJobs}{data.stats.activeJobs > 0 ? '+' : ''}
+			<span
+				class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-(--accent) tracking-tight"
+			>
+				{data.stats.activeJobs}{data.stats.activeJobs > 0 ? "+" : ""}
 			</span>
-			<div class="w-full border-b-2 border-(--accent) my-3.5 md:my-4"></div>
-			<h3 class="text-lg md:text-xl font-bold text-(--text-primary) mb-1 tracking-tight">
+			<div
+				class="w-full border-b-2 border-(--accent) my-3.5 md:my-4"
+			></div>
+			<h3
+				class="text-lg md:text-xl font-bold text-(--text-primary) mb-1 tracking-tight"
+			>
 				Active Jobs
 			</h3>
-			<p class="text-xs md:text-sm text-(--text-secondary) leading-relaxed max-w-70">
-				Every job request is verified and ready for skilled local workers to take on.
+			<p
+				class="text-xs md:text-sm text-(--text-secondary) leading-relaxed max-w-70"
+			>
+				Every job request is verified and ready for skilled local
+				workers to take on.
 			</p>
 		</div>
 
 		<!-- Stat 2: Completed Services -->
 		<div class="flex flex-col items-center text-center">
-			<span class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-(--accent) tracking-tight">
-				{data.stats.completedJobs}{data.stats.completedJobs > 0 ? '+' : ''}
+			<span
+				class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-(--accent) tracking-tight"
+			>
+				{data.stats.completedJobs}{data.stats.completedJobs > 0
+					? "+"
+					: ""}
 			</span>
-			<div class="w-full border-b-2 border-(--accent) my-3.5 md:my-4"></div>
-			<h3 class="text-lg md:text-xl font-bold text-(--text-primary) mb-1 tracking-tight">
+			<div
+				class="w-full border-b-2 border-(--accent) my-3.5 md:my-4"
+			></div>
+			<h3
+				class="text-lg md:text-xl font-bold text-(--text-primary) mb-1 tracking-tight"
+			>
 				Completed Services
 			</h3>
-			<p class="text-xs md:text-sm text-(--text-secondary) leading-relaxed max-w-70">
-				Every project is handled with care and quality service across the community.
+			<p
+				class="text-xs md:text-sm text-(--text-secondary) leading-relaxed max-w-70"
+			>
+				Every project is handled with care and quality service across
+				the community.
 			</p>
 		</div>
 
 		<!-- Stat 3: Handymen & Workers -->
 		<div class="flex flex-col items-center text-center">
-			<span class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-(--accent) tracking-tight">
-				{data.stats.totalWorkers}{data.stats.totalWorkers > 0 ? '+' : ''}
+			<span
+				class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-(--accent) tracking-tight"
+			>
+				{data.stats.totalWorkers}{data.stats.totalWorkers > 0
+					? "+"
+					: ""}
 			</span>
-			<div class="w-full border-b-2 border-(--accent) my-3.5 md:my-4"></div>
-			<h3 class="text-lg md:text-xl font-bold text-(--text-primary) mb-1 tracking-tight">
+			<div
+				class="w-full border-b-2 border-(--accent) my-3.5 md:my-4"
+			></div>
+			<h3
+				class="text-lg md:text-xl font-bold text-(--text-primary) mb-1 tracking-tight"
+			>
 				Handymen & Workers
 			</h3>
-			<p class="text-xs md:text-sm text-(--text-secondary) leading-relaxed max-w-70">
-				Experienced trade professionals ready to assist with your repair needs.
+			<p
+				class="text-xs md:text-sm text-(--text-secondary) leading-relaxed max-w-70"
+			>
+				Experienced trade professionals ready to assist with your repair
+				needs.
 			</p>
 		</div>
 	</div>
@@ -100,7 +133,9 @@
 
 <!-- Section Divider -->
 <div class="max-w-5xl mx-auto px-4 my-8 md:my-12">
-	<div class="w-full h-px bg-linear-to-r from-transparent via-(--border-color,#2c235b) to-transparent"></div>
+	<div
+		class="w-full h-px bg-linear-to-r from-transparent via-(--border-color,#352c4a) to-transparent"
+	></div>
 </div>
 
 <!-- Service Categories Showcase -->
@@ -117,7 +152,10 @@
 		and project needs.
 	</p>
 
-	<div class="categories-grid grid grid-cols-1 md:grid-cols-3 gap-y-20 gap-x-7" style="margin-top: 3.5rem;">
+	<div
+		class="categories-grid grid grid-cols-1 md:grid-cols-3 gap-y-20 gap-x-7"
+		style="margin-top: 3.5rem;"
+	>
 		<!-- Plumbing -->
 		<div class="category-card">
 			<div class="category-circle-badge">
@@ -135,8 +173,13 @@
 				From concept to completion, we handle leaky pipes, sink
 				installations, clogged drains, and pipe repairs.
 			</p>
-			<a href={data.user ? (data.user.role === 'customer' ? '/customer' : '/worker') : '/login'} class="category-link"
-				>LEARN MORE <ArrowRight size={14} /></a
+			<a
+				href={data.user
+					? data.user.role === "customer"
+						? "/customer"
+						: "/worker"
+					: "/login"}
+				class="category-link">LEARN MORE <ArrowRight size={14} /></a
 			>
 		</div>
 
@@ -157,8 +200,13 @@
 				Durable solutions for roof leaks, gutter cleaning, sheet
 				replacements, and roof maintenance.
 			</p>
-			<a href={data.user ? (data.user.role === 'customer' ? '/customer' : '/worker') : '/login'} class="category-link"
-				>LEARN MORE <ArrowRight size={14} /></a
+			<a
+				href={data.user
+					? data.user.role === "customer"
+						? "/customer"
+						: "/worker"
+					: "/login"}
+				class="category-link">LEARN MORE <ArrowRight size={14} /></a
 			>
 		</div>
 
@@ -179,8 +227,13 @@
 				Excavation services for septic tanks, fence post installations,
 				foundations, or drainage projects.
 			</p>
-			<a href={data.user ? (data.user.role === 'customer' ? '/customer' : '/worker') : '/login'} class="category-link"
-				>LEARN MORE <ArrowRight size={14} /></a
+			<a
+				href={data.user
+					? data.user.role === "customer"
+						? "/customer"
+						: "/worker"
+					: "/login"}
+				class="category-link">LEARN MORE <ArrowRight size={14} /></a
 			>
 		</div>
 
@@ -201,8 +254,13 @@
 				Curated lawn care, grass cutting, tree trimming, garden
 				clearing, and landscape maintenance.
 			</p>
-			<a href={data.user ? (data.user.role === 'customer' ? '/customer' : '/worker') : '/login'} class="category-link"
-				>LEARN MORE <ArrowRight size={14} /></a
+			<a
+				href={data.user
+					? data.user.role === "customer"
+						? "/customer"
+						: "/worker"
+					: "/login"}
+				class="category-link">LEARN MORE <ArrowRight size={14} /></a
 			>
 		</div>
 
@@ -223,8 +281,13 @@
 				Custom cabinets, door installations, wooden fences, tables,
 				chairs, and custom wood carpentry.
 			</p>
-			<a href={data.user ? (data.user.role === 'customer' ? '/customer' : '/worker') : '/login'} class="category-link"
-				>LEARN MORE <ArrowRight size={14} /></a
+			<a
+				href={data.user
+					? data.user.role === "customer"
+						? "/customer"
+						: "/worker"
+					: "/login"}
+				class="category-link">LEARN MORE <ArrowRight size={14} /></a
 			>
 		</div>
 
@@ -245,8 +308,13 @@
 				Moving assistance (hakot), heavy lifting, house cleaning, and
 				general household chores.
 			</p>
-			<a href={data.user ? (data.user.role === 'customer' ? '/customer' : '/worker') : '/login'} class="category-link"
-				>LEARN MORE <ArrowRight size={14} /></a
+			<a
+				href={data.user
+					? data.user.role === "customer"
+						? "/customer"
+						: "/worker"
+					: "/login"}
+				class="category-link">LEARN MORE <ArrowRight size={14} /></a
 			>
 		</div>
 	</div>
@@ -270,7 +338,7 @@
 	>
 		{#if data.user}
 			<a
-				href={data.user.role === 'customer' ? '/customer' : '/worker'}
+				href={data.user.role === "customer" ? "/customer" : "/worker"}
 				class="btn btn-secondary"
 				style="background: #fff; color: var(--accent); border: none;"
 				id="cta-dashboard-btn"
@@ -327,11 +395,7 @@
 		width: 52px;
 		height: 52px;
 		border-radius: 50%;
-		background: linear-gradient(
-			135deg,
-			var(--accent) 0%,
-			#6332ec 100%
-		);
+		background: linear-gradient(135deg, var(--accent) 0%, #6332ec 100%);
 		color: #ffffff;
 		display: flex;
 		align-items: center;

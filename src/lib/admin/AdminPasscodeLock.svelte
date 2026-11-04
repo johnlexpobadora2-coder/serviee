@@ -222,7 +222,7 @@
 		width: 100%;
 		height: 48px;
 		padding: 0.75rem 1.25rem;
-		background: linear-gradient(135deg, #7261ef 0%, #8b5cf6 100%);
+		background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
 		color: #ffffff;
 		font-weight: 700;
 		font-size: 0.92rem;

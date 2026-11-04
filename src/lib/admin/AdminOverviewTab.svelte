@@ -34,23 +34,23 @@
 
 <div class="space-y-4 sm:space-y-6" transition:fade={{ duration: 150 }}>
 	{#if (stats.openInquiries || 0) > 0 || (stats.unreadSupportCount || 0) > 0}
-		<div class="p-3.5 sm:p-4 rounded-xl bg-purple-500/10 dark:bg-purple-500/15 border border-[#7261ef]/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+		<div class="p-3.5 sm:p-4 rounded-xl bg-purple-500/10 dark:bg-purple-500/15 border border-[#8b5cf6]/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
 			<div class="flex items-center gap-3">
-				<div class="p-2 rounded-lg bg-[#7261ef] text-white shrink-0 shadow-xs">
+				<div class="p-2 rounded-lg bg-[#8b5cf6] text-white shrink-0 shadow-xs">
 					<Headset size={18} />
 				</div>
 				<div>
-					<h4 class="font-bold text-slate-900 dark:text-[#faf9fe] text-xs sm:text-sm m-0">
+					<h4 class="font-bold text-slate-900 dark:text-[#f8f6fc] text-xs sm:text-sm m-0">
 						{stats.openInquiries || stats.unreadSupportCount} Active Support {stats.openInquiries === 1 ? 'Inquiry' : 'Inquiries'} Awaiting Response
 					</h4>
-					<p class="text-[11px] text-slate-500 dark:text-[#b2acd6] m-0 mt-0.5">
+					<p class="text-[11px] text-slate-500 dark:text-[#b5adc9] m-0 mt-0.5">
 						Users have submitted support inquiries from Account Settings.
 					</p>
 				</div>
 			</div>
 			<button
 				type="button"
-				class="px-3.5 py-1.5 rounded-lg bg-[#7261ef] hover:bg-[#6251df] text-white text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
+				class="px-3.5 py-1.5 rounded-lg bg-[#8b5cf6] hover:bg-[#6251df] text-white text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
 				onclick={onviewallsupport}
 			>
 				<span>Open Support Desk</span>
@@ -62,15 +62,15 @@
 	<!-- Key Performance Metrics Grid -->
 	<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
 		<!-- Stat Card 1 -->
-		<div class="bg-white dark:bg-[#161138] border border-slate-200/80 dark:border-[#2c235b] rounded-xl p-4 sm:p-5 shadow-xs dark:shadow-xl hover:border-purple-300 dark:hover:border-purple-500/40 transition-all group flex flex-col justify-between h-full">
+		<div class="bg-white dark:bg-[#1c1827] border border-slate-200/80 dark:border-[#352c4a] rounded-xl p-4 sm:p-5 shadow-xs dark:shadow-xl hover:border-purple-300 dark:hover:border-purple-500/40 transition-all group flex flex-col justify-between h-full">
 			<div>
 				<div class="flex items-center justify-between mb-2">
-					<span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-[#77719f]">Total Users</span>
+					<span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-[#837a9c]">Total Users</span>
 					<div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-500/20 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
 						<Users size={18} />
 					</div>
 				</div>
-				<div class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-[#faf9fe] mb-2 tracking-tight">{stats.totalUsers || 0}</div>
+				<div class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-[#f8f6fc] mb-2 tracking-tight">{stats.totalUsers || 0}</div>
 			</div>
 			<div class="flex flex-wrap items-center gap-1.5 text-[10px] sm:text-xs mt-auto">
 				<span class="px-2.5 py-0.5 rounded-full bg-pink-100 text-pink-700 dark:bg-pink-500/20 dark:text-pink-300 font-semibold whitespace-nowrap">{stats.totalCustomers || 0} Clients</span>
@@ -79,15 +79,15 @@
 		</div>
 
 		<!-- Stat Card 2 -->
-		<div class="bg-white dark:bg-[#161138] border border-slate-200/80 dark:border-[#2c235b] rounded-xl p-4 sm:p-5 shadow-xs dark:shadow-xl hover:border-purple-300 dark:hover:border-purple-500/40 transition-all group flex flex-col justify-between h-full">
+		<div class="bg-white dark:bg-[#1c1827] border border-slate-200/80 dark:border-[#352c4a] rounded-xl p-4 sm:p-5 shadow-xs dark:shadow-xl hover:border-purple-300 dark:hover:border-purple-500/40 transition-all group flex flex-col justify-between h-full">
 			<div>
 				<div class="flex items-center justify-between mb-2">
-					<span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-[#77719f]">Job Posts</span>
+					<span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-[#837a9c]">Job Posts</span>
 					<div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-500/20 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
 						<Briefcase size={18} />
 					</div>
 				</div>
-				<div class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-[#faf9fe] mb-2 tracking-tight">{stats.totalJobs || 0}</div>
+				<div class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-[#f8f6fc] mb-2 tracking-tight">{stats.totalJobs || 0}</div>
 			</div>
 			<div class="flex flex-wrap items-center gap-1 text-[10px] sm:text-xs mt-auto">
 				<span class="px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300 font-semibold whitespace-nowrap">{stats.openJobs || 0} Open</span>
@@ -97,46 +97,46 @@
 		</div>
 
 		<!-- Stat Card 3 -->
-		<div class="bg-white dark:bg-[#161138] border border-slate-200/80 dark:border-[#2c235b] rounded-xl p-4 sm:p-5 shadow-xs dark:shadow-xl hover:border-purple-300 dark:hover:border-purple-500/40 transition-all group flex flex-col justify-between h-full">
+		<div class="bg-white dark:bg-[#1c1827] border border-slate-200/80 dark:border-[#352c4a] rounded-xl p-4 sm:p-5 shadow-xs dark:shadow-xl hover:border-purple-300 dark:hover:border-purple-500/40 transition-all group flex flex-col justify-between h-full">
 			<div>
 				<div class="flex items-center justify-between mb-2">
-					<span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-[#77719f]">Budget Vol.</span>
+					<span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-[#837a9c]">Budget Vol.</span>
 					<div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
 						<DollarSign size={18} />
 					</div>
 				</div>
 				<div class="text-lg sm:text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mb-1 truncate tracking-tight min-w-0">{formatCurrency(stats.totalBudget)}</div>
 			</div>
-			<p class="text-[10px] sm:text-xs text-slate-500 dark:text-[#77719f] font-medium truncate mt-auto">Aggregate budget</p>
+			<p class="text-[10px] sm:text-xs text-slate-500 dark:text-[#837a9c] font-medium truncate mt-auto">Aggregate budget</p>
 		</div>
 
 		<!-- Stat Card 4 -->
-		<div class="bg-white dark:bg-[#161138] border border-slate-200/80 dark:border-[#2c235b] rounded-xl p-4 sm:p-5 shadow-xs dark:shadow-xl hover:border-purple-300 dark:hover:border-purple-500/40 transition-all group flex flex-col justify-between h-full">
+		<div class="bg-white dark:bg-[#1c1827] border border-slate-200/80 dark:border-[#352c4a] rounded-xl p-4 sm:p-5 shadow-xs dark:shadow-xl hover:border-purple-300 dark:hover:border-purple-500/40 transition-all group flex flex-col justify-between h-full">
 			<div>
 				<div class="flex items-center justify-between mb-2">
-					<span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-[#77719f]">Avg Rating</span>
+					<span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-[#837a9c]">Avg Rating</span>
 					<div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-yellow-50 dark:bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-100 dark:border-yellow-500/20 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
 						<Star size={18} />
 					</div>
 				</div>
-				<div class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-[#faf9fe] mb-1 tracking-tight">{stats.avgRating || '0.0'} <span class="text-slate-400 dark:text-[#77719f] text-xs sm:text-base font-medium">/ 5</span></div>
+				<div class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-[#f8f6fc] mb-1 tracking-tight">{stats.avgRating || '0.0'} <span class="text-slate-400 dark:text-[#837a9c] text-xs sm:text-base font-medium">/ 5</span></div>
 			</div>
-			<p class="text-[10px] sm:text-xs text-slate-500 dark:text-[#77719f] font-medium truncate mt-auto">{stats.totalReviews || 0} reviews</p>
+			<p class="text-[10px] sm:text-xs text-slate-500 dark:text-[#837a9c] font-medium truncate mt-auto">{stats.totalReviews || 0} reviews</p>
 		</div>
 	</div>
 
 	<!-- Overview Tables Split Grid -->
 	<div class="grid grid-cols-1 lg:grid-cols-2 gap-3.5 sm:gap-6 items-start">
 		<!-- Recent Users Panel -->
-		<div class="bg-white dark:bg-[#161138] border border-slate-200/80 dark:border-[#2c235b] rounded-xl p-3.5 sm:p-5 shadow-xs dark:shadow-xl space-y-3.5 sm:space-y-4">
-			<div class="flex items-center justify-between border-b border-slate-100 dark:border-[#2c235b] pb-3">
-				<h3 class="font-bold text-slate-900 dark:text-[#faf9fe] text-sm sm:text-base flex items-center gap-2">
-					<div class="p-1.5 bg-purple-50 dark:bg-purple-500/10 text-[#7261ef] rounded-lg">
+		<div class="bg-white dark:bg-[#1c1827] border border-slate-200/80 dark:border-[#352c4a] rounded-xl p-3.5 sm:p-5 shadow-xs dark:shadow-xl space-y-3.5 sm:space-y-4">
+			<div class="flex items-center justify-between border-b border-slate-100 dark:border-[#352c4a] pb-3">
+				<h3 class="font-bold text-slate-900 dark:text-[#f8f6fc] text-sm sm:text-base flex items-center gap-2">
+					<div class="p-1.5 bg-purple-50 dark:bg-purple-500/10 text-[#8b5cf6] rounded-lg">
 						<User size={16} />
 					</div>
 					<span>Recent Registrations</span>
 				</h3>
-				<button onclick={onviewallusers} class="px-2.5 sm:px-3 py-1.5 bg-purple-50 hover:bg-purple-100 dark:bg-purple-500/10 dark:hover:bg-purple-500/20 text-[#7261ef] dark:text-purple-400 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer">
+				<button onclick={onviewallusers} class="px-2.5 sm:px-3 py-1.5 bg-purple-50 hover:bg-purple-100 dark:bg-purple-500/10 dark:hover:bg-purple-500/20 text-[#8b5cf6] dark:text-purple-400 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer">
 					<span>View All</span>
 					<ArrowRight size={12} />
 				</button>
@@ -145,24 +145,24 @@
 			<!-- Desktop Table -->
 			<div class="hidden sm:block overflow-x-auto">
 				<table class="w-full text-left text-xs">
-					<thead class="bg-slate-100 dark:bg-[#211a4e]/70 text-slate-700 dark:text-[#b2acd6] uppercase tracking-wider border-b border-slate-200 dark:border-[#2c235b] text-[11px]">
+					<thead class="bg-slate-100 dark:bg-[#272138]/70 text-slate-700 dark:text-[#b5adc9] uppercase tracking-wider border-b border-slate-200 dark:border-[#352c4a] text-[11px]">
 						<tr>
 							<th class="py-3 px-4 font-bold rounded-l-lg">User</th>
 							<th class="py-3 px-4 font-bold">Role</th>
 							<th class="py-3 px-4 font-bold rounded-r-lg">Joined</th>
 						</tr>
 					</thead>
-					<tbody class="divide-y divide-slate-100 dark:divide-[#2c235b]/60 text-slate-700 dark:text-[#b2acd6]">
+					<tbody class="divide-y divide-slate-100 dark:divide-[#352c4a]/60 text-slate-700 dark:text-[#b5adc9]">
 						{#each users.slice(0, 5) as u}
-							<tr class="hover:bg-slate-50/80 dark:hover:bg-[#211a4e]/40 transition-colors">
+							<tr class="hover:bg-slate-50/80 dark:hover:bg-[#272138]/40 transition-colors">
 								<td class="py-3 px-4">
 									<div class="flex items-center gap-3">
-										<div class="w-8 h-8 rounded-full bg-linear-to-br from-[#7261ef] to-purple-600 text-white font-bold flex items-center justify-center text-xs shadow-xs shrink-0">
+										<div class="w-8 h-8 rounded-full bg-linear-to-br from-[#8b5cf6] to-purple-600 text-white font-bold flex items-center justify-center text-xs shadow-xs shrink-0">
 											{u.name?.charAt(0) || 'U'}
 										</div>
 										<div class="min-w-0">
-											<div class="font-bold text-slate-900 dark:text-[#faf9fe] truncate">{u.name}</div>
-											<div class="text-[11px] text-slate-500 dark:text-[#b2acd6] truncate">{u.email}</div>
+											<div class="font-bold text-slate-900 dark:text-[#f8f6fc] truncate">{u.name}</div>
+											<div class="text-[11px] text-slate-500 dark:text-[#b5adc9] truncate">{u.email}</div>
 										</div>
 									</div>
 								</td>
@@ -171,10 +171,10 @@
 										{u.role === 'customer' ? 'Client' : 'Worker'}
 									</span>
 								</td>
-								<td class="py-3 px-4 text-slate-500 dark:text-[#77719f] font-medium whitespace-nowrap">{formatDate(u.created_at)}</td>
+								<td class="py-3 px-4 text-slate-500 dark:text-[#837a9c] font-medium whitespace-nowrap">{formatDate(u.created_at)}</td>
 							</tr>
 						{:else}
-							<tr><td colspan="3" class="py-6 text-center text-slate-400 dark:text-[#77719f] font-medium">No users registered yet.</td></tr>
+							<tr><td colspan="3" class="py-6 text-center text-slate-400 dark:text-[#837a9c] font-medium">No users registered yet.</td></tr>
 						{/each}
 					</tbody>
 				</table>
@@ -183,14 +183,14 @@
 			<!-- Mobile Compact List -->
 			<div class="sm:hidden space-y-2">
 				{#each users.slice(0, 5) as u}
-					<div class="p-2.5 bg-slate-50 dark:bg-[#211a4e]/60 border border-slate-200/80 dark:border-[#2c235b] rounded-lg flex items-center justify-between gap-2 text-xs">
+					<div class="p-2.5 bg-slate-50 dark:bg-[#272138]/60 border border-slate-200/80 dark:border-[#352c4a] rounded-lg flex items-center justify-between gap-2 text-xs">
 						<div class="flex items-center gap-2 min-w-0">
-							<div class="w-7 h-7 rounded-full bg-linear-to-br from-[#7261ef] to-purple-600 text-white font-bold flex items-center justify-center text-xs shrink-0">
+							<div class="w-7 h-7 rounded-full bg-linear-to-br from-[#8b5cf6] to-purple-600 text-white font-bold flex items-center justify-center text-xs shrink-0">
 								{u.name?.charAt(0) || 'U'}
 							</div>
 							<div class="min-w-0">
-								<div class="font-bold text-slate-900 dark:text-[#faf9fe] text-xs truncate">{u.name}</div>
-								<div class="text-[10px] text-slate-500 dark:text-[#b2acd6] truncate">{u.email}</div>
+								<div class="font-bold text-slate-900 dark:text-[#f8f6fc] text-xs truncate">{u.name}</div>
+								<div class="text-[10px] text-slate-500 dark:text-[#b5adc9] truncate">{u.email}</div>
 							</div>
 						</div>
 						<span class="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider {u.role === 'customer' ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20' : 'bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-200/60 dark:border-purple-500/20'}">
@@ -198,21 +198,21 @@
 						</span>
 					</div>
 				{:else}
-					<p class="py-4 text-center text-slate-400 dark:text-[#77719f] text-xs font-medium">No users registered yet.</p>
+					<p class="py-4 text-center text-slate-400 dark:text-[#837a9c] text-xs font-medium">No users registered yet.</p>
 				{/each}
 			</div>
 		</div>
 
 		<!-- Recent Jobs Panel -->
-		<div class="bg-white dark:bg-[#161138] border border-slate-200/80 dark:border-[#2c235b] rounded-xl p-3.5 sm:p-5 shadow-xs dark:shadow-xl space-y-3.5 sm:space-y-4">
-			<div class="flex items-center justify-between border-b border-slate-100 dark:border-[#2c235b] pb-3">
-				<h3 class="font-bold text-slate-900 dark:text-[#faf9fe] text-sm sm:text-base flex items-center gap-2">
-					<div class="p-1.5 bg-purple-50 dark:bg-purple-500/10 text-[#7261ef] rounded-lg">
+		<div class="bg-white dark:bg-[#1c1827] border border-slate-200/80 dark:border-[#352c4a] rounded-xl p-3.5 sm:p-5 shadow-xs dark:shadow-xl space-y-3.5 sm:space-y-4">
+			<div class="flex items-center justify-between border-b border-slate-100 dark:border-[#352c4a] pb-3">
+				<h3 class="font-bold text-slate-900 dark:text-[#f8f6fc] text-sm sm:text-base flex items-center gap-2">
+					<div class="p-1.5 bg-purple-50 dark:bg-purple-500/10 text-[#8b5cf6] rounded-lg">
 						<Briefcase size={16} />
 					</div>
 					<span>Latest Job Posts</span>
 				</h3>
-				<button onclick={onviewalljobs} class="px-2.5 sm:px-3 py-1.5 bg-purple-50 hover:bg-purple-100 dark:bg-purple-500/10 dark:hover:bg-purple-500/20 text-[#7261ef] dark:text-purple-400 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer">
+				<button onclick={onviewalljobs} class="px-2.5 sm:px-3 py-1.5 bg-purple-50 hover:bg-purple-100 dark:bg-purple-500/10 dark:hover:bg-purple-500/20 text-[#8b5cf6] dark:text-purple-400 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer">
 					<span>View All</span>
 					<ArrowRight size={12} />
 				</button>
@@ -221,19 +221,19 @@
 			<!-- Desktop Table -->
 			<div class="hidden sm:block overflow-x-auto">
 				<table class="w-full text-left text-xs">
-					<thead class="bg-slate-100 dark:bg-[#211a4e]/70 text-slate-700 dark:text-[#b2acd6] uppercase tracking-wider border-b border-slate-200 dark:border-[#2c235b] text-[11px]">
+					<thead class="bg-slate-100 dark:bg-[#272138]/70 text-slate-700 dark:text-[#b5adc9] uppercase tracking-wider border-b border-slate-200 dark:border-[#352c4a] text-[11px]">
 						<tr>
 							<th class="py-3 px-4 font-bold rounded-l-lg">Title</th>
 							<th class="py-3 px-4 font-bold">Budget</th>
 							<th class="py-3 px-4 font-bold rounded-r-lg">Status</th>
 						</tr>
 					</thead>
-					<tbody class="divide-y divide-slate-100 dark:divide-[#2c235b]/60 text-slate-700 dark:text-[#b2acd6]">
+					<tbody class="divide-y divide-slate-100 dark:divide-[#352c4a]/60 text-slate-700 dark:text-[#b5adc9]">
 						{#each jobs.slice(0, 5) as j}
-							<tr class="hover:bg-slate-50/80 dark:hover:bg-[#211a4e]/40 transition-colors">
+							<tr class="hover:bg-slate-50/80 dark:hover:bg-[#272138]/40 transition-colors">
 								<td class="py-3 px-4">
-									<div class="font-bold text-slate-900 dark:text-[#faf9fe] max-w-50 truncate">{j.title}</div>
-									<div class="text-[11px] text-slate-500 dark:text-[#b2acd6] font-medium">{j.category || 'General'} • {j.location || 'PH'}</div>
+									<div class="font-bold text-slate-900 dark:text-[#f8f6fc] max-w-50 truncate">{j.title}</div>
+									<div class="text-[11px] text-slate-500 dark:text-[#b5adc9] font-medium">{j.category || 'General'} • {j.location || 'PH'}</div>
 								</td>
 								<td class="py-3 px-4 font-extrabold text-emerald-600 dark:text-emerald-400">{formatCurrency(j.budget)}</td>
 								<td class="py-3 px-4">
@@ -243,7 +243,7 @@
 								</td>
 							</tr>
 						{:else}
-							<tr><td colspan="3" class="py-6 text-center text-slate-400 dark:text-[#77719f] font-medium">No job postings created yet.</td></tr>
+							<tr><td colspan="3" class="py-6 text-center text-slate-400 dark:text-[#837a9c] font-medium">No job postings created yet.</td></tr>
 						{/each}
 					</tbody>
 				</table>
@@ -252,10 +252,10 @@
 			<!-- Mobile Compact List -->
 			<div class="sm:hidden space-y-2">
 				{#each jobs.slice(0, 5) as j}
-					<div class="p-2.5 bg-slate-50 dark:bg-[#211a4e]/60 border border-slate-200/80 dark:border-[#2c235b] rounded-lg flex items-center justify-between gap-2 text-xs">
+					<div class="p-2.5 bg-slate-50 dark:bg-[#272138]/60 border border-slate-200/80 dark:border-[#352c4a] rounded-lg flex items-center justify-between gap-2 text-xs">
 						<div class="min-w-0 flex-1">
-							<div class="font-bold text-slate-900 dark:text-[#faf9fe] text-xs truncate">{j.title}</div>
-							<div class="text-[10px] text-slate-500 dark:text-[#b2acd6] font-medium flex items-center gap-1.5 mt-0.5">
+							<div class="font-bold text-slate-900 dark:text-[#f8f6fc] text-xs truncate">{j.title}</div>
+							<div class="text-[10px] text-slate-500 dark:text-[#b5adc9] font-medium flex items-center gap-1.5 mt-0.5">
 								<span>{j.category || 'General'}</span>
 								<span>•</span>
 								<span class="text-emerald-600 dark:text-emerald-400 font-bold">{formatCurrency(j.budget)}</span>
@@ -266,7 +266,7 @@
 						</span>
 					</div>
 				{:else}
-					<p class="py-4 text-center text-slate-400 dark:text-[#77719f] text-xs font-medium">No job postings created yet.</p>
+					<p class="py-4 text-center text-slate-400 dark:text-[#837a9c] text-xs font-medium">No job postings created yet.</p>
 				{/each}
 			</div>
 		</div>

@@ -2,20 +2,20 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-	--bg-base: #0c081e;
-	--bg-card: #161138;
-	--bg-input: #211a4e;
-	--bg-header: rgba(12, 8, 30, 0.88);
+	--bg-base: #13111a;
+	--bg-card: #1c1827;
+	--bg-input: #272138;
+	--bg-header: rgba(19, 17, 26, 0.90);
 	
 	--accent: #8b5cf6;
 	--accent-hover: #a78bfa;
 	--accent-light: rgba(139, 92, 246, 0.18);
 	
-	--text-primary: #faf9fe;
-	--text-secondary: #b2acd6;
-	--text-muted: #938db9;
+	--text-primary: #f8f6fc;
+	--text-secondary: #b5adc9;
+	--text-muted: #857c9e;
 	
-	--border-color: #312763;
+	--border-color: #352c4a;
 	--border-focus: #8b5cf6;
 	
 	--success: #34d399;
@@ -327,7 +327,7 @@ header {
 }
 
 .btn-secondary:hover {
-	background-color: #2b2266;
+	background-color: #332a48;
 	border-color: rgba(255, 255, 255, 0.2);
 }
 
@@ -3548,7 +3548,7 @@ html.light .rating-badge-zero, [data-theme="light"] .rating-badge-zero {
 	border-radius: var(--radius-md);
 	overflow: hidden;
 	border: 1px solid var(--border-color);
-	background: #10141e;
+	background: #171421;
 	position: relative;
 }
 

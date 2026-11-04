@@ -309,20 +309,20 @@
 	<!-- Top Metric Statistics Grid (Hides on mobile when a ticket is opened to maximize chat height) -->
 	<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 {selectedTicketId ? 'hidden lg:grid' : 'grid'}">
 		<!-- Metric 1: Total Inquiries -->
-		<div class="bg-white dark:bg-[#161138] border border-slate-200/80 dark:border-[#2c235b] rounded-xl p-4 sm:p-5 shadow-xs dark:shadow-xl hover:border-purple-300 dark:hover:border-purple-500/40 transition-all flex flex-col justify-between">
+		<div class="bg-white dark:bg-[#1c1827] border border-slate-200/80 dark:border-[#352c4a] rounded-xl p-4 sm:p-5 shadow-xs dark:shadow-xl hover:border-purple-300 dark:hover:border-purple-500/40 transition-all flex flex-col justify-between">
 			<div class="flex items-center justify-between mb-2">
-				<span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-[#77719f]">Total Inquiries</span>
+				<span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-[#837a9c]">Total Inquiries</span>
 				<div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-500/20 flex items-center justify-center shrink-0">
 					<Headset size={18} />
 				</div>
 			</div>
-			<div class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-[#faf9fe] tracking-tight">{totalCount}</div>
+			<div class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-[#f8f6fc] tracking-tight">{totalCount}</div>
 		</div>
 
 		<!-- Metric 2: Open / Needs Attention -->
-		<div class="bg-white dark:bg-[#161138] border border-slate-200/80 dark:border-[#2c235b] rounded-xl p-4 sm:p-5 shadow-xs dark:shadow-xl hover:border-red-300 dark:hover:border-red-500/40 transition-all flex flex-col justify-between relative">
+		<div class="bg-white dark:bg-[#1c1827] border border-slate-200/80 dark:border-[#352c4a] rounded-xl p-4 sm:p-5 shadow-xs dark:shadow-xl hover:border-red-300 dark:hover:border-red-500/40 transition-all flex flex-col justify-between relative">
 			<div class="flex items-center justify-between mb-2">
-				<span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-[#77719f]">Open & Pending</span>
+				<span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-[#837a9c]">Open & Pending</span>
 				<div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-500/20 flex items-center justify-center shrink-0 relative">
 					<AlertCircle size={18} />
 					{#if unreadCount > 0}
@@ -334,9 +334,9 @@
 		</div>
 
 		<!-- Metric 3: In Progress -->
-		<div class="bg-white dark:bg-[#161138] border border-slate-200/80 dark:border-[#2c235b] rounded-xl p-4 sm:p-5 shadow-xs dark:shadow-xl hover:border-amber-300 dark:hover:border-amber-500/40 transition-all flex flex-col justify-between">
+		<div class="bg-white dark:bg-[#1c1827] border border-slate-200/80 dark:border-[#352c4a] rounded-xl p-4 sm:p-5 shadow-xs dark:shadow-xl hover:border-amber-300 dark:hover:border-amber-500/40 transition-all flex flex-col justify-between">
 			<div class="flex items-center justify-between mb-2">
-				<span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-[#77719f]">In Progress</span>
+				<span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-[#837a9c]">In Progress</span>
 				<div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-500/20 flex items-center justify-center shrink-0">
 					<Clock size={18} />
 				</div>
@@ -345,9 +345,9 @@
 		</div>
 
 		<!-- Metric 4: Resolved -->
-		<div class="bg-white dark:bg-[#161138] border border-slate-200/80 dark:border-[#2c235b] rounded-xl p-4 sm:p-5 shadow-xs dark:shadow-xl hover:border-emerald-300 dark:hover:border-emerald-500/40 transition-all flex flex-col justify-between">
+		<div class="bg-white dark:bg-[#1c1827] border border-slate-200/80 dark:border-[#352c4a] rounded-xl p-4 sm:p-5 shadow-xs dark:shadow-xl hover:border-emerald-300 dark:hover:border-emerald-500/40 transition-all flex flex-col justify-between">
 			<div class="flex items-center justify-between mb-2">
-				<span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-[#77719f]">Resolved</span>
+				<span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-[#837a9c]">Resolved</span>
 				<div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20 flex items-center justify-center shrink-0">
 					<CheckCircle2 size={18} />
 				</div>
@@ -357,14 +357,14 @@
 	</div>
 
 	<!-- Main Inbox & Thread Split Screen -->
-	<div class="bg-white dark:bg-[#161138] border border-slate-200 dark:border-[#2c235b] rounded-2xl shadow-xs dark:shadow-xl overflow-hidden flex flex-col lg:flex-row h-[calc(100dvh-175px)] min-h-125 lg:h-180">
+	<div class="bg-white dark:bg-[#1c1827] border border-slate-200 dark:border-[#352c4a] rounded-2xl shadow-xs dark:shadow-xl overflow-hidden flex flex-col lg:flex-row h-[calc(100dvh-175px)] min-h-125 lg:h-180">
 		<!-- Left Pane: Inquiry Tickets List -->
-		<div class="w-full lg:w-96 border-r border-slate-200 dark:border-[#2c235b] flex flex-col h-full shrink-0 bg-white dark:bg-[#161138] {selectedTicketId ? 'hidden lg:flex' : 'flex'}">
+		<div class="w-full lg:w-96 border-r border-slate-200 dark:border-[#352c4a] flex flex-col h-full shrink-0 bg-white dark:bg-[#1c1827] {selectedTicketId ? 'hidden lg:flex' : 'flex'}">
 			<!-- Inbox Header & Filter Controls -->
-			<div class="p-3 sm:p-4 border-b border-slate-200 dark:border-[#2c235b] space-y-2.5 sm:space-y-3 bg-slate-50/50 dark:bg-[#211a4e]/40">
+			<div class="p-3 sm:p-4 border-b border-slate-200 dark:border-[#352c4a] space-y-2.5 sm:space-y-3 bg-slate-50/50 dark:bg-[#272138]/40">
 				<div class="flex items-center justify-between">
-					<h3 class="font-bold text-slate-900 dark:text-[#faf9fe] text-xs sm:text-sm flex items-center gap-2 m-0">
-						<MessageSquare size={16} class="text-[#7261ef]" />
+					<h3 class="font-bold text-slate-900 dark:text-[#f8f6fc] text-xs sm:text-sm flex items-center gap-2 m-0">
+						<MessageSquare size={16} class="text-[#8b5cf6]" />
 						<span>User Inquiries ({filteredTickets.length})</span>
 					</h3>
 					{#if unreadCount > 0}
@@ -376,12 +376,12 @@
 
 				<!-- Search Bar -->
 				<div class="relative">
-					<Search size={14} class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-[#77719f]" />
+					<Search size={14} class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-[#837a9c]" />
 					<input 
 						type="text" 
 						bind:value={searchQuery}
 						placeholder="Search user, email, subject..."
-						class="w-full pl-8.5 pr-3 h-9 text-xs bg-white dark:bg-[#211a4e] border border-slate-300 dark:border-[#2c235b] rounded-lg text-slate-900 dark:text-[#faf9fe] placeholder-slate-400 dark:placeholder-[#77719f] focus:outline-none focus:border-[#7261ef] focus:ring-1 focus:ring-[#7261ef]"
+						class="w-full pl-8.5 pr-3 h-9 text-xs bg-white dark:bg-[#272138] border border-slate-300 dark:border-[#352c4a] rounded-lg text-slate-900 dark:text-[#f8f6fc] placeholder-slate-400 dark:placeholder-[#837a9c] focus:outline-none focus:border-[#8b5cf6] focus:ring-1 focus:ring-[#8b5cf6]"
 					/>
 				</div>
 
@@ -390,7 +390,7 @@
 					{#each ['all', 'open', 'in_progress', 'resolved'] as st}
 						<button
 							type="button"
-							class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all whitespace-nowrap cursor-pointer shrink-0 {statusFilter === st ? 'bg-[#7261ef] text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 dark:bg-[#211a4e] text-slate-600 dark:text-[#b2acd6]'}"
+							class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all whitespace-nowrap cursor-pointer shrink-0 {statusFilter === st ? 'bg-[#8b5cf6] text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 dark:bg-[#272138] text-slate-600 dark:text-[#b5adc9]'}"
 							onclick={() => statusFilter = st}
 						>
 							{st === 'all' ? 'All' : st === 'in_progress' ? 'In Progress' : st.charAt(0).toUpperCase() + st.slice(1)}
@@ -400,9 +400,9 @@
 			</div>
 
 			<!-- Tickets List -->
-			<div class="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-[#2c235b]/60">
+			<div class="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-[#352c4a]/60">
 				{#if filteredTickets.length === 0}
-					<div class="p-8 text-center text-slate-400 dark:text-[#77719f] flex flex-col items-center justify-center space-y-2">
+					<div class="p-8 text-center text-slate-400 dark:text-[#837a9c] flex flex-col items-center justify-center space-y-2">
 						<Headset size={32} class="opacity-40" />
 						<p class="text-xs font-semibold">No inquiries matching filter</p>
 					</div>
@@ -412,10 +412,10 @@
 						{@const isSelected = selectedTicketId === ticket.id}
 						<button
 							type="button"
-							class="w-full text-left p-3.5 transition-all relative flex items-start gap-3 cursor-pointer {isSelected ? 'bg-purple-50/80 dark:bg-[#211a4e] border-l-4 border-l-[#7261ef]' : 'hover:bg-slate-50/80 dark:hover:bg-[#211a4e]/40'}"
+							class="w-full text-left p-3.5 transition-all relative flex items-start gap-3 cursor-pointer {isSelected ? 'bg-purple-50/80 dark:bg-[#272138] border-l-4 border-l-[#8b5cf6]' : 'hover:bg-slate-50/80 dark:hover:bg-[#272138]/40'}"
 							onclick={() => { hasUserDeselected = false; selectTicket(ticket.id); }}
 						>
-							<div class="w-9 h-9 rounded-full bg-linear-to-br from-[#7261ef] to-purple-600 text-white font-bold flex items-center justify-center text-xs shadow-xs shrink-0 overflow-hidden">
+							<div class="w-9 h-9 rounded-full bg-linear-to-br from-[#8b5cf6] to-purple-600 text-white font-bold flex items-center justify-center text-xs shadow-xs shrink-0 overflow-hidden">
 								{#if ticket.user_avatar}
 									<img src={ticket.user_avatar} alt={ticket.user_name} class="w-full h-full object-cover" />
 								{:else}
@@ -425,15 +425,15 @@
 
 							<div class="flex-1 min-w-0">
 								<div class="flex items-center justify-between gap-1 mb-0.5">
-									<span class="font-bold text-xs text-slate-900 dark:text-[#faf9fe] truncate">
+									<span class="font-bold text-xs text-slate-900 dark:text-[#f8f6fc] truncate">
 										{ticket.user_name}
 									</span>
-									<span class="text-[10px] text-slate-400 dark:text-[#77719f] shrink-0 font-medium">
+									<span class="text-[10px] text-slate-400 dark:text-[#837a9c] shrink-0 font-medium">
 										{formatTimestamp(ticket.updated_at || ticket.created_at)}
 									</span>
 								</div>
 
-								<p class="text-xs text-slate-700 dark:text-[#b2acd6] font-semibold truncate mb-1.5">
+								<p class="text-xs text-slate-700 dark:text-[#b5adc9] font-semibold truncate mb-1.5">
 									{ticket.subject}
 								</p>
 
@@ -456,21 +456,21 @@
 		</div>
 
 		<!-- Right Pane: Active Thread Window -->
-		<div class="flex-1 flex flex-col h-full bg-slate-50/30 dark:bg-[#161138]/40 {selectedTicketId ? 'flex' : 'hidden lg:flex'}">
+		<div class="flex-1 flex flex-col h-full bg-slate-50/30 dark:bg-[#1c1827]/40 {selectedTicketId ? 'flex' : 'hidden lg:flex'}">
 			{#if activeTicket}
 				<!-- Active Thread Header (Compact single-row on mobile, non-wrapping) -->
-				<div class="p-2.5 sm:p-4 border-b border-slate-200 dark:border-[#2c235b] bg-white dark:bg-[#161138] flex items-center justify-between gap-2 shrink-0">
+				<div class="p-2.5 sm:p-4 border-b border-slate-200 dark:border-[#352c4a] bg-white dark:bg-[#1c1827] flex items-center justify-between gap-2 shrink-0">
 					<div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
 						<button 
 							type="button" 
-							class="lg:hidden p-1.5 -ml-1 rounded-lg text-slate-500 dark:text-[#b2acd6] hover:bg-slate-100 dark:hover:bg-[#211a4e] cursor-pointer shrink-0"
+							class="lg:hidden p-1.5 -ml-1 rounded-lg text-slate-500 dark:text-[#b5adc9] hover:bg-slate-100 dark:hover:bg-[#272138] cursor-pointer shrink-0"
 							onclick={() => { selectedTicketId = null; hasUserDeselected = true; }}
 							aria-label="Back to inquiries list"
 						>
 							<ArrowLeft size={18} />
 						</button>
 
-						<div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-linear-to-br from-[#7261ef] to-purple-600 text-white font-bold flex items-center justify-center text-xs sm:text-sm shadow-xs shrink-0 overflow-hidden">
+						<div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-linear-to-br from-[#8b5cf6] to-purple-600 text-white font-bold flex items-center justify-center text-xs sm:text-sm shadow-xs shrink-0 overflow-hidden">
 							{#if activeTicket.user_avatar}
 								<img src={activeTicket.user_avatar} alt={activeTicket.user_name} class="w-full h-full object-cover" />
 							{:else}
@@ -480,14 +480,14 @@
 
 						<div class="min-w-0 flex-1">
 							<div class="flex items-center gap-1.5 min-w-0">
-								<h4 class="font-bold text-slate-900 dark:text-[#faf9fe] text-xs sm:text-base truncate m-0">
+								<h4 class="font-bold text-slate-900 dark:text-[#f8f6fc] text-xs sm:text-base truncate m-0">
 									{activeTicket.user_name}
 								</h4>
 								<span class="text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded-full font-bold uppercase tracking-wider shrink-0 {activeTicket.user_role === 'worker' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300' : 'bg-pink-100 text-pink-700 dark:bg-pink-500/20 dark:text-pink-300'}">
 									{activeTicket.user_role === 'worker' ? 'Worker' : 'Client'}
 								</span>
 							</div>
-							<div class="flex items-center gap-1 text-[11px] sm:text-xs text-slate-500 dark:text-[#b2acd6] truncate mt-0.5">
+							<div class="flex items-center gap-1 text-[11px] sm:text-xs text-slate-500 dark:text-[#b5adc9] truncate mt-0.5">
 								<span class="truncate">{activeTicket.user_email}</span>
 								{#if activeTicket.user_phone}
 									<span class="hidden sm:inline shrink-0">• {activeTicket.user_phone}</span>
@@ -511,10 +511,10 @@
 				</div>
 
 				<!-- Subject Strip -->
-				<div class="px-3 py-2 sm:px-4 sm:py-2.5 bg-slate-100/70 dark:bg-[#211a4e]/50 border-b border-slate-200 dark:border-[#2c235b] flex items-center justify-between text-xs gap-2 shrink-0">
+				<div class="px-3 py-2 sm:px-4 sm:py-2.5 bg-slate-100/70 dark:bg-[#272138]/50 border-b border-slate-200 dark:border-[#352c4a] flex items-center justify-between text-xs gap-2 shrink-0">
 					<div class="flex items-center gap-1.5 min-w-0 flex-1 truncate">
-						<span class="text-slate-500 dark:text-[#77719f] font-semibold shrink-0">Subject:</span>
-						<span class="font-bold text-slate-900 dark:text-[#faf9fe] truncate">{activeTicket.subject}</span>
+						<span class="text-slate-500 dark:text-[#837a9c] font-semibold shrink-0">Subject:</span>
+						<span class="font-bold text-slate-900 dark:text-[#f8f6fc] truncate">{activeTicket.subject}</span>
 					</div>
 					<div class="flex items-center gap-1.5 shrink-0">
 						<span class="h-6 inline-flex items-center justify-center px-2.5 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap shrink-0 {getCategoryBadge(activeTicket.category)}">
@@ -527,10 +527,10 @@
 							class="h-6! min-h-0! py-0! pl-2.5! pr-5.5! border inline-flex items-center justify-center text-[10px] font-bold rounded-full cursor-pointer focus:outline-none transition-all whitespace-nowrap shrink-0 shadow-2xs hover:opacity-90 active:scale-95 {getStatusBadge(activeTicket.status).class} {getStatusBadge(activeTicket.status).border}"
 							title="Change ticket status"
 						>
-							<option value="open" class="bg-white dark:bg-[#161138] text-slate-900 dark:text-white">Open</option>
-							<option value="in_progress" class="bg-white dark:bg-[#161138] text-slate-900 dark:text-white">In Progress</option>
-							<option value="resolved" class="bg-white dark:bg-[#161138] text-slate-900 dark:text-white">Resolved</option>
-							<option value="closed" class="bg-white dark:bg-[#161138] text-slate-900 dark:text-white">Closed</option>
+							<option value="open" class="bg-white dark:bg-[#1c1827] text-slate-900 dark:text-white">Open</option>
+							<option value="in_progress" class="bg-white dark:bg-[#1c1827] text-slate-900 dark:text-white">In Progress</option>
+							<option value="resolved" class="bg-white dark:bg-[#1c1827] text-slate-900 dark:text-white">Resolved</option>
+							<option value="closed" class="bg-white dark:bg-[#1c1827] text-slate-900 dark:text-white">Closed</option>
 						</select>
 					</div>
 				</div>
@@ -538,14 +538,14 @@
 				<!-- Messages Area -->
 				<div 
 					bind:this={messagesContainer}
-					class="flex-1 p-3 sm:p-5 overflow-y-auto space-y-3 sm:space-y-4 bg-slate-50/50 dark:bg-[#161138]/20"
+					class="flex-1 p-3 sm:p-5 overflow-y-auto space-y-3 sm:space-y-4 bg-slate-50/50 dark:bg-[#1c1827]/20"
 				>
 					{#if loadingMessages}
 						<div class="h-full flex items-center justify-center">
 							<span class="spinner spinner-sm"></span>
 						</div>
 					{:else if activeMessages.length === 0}
-						<div class="h-full flex flex-col items-center justify-center text-slate-400 dark:text-[#77719f] text-xs">
+						<div class="h-full flex flex-col items-center justify-center text-slate-400 dark:text-[#837a9c] text-xs">
 							<p>No messages recorded for this inquiry.</p>
 						</div>
 					{:else}
@@ -553,20 +553,20 @@
 							{@const isAdmin = msg.sender_type === 'admin'}
 							<div class="flex flex-col {isAdmin ? 'items-end' : 'items-start'}">
 								<div class="flex items-center gap-1.5 mb-1 px-1">
-									<span class="text-[11px] font-bold inline-flex items-center gap-1 {isAdmin ? 'text-[#7261ef]' : 'text-slate-700 dark:text-[#faf9fe]'}">
+									<span class="text-[11px] font-bold inline-flex items-center gap-1 {isAdmin ? 'text-[#8b5cf6]' : 'text-slate-700 dark:text-[#f8f6fc]'}">
 										{#if isAdmin}
-											<ShieldCheck size={13} class="text-[#7261ef] shrink-0" />
+											<ShieldCheck size={13} class="text-[#8b5cf6] shrink-0" />
 											<span>Serviee Admin Support</span>
 										{:else}
 											<span>{msg.sender_name}</span>
 										{/if}
 									</span>
-									<span class="text-[10px] text-slate-400 dark:text-[#77719f]">
+									<span class="text-[10px] text-slate-400 dark:text-[#837a9c]">
 										{formatTimestamp(msg.created_at)}
 									</span>
 								</div>
 
-								<div class="max-w-[88%] sm:max-w-[75%] px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-xs {isAdmin ? 'bg-[#7261ef] text-white rounded-br-xs' : 'bg-white dark:bg-[#211a4e] border border-slate-200 dark:border-[#2c235b] text-slate-900 dark:text-[#faf9fe] rounded-bl-xs'}">
+								<div class="max-w-[88%] sm:max-w-[75%] px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-xs {isAdmin ? 'bg-[#8b5cf6] text-white rounded-br-xs' : 'bg-white dark:bg-[#272138] border border-slate-200 dark:border-[#352c4a] text-slate-900 dark:text-[#f8f6fc] rounded-bl-xs'}">
 									<p class="whitespace-pre-wrap wrap-break-word m-0">{msg.content}</p>
 								</div>
 							</div>
@@ -575,25 +575,25 @@
 				</div>
 
 				<!-- Quick Canned Replies -->
-				<div class="p-2 sm:p-2.5 border-t border-slate-200 dark:border-[#2c235b] bg-white dark:bg-[#161138] flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden shrink-0">
-					<span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-[#77719f] flex items-center gap-1 shrink-0 pl-1">
-						<Sparkles size={12} class="text-[#7261ef]" /> Quick Reply:
+				<div class="p-2 sm:p-2.5 border-t border-slate-200 dark:border-[#352c4a] bg-white dark:bg-[#1c1827] flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden shrink-0">
+					<span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-[#837a9c] flex items-center gap-1 shrink-0 pl-1">
+						<Sparkles size={12} class="text-[#8b5cf6]" /> Quick Reply:
 					</span>
 					{#each CANNED_REPLIES as canned}
 						{@const CannedIcon = canned.icon}
 						<button
 							type="button"
-							class="px-2.5 py-1 rounded-lg text-xs bg-slate-100 hover:bg-[#7261ef]/15 hover:text-[#7261ef] dark:bg-[#211a4e] dark:hover:bg-[#7261ef]/25 text-slate-700 dark:text-[#b2acd6] border border-slate-200 dark:border-[#2c235b] transition-all whitespace-nowrap cursor-pointer font-medium shrink-0 inline-flex items-center gap-1.5"
+							class="px-2.5 py-1 rounded-lg text-xs bg-slate-100 hover:bg-[#8b5cf6]/15 hover:text-[#8b5cf6] dark:bg-[#272138] dark:hover:bg-[#8b5cf6]/25 text-slate-700 dark:text-[#b5adc9] border border-slate-200 dark:border-[#352c4a] transition-all whitespace-nowrap cursor-pointer font-medium shrink-0 inline-flex items-center gap-1.5"
 							onclick={() => applyCannedReply(canned.text)}
 						>
-							<CannedIcon size={12} class="text-[#7261ef] shrink-0" />
+							<CannedIcon size={12} class="text-[#8b5cf6] shrink-0" />
 							<span>{canned.label}</span>
 						</button>
 					{/each}
 				</div>
 
 				<!-- Reply Input Form (Matching ChatTab legit dashboard height and layout) -->
-				<div class="p-2.5 sm:p-3.5 border-t border-slate-200 dark:border-[#2c235b] bg-white dark:bg-[#161138] shrink-0">
+				<div class="p-2.5 sm:p-3.5 border-t border-slate-200 dark:border-[#352c4a] bg-white dark:bg-[#1c1827] shrink-0">
 					<form 
 						class="flex items-center gap-2 w-full"
 						onsubmit={(e) => { e.preventDefault(); handleSendReply(); }}
@@ -603,7 +603,7 @@
 							bind:value={replyContent}
 							placeholder="Type your official Admin reply..."
 							autocomplete="off"
-							class="flex-1 h-11 px-3.5 sm:px-4 bg-slate-50 dark:bg-[#211a4e] border border-slate-300 dark:border-[#2c235b] rounded-xl text-xs sm:text-sm text-slate-900 dark:text-[#faf9fe] placeholder-slate-400 dark:placeholder-[#77719f] focus:outline-none focus:border-[#7261ef] focus:ring-1 focus:ring-[#7261ef] transition-colors"
+							class="flex-1 h-11 px-3.5 sm:px-4 bg-slate-50 dark:bg-[#272138] border border-slate-300 dark:border-[#352c4a] rounded-xl text-xs sm:text-sm text-slate-900 dark:text-[#f8f6fc] placeholder-slate-400 dark:placeholder-[#837a9c] focus:outline-none focus:border-[#8b5cf6] focus:ring-1 focus:ring-[#8b5cf6] transition-colors"
 							onkeydown={(e) => {
 								if (e.key === 'Enter') {
 									e.preventDefault();
@@ -615,7 +615,7 @@
 						<button
 							type="submit"
 							disabled={!replyContent.trim() || sendingReply}
-							class="h-11 px-4 sm:px-5 bg-[#7261ef] hover:bg-[#6251df] text-white rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md shadow-[#7261ef]/25 flex items-center justify-center gap-1.5 sm:gap-2 shrink-0 cursor-pointer disabled:opacity-50"
+							class="h-11 px-4 sm:px-5 bg-[#8b5cf6] hover:bg-[#6251df] text-white rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md shadow-[#8b5cf6]/25 flex items-center justify-center gap-1.5 sm:gap-2 shrink-0 cursor-pointer disabled:opacity-50"
 						>
 							{#if sendingReply}
 								<span class="spinner spinner-xs"></span>
@@ -628,11 +628,11 @@
 				</div>
 			{:else}
 				<!-- Empty Placeholder -->
-				<div class="h-full flex flex-col items-center justify-center text-center p-6 text-slate-400 dark:text-[#77719f] space-y-3">
-					<div class="w-16 h-16 rounded-2xl bg-[#7261ef]/10 text-[#7261ef] flex items-center justify-center shadow-inner">
+				<div class="h-full flex flex-col items-center justify-center text-center p-6 text-slate-400 dark:text-[#837a9c] space-y-3">
+					<div class="w-16 h-16 rounded-2xl bg-[#8b5cf6]/10 text-[#8b5cf6] flex items-center justify-center shadow-inner">
 						<Headset size={32} />
 					</div>
-					<h4 class="font-bold text-slate-900 dark:text-[#faf9fe] text-base mb-0.5">Select a Support Inquiry</h4>
+					<h4 class="font-bold text-slate-900 dark:text-[#f8f6fc] text-base mb-0.5">Select a Support Inquiry</h4>
 					<p class="text-xs max-w-sm leading-relaxed">
 						Click on any user ticket from the left panel to read the full inquiry thread, send admin replies, and manage issue resolution.
 					</p>
